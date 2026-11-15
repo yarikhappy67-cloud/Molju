@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -15,359 +15,96 @@
         /* 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (ЦВЕТОВЫЕ ТЕМЫ) */
         /* ========================================== */
         :root {
-            /* Тёмная тема (по умолчанию) */
-            --bg-main: #080808;
-            --bg-surface: #121212;
-            --bg-surface-light: #1c1c1e;
-            --bg-glass: rgba(18, 18, 18, 0.88);
-            --border-color: rgba(255, 255, 255, 0.08);
-            
-            --text-primary: #ffffff;
-            --text-secondary: #8e8e93;
-            --text-muted: #636366;
-            
-            --brand-red: #ff3b30;
-            --brand-red-glow: rgba(255, 59, 48, 0.4);
+            --bg-main: #080808; --bg-surface: #121212; --bg-surface-light: #1c1c1e;
+            --bg-glass: rgba(18, 18, 18, 0.88); --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff; --text-secondary: #8e8e93; --text-muted: #636366;
+            --brand-red: #ff3b30; --brand-red-glow: rgba(255, 59, 48, 0.4);
             --brand-gradient: linear-gradient(135deg, #ff3b30 0%, #b30000 100%);
-            
-            --msg-mine: linear-gradient(135deg, #ff3b30, #cc0000);
-            --msg-other: #262628;
-            --msg-bot: #1e2a38;
-            --msg-bot-border: #2d4057;
-            
-            --verified-blue: #0088cc;
-            --danger: #ff453a;
+            --msg-mine: linear-gradient(135deg, #ff3b30, #cc0000); --msg-other: #262628;
+            --msg-bot: #1e2a38; --msg-bot-border: #2d4057;
+            --verified-blue: #0088cc; --danger: #ff453a;
         }
-
-        /* Светлая тема */
         body.light-theme {
-            --bg-main: #f2f2f7;
-            --bg-surface: #ffffff;
-            --bg-surface-light: #e5e5ea;
-            --bg-glass: rgba(255, 255, 255, 0.88);
-            --border-color: rgba(0, 0, 0, 0.1);
-            
-            --text-primary: #1c1c1e;
-            --text-secondary: #636366;
-            --text-muted: #8e8e93;
-            
-            --msg-other: #e5e5ea;
-            --msg-bot: #e1f0ff;
-            --msg-bot-border: #b3d4ff;
+            --bg-main: #f2f2f7; --bg-surface: #ffffff; --bg-surface-light: #e5e5ea;
+            --bg-glass: rgba(255, 255, 255, 0.88); --border-color: rgba(0, 0, 0, 0.1);
+            --text-primary: #1c1c1e; --text-secondary: #636366; --text-muted: #8e8e93;
+            --msg-other: #e5e5ea; --msg-bot: #e1f0ff; --msg-bot-border: #b3d4ff;
         }
 
         /* ========================================== */
-        /* 2. БАЗОВЫЕ СТИЛИ И СБРОС */
+        /* 2. БАЗОВЫЕ СТИЛИ */
         /* ========================================== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
-        body {
-            height: 100vh;
-            height: 100dvh;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .app-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            max-width: 480px;
-            background-color: var(--bg-main);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body { height: 100vh; height: 100dvh; background-color: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; justify-content: center; transition: background 0.3s, color 0.3s; }
+        .app-container { position: relative; width: 100%; height: 100%; max-width: 480px; background-color: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
 
         /* ========================================== */
         /* 3. АНИМАЦИИ */
         /* ========================================== */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-        @keyframes popIn {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes storyProgress {
-            from { width: 0%; }
-            to { width: 100%; }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes storyProgress { from { width: 0%; } to { width: 100%; } }
 
         /* ========================================== */
-        /* 4. ОБЩИЕ КОМПОНЕНТЫ (КНОПКИ, ИНПУТЫ) */
+        /* 4. КОМПОНЕНТЫ */
         /* ========================================== */
-        button {
-            border: none;
-            background: none;
-            color: inherit;
-            font-family: inherit;
-            cursor: pointer;
-            outline: none;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        button:active {
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
-
-        .btn {
-            padding: 16px 24px;
-            border-radius: 16px;
-            font-weight: 600;
-            font-size: 16px;
-            width: 100%;
-        }
-        .btn-primary {
-            background: var(--brand-gradient);
-            color: #fff;
-            box-shadow: 0 4px 15px var(--brand-red-glow);
-        }
-        .btn-secondary {
-            background: var(--bg-surface-light);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-        .btn-danger {
-            background: rgba(255, 69, 58, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(255, 69, 58, 0.3);
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 16px;
-            border-radius: 16px;
-            background-color: var(--bg-surface-light);
-            border: 1.5px solid var(--border-color);
-            color: var(--text-primary);
-            font-size: 16px;
-            outline: none;
-            margin-bottom: 16px;
-            transition: border-color 0.2s;
-        }
-        .input-field:focus {
-            border-color: var(--brand-red);
-        }
-
-        .avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 600;
-            color: #fff;
-            background: var(--brand-gradient);
-            flex-shrink: 0;
-            background-size: cover;
-            background-position: center;
-        }
+        button { border: none; background: none; color: inherit; font-family: inherit; cursor: pointer; outline: none; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        button:active { transform: scale(0.95); opacity: 0.8; }
+        .btn { padding: 16px 24px; border-radius: 16px; font-weight: 600; font-size: 16px; width: 100%; }
+        .btn-primary { background: var(--brand-gradient); color: #fff; box-shadow: 0 4px 15px var(--brand-red-glow); }
+        .btn-secondary { background: var(--bg-surface-light); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .input-field { width: 100%; padding: 16px; border-radius: 16px; background-color: var(--bg-surface-light); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 16px; outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+        .input-field:focus { border-color: var(--brand-red); }
+        .avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: #fff; background: var(--brand-gradient); flex-shrink: 0; background-size: cover; background-position: center; }
         .avatar-sm { width: 36px; height: 36px; font-size: 14px; }
         .avatar-lg { width: 96px; height: 96px; font-size: 36px; }
         .verified-badge { color: var(--verified-blue); font-size: 18px; margin-left: 4px; }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+        .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
 
         /* ========================================== */
-        /* 5. ЭКРАНЫ И НАВИГАЦИЯ */
+        /* 5. ЭКРАНЫ */
         /* ========================================== */
-        .screen {
-            position: absolute;
-            inset: 0;
-            display: none;
-            flex-direction: column;
-            background-color: var(--bg-main);
-            z-index: 10;
-        }
-        .screen.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        /* Экран входа */
-        #screen-auth {
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-        .auth-box {
-            width: 100%;
-            max-width: 340px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .logo {
-            font-size: 56px;
-            font-weight: 800;
-            background: var(--brand-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 24px;
-        }
-        .auth-step {
-            width: 100%;
-            display: none;
-            flex-direction: column;
-            animation: fadeIn 0.3s ease;
-        }
+        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background-color: var(--bg-main); z-index: 10; }
+        .screen.active { display: flex; animation: fadeIn 0.3s ease; }
+        #screen-auth { align-items: center; justify-content: center; padding: 24px; }
+        .auth-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; align-items: center; }
+        .logo { font-size: 56px; font-weight: 800; background: var(--brand-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; }
+        .auth-step { width: 100%; display: none; flex-direction: column; animation: fadeIn 0.3s ease; }
         .auth-step.active { display: flex; }
-
-        /* Шапка */
-        .app-header {
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--bg-glass);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 20;
-        }
+        .app-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); z-index: 20; }
         .header-title { font-size: 22px; font-weight: 700; }
-        .icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--bg-surface-light);
-            font-size: 20px;
-        }
-
-        /* Контент */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 16px 100px 16px;
-        }
-        .tab-pane { display: none; }
-        .tab-pane.active { display: block; animation: fadeIn 0.3s; }
-
-        /* Нижняя панель */
-        .bottom-nav {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
-            background-color: var(--bg-glass);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border-color);
-            z-index: 30;
-        }
-        .nav-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-secondary);
-            font-size: 11px;
-            width: 70px;
-        }
-        .nav-btn.active { color: var(--brand-red); }
-        .nav-btn i { font-size: 24px; }
-
-        /* Поиск и списки */
-        .search-bar {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            background-color: var(--bg-surface-light);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 16px 0;
-        }
-        .search-bar input {
-            background: none; border: none; color: var(--text-primary);
-            width: 100%; outline: none; font-size: 15px;
-        }
-
-        .list-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 12px; border-radius: 20px; cursor: pointer;
-        }
+        .icon-btn { width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-surface-light); font-size: 20px; }
+        .main-content { flex: 1; overflow-y: auto; padding: 0 16px 100px 16px; }
+        .tab-pane { display: none; } .tab-pane.active { display: block; animation: fadeIn 0.3s; }
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background-color: var(--bg-glass); backdrop-filter: blur(20px); border-top: 1px solid var(--border-color); z-index: 30; }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 11px; width: 70px; }
+        .nav-btn.active { color: var(--brand-red); } .nav-btn i { font-size: 24px; }
+        .search-bar { width: 100%; padding: 12px 16px; border-radius: 16px; background-color: var(--bg-surface-light); display: flex; align-items: center; gap: 10px; margin: 16px 0; }
+        .search-bar input { background: none; border: none; color: var(--text-primary); width: 100%; outline: none; font-size: 15px; }
+        .list-item { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 20px; cursor: pointer; }
         .list-item:active { background-color: var(--bg-surface-light); }
         .list-info { flex: 1; min-width: 0; }
         .list-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
         .list-subtitle { font-size: 14px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* ========================================== */
-        /* 6. ЭКРАН ЧАТА */
-        /* ========================================== */
-        .chat-header {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; background-color: var(--bg-glass);
-            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); z-index: 20;
-        }
+        /* ЧАТ */
+        .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background-color: var(--bg-glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); z-index: 20; }
         .chat-back-btn { font-size: 24px; padding: 8px; margin-left: -8px; }
         .chat-header-name { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
         .chat-header-status { font-size: 12px; color: var(--text-secondary); }
-
-        .messages-area {
-            flex: 1; overflow-y: auto; padding: 20px 16px;
-            display: flex; flex-direction: column; gap: 12px;
-        }
-        .message {
-            max-width: 80%; padding: 12px 16px; border-radius: 18px;
-            font-size: 15px; position: relative; animation: popIn 0.2s ease;
-            word-break: break-word; display: flex; flex-direction: column;
-        }
+        .messages-area { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
+        .message { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 15px; position: relative; animation: popIn 0.2s ease; word-break: break-word; display: flex; flex-direction: column; }
         .message.incoming { align-self: flex-start; background: var(--msg-other); border-bottom-left-radius: 4px; }
         .message.outgoing { align-self: flex-end; background: var(--msg-mine); color: #fff; border-bottom-right-radius: 4px; }
         .message.bot { align-self: flex-start; background: var(--msg-bot); border: 1px solid var(--msg-bot-border); border-bottom-left-radius: 4px; }
         .message-time { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 4px; }
+        .chat-input-area { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background-color: var(--bg-glass); backdrop-filter: blur(20px); border-top: 1px solid var(--border-color); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
+        .chat-input-area input { flex: 1; background-color: var(--bg-surface-light); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: 24px; color: var(--text-primary); outline: none; }
+        .send-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--brand-gradient); color: #fff; font-size: 24px; flex-shrink: 0; }
 
-        .chat-input-area {
-            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-            background-color: var(--bg-glass); backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border-color);
-            display: flex; gap: 10px; align-items: flex-end; z-index: 20;
-        }
-        .chat-input-area input {
-            flex: 1; background-color: var(--bg-surface-light); border: 1px solid var(--border-color);
-            padding: 14px 18px; border-radius: 24px; color: var(--text-primary); outline: none;
-        }
-        .send-btn {
-            width: 48px; height: 48px; border-radius: 50%;
-            background: var(--brand-gradient); color: #fff; font-size: 24px; flex-shrink: 0;
-        }
-
-        /* ========================================== */
-        /* 7. ИСТОРИИ */
-        /* ========================================== */
+        /* ИСТОРИИ */
         .stories-row { display: flex; gap: 16px; overflow-x: auto; padding: 16px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 16px; }
         .stories-row::-webkit-scrollbar { display: none; }
         .story-item { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 68px; cursor: pointer; }
@@ -375,7 +112,6 @@
         .story-circle.add { border: 2px dashed var(--text-secondary); color: var(--text-secondary); }
         .story-circle.has-story { border: 2px solid var(--brand-red); }
         .story-name { font-size: 12px; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; justify-content: center; align-items: center; }
-
         #story-viewer { position: absolute; inset: 0; background: #000; z-index: 100; display: none; flex-direction: column; }
         #story-viewer.active { display: flex; }
         .story-progress { position: absolute; top: 10px; left: 10px; right: 10px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; z-index: 20; }
@@ -387,22 +123,21 @@
         .story-tap-areas { position: absolute; inset: 0; display: flex; z-index: 15; }
         .story-tap-areas div { flex: 1; height: 100%; }
 
-        /* ========================================== */
-        /* 8. МОДАЛКИ И УВЕДОМЛЕНИЯ */
-        /* ========================================== */
+        /* МОДАЛКИ */
         .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); display: none; align-items: flex-end; z-index: 50; }
         .modal-overlay.active { display: flex; }
         .modal-content { width: 100%; background-color: var(--bg-surface); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-
         .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-color); cursor: pointer; }
         .setting-text { flex: 1; font-size: 16px; margin-left: 12px; }
-
         #toast-container { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 1000; pointer-events: none; }
         .toast { background-color: var(--bg-surface-light); color: var(--text-primary); padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-color); animation: popIn 0.2s ease; }
     </style>
 </head>
 <body>
+
+<!-- Плашка для ошибок, чтобы не было черного экрана -->
+<div id="error-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:red; color:white; padding:10px; z-index:99999; font-size:12px; word-wrap:break-word;"></div>
 
 <div class="app-container">
     <div id="toast-container"></div>
@@ -412,20 +147,17 @@
         <div class="auth-box">
             <div class="logo">Molju</div>
             
-            <!-- Шаг 1: Ввод Email -->
             <div class="auth-step active" id="step-email">
                 <input type="email" id="input-email" class="input-field" placeholder="Ваш Email">
                 <button class="btn btn-primary" id="btn-send-code">Получить код</button>
             </div>
 
-            <!-- Шаг 2: Ввод кода -->
             <div class="auth-step" id="step-otp">
                 <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">Код отправлен на <b id="display-email"></b></p>
                 <input type="text" id="input-otp" class="input-field" placeholder="000000" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 5px;">
                 <button class="btn btn-primary" id="btn-verify-otp">Войти</button>
             </div>
 
-            <!-- Шаг 3: Создание профиля -->
             <div class="auth-step" id="step-profile">
                 <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">Придумайте профиль</p>
                 <input type="text" id="input-username" class="input-field" placeholder="@username">
@@ -443,7 +175,6 @@
         </header>
 
         <main class="main-content">
-            <!-- ЧАТЫ -->
             <div id="tab-chats" class="tab-pane active">
                 <div class="stories-row" id="stories-container"></div>
                 <div class="search-bar">
@@ -453,7 +184,6 @@
                 <div class="chat-list" id="chat-list-container"></div>
             </div>
 
-            <!-- НАСТРОЙКИ -->
             <div id="tab-settings" class="tab-pane">
                 <div class="setting-item" onclick="toggleTheme()">
                     <div style="display: flex; align-items: center;">
@@ -470,13 +200,12 @@
                 </div>
             </div>
 
-            <!-- ПРОФИЛЬ -->
             <div id="tab-profile" class="tab-pane">
                 <div style="display: flex; flex-direction: column; align-items: center; margin-top: 40px;">
                     <div class="avatar avatar-lg" id="profile-avatar"></div>
                     <div style="font-size: 24px; font-weight: 700; margin-top: 16px; display: flex; align-items: center;" id="profile-name">Имя</div>
                     <div style="color: var(--text-secondary); margin-top: 4px;" id="profile-username">@username</div>
-                    <button class="btn btn-secondary" style="margin-top: 40px; color: var(--danger); background: rgba(255,69,58,0.1); border: none;" id="btn-logout">Выйти из аккаунта</button>
+                    <button class="btn btn-secondary" style="margin-top: 40px; color: var(--danger);" id="btn-logout">Выйти из аккаунта</button>
                 </div>
             </div>
         </main>
@@ -491,7 +220,7 @@
     <!-- ЭКРАН 3: ЧАТ -->
     <div id="screen-chat" class="screen">
         <header class="chat-header">
-            <button class="chat-back-btn" onclick="closeChat()"><i class="ph ph-caret-left"></i></button>
+            <button class="chat-back-btn" id="btn-back-chat"><i class="ph ph-caret-left"></i></button>
             <div class="avatar avatar-sm" id="chat-header-avatar"></div>
             <div style="flex: 1;">
                 <div class="chat-header-name" id="chat-header-name"></div>
@@ -505,7 +234,7 @@
         </div>
     </div>
 
-    <!-- ПРОСМОТР ИСТОРИЙ -->
+    <!-- ИСТОРИИ -->
     <div id="story-viewer">
         <div class="story-progress"><div class="story-progress-bar" id="story-progress-bar"></div></div>
         <div class="story-header">
@@ -537,7 +266,7 @@
         <div class="modal-content">
             <div class="modal-title">Приватность</div>
             <div class="setting-item">
-                <div class="setting-text">Показывать статус «Онлайн»</div>
+                <div class="setting-text">Показывать «Онлайн»</div>
                 <input type="checkbox" id="toggle-online" style="width: 20px; height: 20px; accent-color: var(--brand-red);" onchange="savePrivacy()">
             </div>
         </div>
@@ -560,523 +289,316 @@
 </div>
 
 <!-- ========================================== -->
-<!-- JAVASCRIPT ЛОГИКА (МОДУЛЬНАЯ) -->
+<!-- JAVASCRIPT (Обернут в DOMContentLoaded) -->
 <!-- ========================================== -->
 <script>
-    // Глобальный объект состояния для удобства
-    const AppState = {
-        user: null,
-        profile: null,
-        currentChatId: null,
-        loginEmail: '',
-        currentStoryFile: null,
-        currentStoryType: 'image',
-        activeStories: [],
-        storyIndex: 0,
-        storyTimer: null,
-        realtimeChannel: null,
-        presenceChannel: null
-    };
-
-    // Конфигурация Supabase
-    const SUPABASE_URL = 'https://dhmqbjfzkrmsbrwzenna.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: { detectSessionInUrl: true, persistSession: true }
+    // Отлов ошибок на экране
+    window.addEventListener('error', function(e) {
+        const banner = document.getElementById('error-banner');
+        banner.style.display = 'block';
+        banner.textContent = 'Ошибка JS: ' + e.message + ' (строка ' + e.lineno + ')';
     });
 
-    // ==========================================
-    // 1. УТИЛИТЫ И ИНТЕРФЕЙС
-    // ==========================================
-    
-    // Показ уведомления
-    window.showToast = function(message) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = message;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    };
-
-    // Переключение экранов
-    window.showScreen = function(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-    };
-
-    // Переключение шагов авторизации
-    window.showAuthStep = function(stepId) {
-        document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-        document.getElementById(stepId).classList.add('active');
-    };
-
-    // Переключение вкладок
-    window.switchTab = function(tabName, element) {
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        element.classList.add('active');
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        document.getElementById('tab-' + tabName).classList.add('active');
+    document.addEventListener('DOMContentLoaded', () => {
         
-        const titles = { chats: 'Molju', settings: 'Настройки', profile: 'Профиль' };
-        document.getElementById('main-title').textContent = titles[tabName];
-    };
-
-    // Модалки
-    window.openModal = function(id) { document.getElementById(id).classList.add('active'); };
-    window.closeModal = function(id, event) { if (event && event.target !== document.getElementById(id)) return; document.getElementById(id).classList.remove('active'); };
-    
-    // Тема
-    window.toggleTheme = function() {
-        document.body.classList.toggle('light-theme');
-        const isLight = document.body.classList.contains('light-theme');
-        localStorage.setItem('molju_theme', isLight ? 'light' : 'dark');
-        document.getElementById('theme-toggle').checked = !isLight;
-    };
-
-    // Форматирование времени
-    function getTime(dateString) {
-        return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    // ==========================================
-    // 2. АВТОРИЗАЦИЯ
-    // ==========================================
-    
-    document.getElementById('btn-send-code').addEventListener('click', async function() {
-        const email = document.getElementById('input-email').value.trim();
-        if (!email) return showToast('Введите Email');
+        // Конфигурация
+        const SUPABASE_URL = 'https://dhmqbjfzkrmsbrwzenna.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
         
-        AppState.loginEmail = email;
-        this.innerHTML = '<div class="spinner"></div>';
-        this.disabled = true;
-
-        const { error } = await supabase.auth.signInWithOtp({ email: email });
-        
-        this.innerHTML = 'Получить код';
-        this.disabled = false;
-
-        if (error) return showToast(error.message);
-
-        document.getElementById('display-email').textContent = email;
-        showAuthStep('step-otp');
-    });
-
-    document.getElementById('btn-verify-otp').addEventListener('click', async function() {
-        const code = document.getElementById('input-otp').value.trim();
-        if (code.length < 6) return showToast('Введите 6-значный код');
-        
-        this.innerHTML = '<div class="spinner"></div>';
-        this.disabled = true;
-
-        const { error } = await supabase.auth.verifyOtp({ email: AppState.loginEmail, token: code, type: 'email' });
-        
-        this.innerHTML = 'Войти';
-        this.disabled = false;
-
-        if (error) showToast(error.message);
-    });
-
-    // Слушатель входа
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-            AppState.user = session.user;
-            await checkUserProfile();
-        } else if (event === 'SIGNED_OUT') {
-            AppState.user = null;
-            showScreen('screen-auth');
+        if (!window.supabase) {
+            alert('Ошибка загрузки библиотеки Supabase. Проверьте интернет.');
+            return;
         }
-    });
 
-    async function checkUserProfile() {
-        const { data } = await supabase.from('profiles').select('*').eq('id', AppState.user.id).single();
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: { detectSessionInUrl: true, persistSession: true }
+        });
 
-        if (data && data.username) {
-            AppState.profile = data;
-            document.getElementById('profile-name').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : ''}`;
-            document.getElementById('profile-username').textContent = '@' + data.username;
-            document.getElementById('toggle-online').checked = data.show_online !== false;
-            
-            if (data.avatar_url) {
-                document.getElementById('profile-avatar').style.backgroundImage = `url('${data.avatar_url}')`;
+        // Состояние
+        const AppState = { user: null, profile: null, currentChatId: null, loginEmail: '', currentStoryFile: null, currentStoryType: 'image', activeStories: [], storyIndex: 0, storyTimer: null };
+
+        // Утилиты
+        window.showToast = (message) => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast'; toast.innerHTML = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+
+        window.showScreen = (screenId) => {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        };
+
+        window.showAuthStep = (stepId) => {
+            document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        };
+
+        window.switchTab = (tabName, element) => {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            const titles = { chats: 'Molju', settings: 'Настройки', profile: 'Профиль' };
+            document.getElementById('main-title').textContent = titles[tabName];
+        };
+
+        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.closeModal = (id, event) => { if (event && event.target !== document.getElementById(id)) return; document.getElementById(id).classList.remove('active'); };
+        
+        window.toggleTheme = () => {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('molju_theme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-toggle').checked = !isLight;
+        };
+
+        const getTime = (dateString) => new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // ================= АВТОРИЗАЦИЯ =================
+        document.getElementById('btn-send-code').addEventListener('click', async function() {
+            const email = document.getElementById('input-email').value.trim();
+            if (!email) return showToast('Введите Email');
+            AppState.loginEmail = email;
+            this.innerHTML = '<div class="spinner"></div>'; this.disabled = true;
+
+            const { error } = await supabase.auth.signInWithOtp({ email: email });
+            this.innerHTML = 'Получить код'; this.disabled = false;
+
+            if (error) return showToast(error.message);
+            document.getElementById('display-email').textContent = email;
+            showAuthStep('step-otp');
+        });
+
+        document.getElementById('btn-verify-otp').addEventListener('click', async function() {
+            const code = document.getElementById('input-otp').value.trim();
+            if (code.length < 6) return showToast('Введите 6-значный код');
+            this.innerHTML = '<div class="spinner"></div>'; this.disabled = true;
+
+            const { error } = await supabase.auth.verifyOtp({ email: AppState.loginEmail, token: code, type: 'email' });
+            this.innerHTML = 'Войти'; this.disabled = false;
+
+            if (error) showToast(error.message);
+        });
+
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                AppState.user = session.user;
+                await checkUserProfile();
+            } else if (event === 'SIGNED_OUT') {
+                AppState.user = null;
+                showScreen('screen-auth');
             }
-
-            showScreen('screen-main');
-            loadChats();
-            loadStories();
-        } else {
-            showAuthStep('step-profile');
-        }
-    }
-
-    // Сохранение профиля
-    document.getElementById('btn-save-profile').addEventListener('click', async function() {
-        const username = document.getElementById('input-username').value.trim().replace(/[^a-z0-9_]/g, '');
-        const name = document.getElementById('input-name').value.trim();
-
-        if (username.length < 3) return showToast('Юзернейм от 3 символов');
-        if (!name) return showToast('Введите имя');
-
-        this.innerHTML = '<div class="spinner"></div>';
-        this.disabled = true;
-
-        const { error } = await supabase.from('profiles').insert({
-            id: AppState.user.id,
-            username: username,
-            name: name
         });
 
-        this.innerHTML = 'Создать аккаунт';
-        this.disabled = false;
-
-        if (error) {
-            showToast(error.code === '23505' ? 'Этот юзернейм уже занят' : error.message);
-        } else {
-            await checkUserProfile();
+        async function checkUserProfile() {
+            const { data } = await supabase.from('profiles').select('*').eq('id', AppState.user.id).single();
+            if (data && data.username) {
+                AppState.profile = data;
+                document.getElementById('profile-name').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : ''}`;
+                document.getElementById('profile-username').textContent = '@' + data.username;
+                document.getElementById('toggle-online').checked = data.show_online !== false;
+                if (data.avatar_url) document.getElementById('profile-avatar').style.backgroundImage = `url('${data.avatar_url}')`;
+                
+                showScreen('screen-main');
+                loadChats();
+                loadStories();
+            } else {
+                showAuthStep('step-profile');
+            }
         }
-    });
 
-    document.getElementById('btn-logout').addEventListener('click', async () => {
-        await supabase.auth.signOut();
-        location.reload();
-    });
+        document.getElementById('btn-save-profile').addEventListener('click', async function() {
+            const username = document.getElementById('input-username').value.trim().replace(/[^a-z0-9_]/g, '');
+            const name = document.getElementById('input-name').value.trim();
+            if (username.length < 3) return showToast('Юзернейм от 3 символов');
+            if (!name) return showToast('Введите имя');
 
-    // ==========================================
-    // 3. ЧАТЫ
-    // ==========================================
-    
-    async function loadChats() {
-        const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', AppState.user.id);
-        const container = document.getElementById('chat-list-container');
-        container.innerHTML = '';
+            this.innerHTML = '<div class="spinner"></div>'; this.disabled = true;
+            const { error } = await supabase.from('profiles').insert({ id: AppState.user.id, username: username, name: name });
+            this.innerHTML = 'Создать аккаунт'; this.disabled = false;
 
-        // Чат с ботом (виртуальный)
-        const botEl = document.createElement('div');
-        botEl.className = 'list-item';
-        botEl.innerHTML = `
-            <div class="avatar" style="background: var(--msg-bot); color: var(--verified-blue);"><i class="ph-fill ph-robot"></i></div>
-            <div class="list-info">
-                <div class="list-title">Molju Code <i class="ph-fill ph-seal-check verified-badge"></i></div>
-                <div class="list-subtitle">Служебные уведомления</div>
-            </div>`;
-        botEl.onclick = () => openBotChat();
-        container.appendChild(botEl);
-
-        if (!data || data.length === 0) return;
-
-        data.forEach(item => {
-            const chat = item.chats;
-            if (!chat) return;
-            
-            const el = document.createElement('div');
-            el.className = 'list-item';
-            el.innerHTML = `
-                <div class="avatar">${chat.name[0].toUpperCase()}</div>
-                <div class="list-info">
-                    <div class="list-title">${chat.name}</div>
-                </div>`;
-            el.onclick = () => openChatRoom(chat.id, chat.name);
-            container.appendChild(el);
+            if (error) showToast(error.code === '23505' ? 'Этот юзернейм уже занят' : error.message);
+            else await checkUserProfile();
         });
-    }
 
-    window.openBotChat = async function() {
-        document.getElementById('chat-header-name').innerHTML = 'Molju Code <i class="ph-fill ph-seal-check verified-badge"></i>';
-        showScreen('screen-chat');
-        
-        const container = document.getElementById('messages-container');
-        container.innerHTML = '';
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            location.reload();
+        });
 
-        const { data } = await supabase.from('bot_messages').select('*').eq('user_id', AppState.user.id).order('created_at', { ascending: true });
-        
-        if (data) {
-            data.forEach(msg => {
-                container.innerHTML += `
-                    <div class="message bot">
-                        ${msg.text.replace(/\n/g, '<br>')}
-                        <span class="message-time">${getTime(msg.created_at)}</span>
-                    </div>`;
+        // ================= ЧАТЫ =================
+        async function loadChats() {
+            const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', AppState.user.id);
+            const container = document.getElementById('chat-list-container');
+            container.innerHTML = '';
+
+            const botEl = document.createElement('div');
+            botEl.className = 'list-item';
+            botEl.innerHTML = `<div class="avatar" style="background: var(--msg-bot); color: var(--verified-blue);"><i class="ph-fill ph-robot"></i></div><div class="list-info"><div class="list-title">Molju Code <i class="ph-fill ph-seal-check verified-badge"></i></div><div class="list-subtitle">Служебные уведомления</div></div>`;
+            botEl.onclick = () => openBotChat();
+            container.appendChild(botEl);
+
+            if (!data) return;
+            data.forEach(item => {
+                const chat = item.chats; if (!chat) return;
+                const el = document.createElement('div');
+                el.className = 'list-item';
+                el.innerHTML = `<div class="avatar">${chat.name[0].toUpperCase()}</div><div class="list-info"><div class="list-title">${chat.name}</div></div>`;
+                el.onclick = () => openChatRoom(chat.id, chat.name);
+                container.appendChild(el);
             });
+        }
+
+        window.openBotChat = async function() {
+            document.getElementById('chat-header-name').innerHTML = 'Molju Code <i class="ph-fill ph-seal-check verified-badge"></i>';
+            showScreen('screen-chat');
+            const container = document.getElementById('messages-container'); container.innerHTML = '';
+            const { data } = await supabase.from('bot_messages').select('*').eq('user_id', AppState.user.id).order('created_at', { ascending: true });
+            if (data) {
+                data.forEach(msg => { container.innerHTML += `<div class="message bot">${msg.text.replace(/\n/g, '<br>')}<span class="message-time">${getTime(msg.created_at)}</span></div>`; });
+                container.scrollTop = container.scrollHeight;
+            }
+        };
+
+        async function openChatRoom(chatId, name) {
+            AppState.currentChatId = chatId;
+            document.getElementById('chat-header-name').textContent = name;
+            showScreen('screen-chat');
+            const container = document.getElementById('messages-container'); container.innerHTML = '';
+            const { data } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
+            if (data) data.forEach(msg => appendMessageToUI(msg));
+        }
+
+        function appendMessageToUI(msg) {
+            const container = document.getElementById('messages-container');
+            const isMine = msg.sender_id === AppState.user.id;
+            let content = msg.file_url ? (msg.file_url.startsWith('data:video') ? `<video src="${msg.file_url}" controls style="max-width:100%;border-radius:10px;margin-bottom:6px;"></video>` : `<img src="${msg.file_url}" style="max-width:100%;border-radius:10px;margin-bottom:6px;">`) : '';
+            content += `<span>${msg.text}</span><span class="message-time">${getTime(msg.created_at)} ${isMine ? '✓✓' : ''}</span>`;
+            container.innerHTML += `<div class="message ${isMine ? 'outgoing' : 'incoming'}">${content}</div>`;
             container.scrollTop = container.scrollHeight;
         }
-    };
 
-    async function openChatRoom(chatId, name) {
-        AppState.currentChatId = chatId;
-        document.getElementById('chat-header-name').textContent = name;
-        showScreen('screen-chat');
-
-        const container = document.getElementById('messages-container');
-        container.innerHTML = '';
-
-        const { data } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
-
-        if (data) {
-            data.forEach(msg => appendMessageToUI(msg));
-        }
-    }
-
-    function appendMessageToUI(msg) {
-        const container = document.getElementById('messages-container');
-        const isMine = msg.sender_id === AppState.user.id;
-        
-        let content = '';
-        if (msg.file_url) {
-            content += msg.file_url.startsWith('data:video') 
-                ? `<video src="${msg.file_url}" controls class="msg-img" style="max-width:100%; border-radius:10px; margin-bottom:6px;"></video>` 
-                : `<img src="${msg.file_url}" class="msg-img" style="max-width:100%; border-radius:10px; margin-bottom:6px;">`;
-        }
-        content += `<span>${msg.text}</span>`;
-        content += `<span class="message-time">${getTime(msg.created_at)} ${isMine ? '✓✓' : ''}</span>`;
-
-        container.innerHTML += `<div class="message ${isMine ? 'outgoing' : 'incoming'}">${content}</div>`;
-        container.scrollTop = container.scrollHeight;
-    }
-
-    window.closeChat = function() {
-        AppState.currentChatId = null;
-        showScreen('screen-main');
-        loadChats();
-    };
-
-    document.getElementById('btn-send-message').addEventListener('click', async () => {
-        const input = document.getElementById('input-message');
-        const text = input.value.trim();
-        if (!text || !AppState.currentChatId) return;
-
-        input.value = '';
-        
-        const { data } = await supabase.from('messages').insert({
-            chat_id: AppState.currentChatId,
-            sender_id: AppState.user.id,
-            text: text
-        }).select().single();
-
-        if (data) appendMessageToUI(data);
-    });
-
-    document.getElementById('input-message').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') document.getElementById('btn-send-message').click();
-    });
-
-    // ==========================================
-    // 4. ПОИСК И ПРИГЛАШЕНИЯ
-    // ==========================================
-    
-    document.getElementById('btn-do-search').addEventListener('click', async function() {
-        const query = document.getElementById('search-input').value.trim();
-        if (!query) return;
-
-        this.innerHTML = '<div class="spinner"></div>';
-        this.disabled = true;
-
-        const { data: foundUser } = await supabase.from('profiles')
-            .select('*')
-            .or(`username.eq.${query.replace('@', '')},phone.eq.${query}`)
-            .maybeSingle();
-
-        this.innerHTML = 'Найти';
-        this.disabled = false;
-        closeModal('modal-search');
-
-        if (foundUser) {
-            const { data: newChat } = await supabase.from('chats').insert({ type: 'user', name: foundUser.name, owner_id: AppState.user.id }).select().single();
-            await supabase.from('chat_members').insert([
-                { chat_id: newChat.id, user_id: AppState.user.id },
-                { chat_id: newChat.id, user_id: foundUser.id }
-            ]);
+        document.getElementById('btn-back-chat').addEventListener('click', () => {
+            AppState.currentChatId = null;
+            showScreen('screen-main');
             loadChats();
-            openChatRoom(newChat.id, newChat.name);
-        } else {
-            const inviteLink = `https://yarikhappy67-cloud.github.io/Molju/?invite=${btoa(query)}`;
-            if (navigator.share) {
-                navigator.share({ title: 'Molju', url: inviteLink });
-            } else {
-                navigator.clipboard.writeText(inviteLink);
-                showToast('Ссылка-приглашение скопирована!');
-            }
-        }
-    });
-
-    // ==========================================
-    // 5. ИСТОРИИ
-    // ==========================================
-    
-    async function loadStories() {
-        const container = document.getElementById('stories-container');
-        container.innerHTML = `
-            <div class="story-item" onclick="openModal('modal-add-story')">
-                <div class="story-circle add"><i class="ph ph-plus"></i></div>
-                <div class="story-name">Добавить</div>
-            </div>`;
-
-        const { data } = await supabase.from('stories').select('*, profiles(username, avatar_url, is_verified)').order('created_at', { ascending: true });
-        if (!data) return;
-
-        const now = Date.now();
-        const grouped = {};
-
-        data.forEach(story => {
-            const hoursDiff = (now - new Date(story.created_at).getTime()) / (1000 * 60 * 60);
-            if (hoursDiff > 48) return; // Фильтр 48 часов
-
-            if (!grouped[story.user_id]) grouped[story.user_id] = [];
-            grouped[story.user_id].push(story);
         });
 
-        for (const uid in grouped) {
-            const stories = grouped[uid];
-            const latest = stories[stories.length - 1];
-            
-            const el = document.createElement('div');
-            el.className = 'story-item';
-            el.onclick = () => openStoryViewer(stories, 0);
+        document.getElementById('btn-send-message').addEventListener('click', async () => {
+            const input = document.getElementById('input-message');
+            const text = input.value.trim();
+            if (!text || !AppState.currentChatId) return;
+            input.value = '';
+            const { data } = await supabase.from('messages').insert({ chat_id: AppState.currentChatId, sender_id: AppState.user.id, text: text }).select().single();
+            if (data) appendMessageToUI(data);
+        });
 
-            const avatar = latest.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${latest.profiles?.username}&background=ff3b30&color=fff`;
-            const badge = latest.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : '';
+        document.getElementById('input-message').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('btn-send-message').click(); });
 
-            el.innerHTML = `
-                <div class="story-circle has-story" style="background-image: url('${avatar}')"></div>
-                <div class="story-name">${uid === AppState.user.id ? 'Моя' : latest.profiles?.username} ${badge}</div>`;
-            container.appendChild(el);
-        }
-    }
+        // ================= ПОИСК =================
+        document.getElementById('btn-do-search').addEventListener('click', async function() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
+            this.innerHTML = '<div class="spinner"></div>'; this.disabled = true;
+            const { data: foundUser } = await supabase.from('profiles').select('*').or(`username.eq.${query.replace('@', '')},phone.eq.${query}`).maybeSingle();
+            this.innerHTML = 'Найти'; this.disabled = false;
+            closeModal('modal-search');
 
-    window.openStoryViewer = function(stories, index) {
-        AppState.activeStories = stories;
-        AppState.storyIndex = index;
-        document.getElementById('story-viewer').classList.add('active');
-        renderStory();
-    };
-
-    function renderStory() {
-        const story = AppState.activeStories[AppState.storyIndex];
-        if (!story) return closeStory();
-
-        document.getElementById('story-name').innerHTML = `
-            ${story.profiles?.username} 
-            ${story.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge" style="color:#fff;"></i>' : ''}`;
-        document.getElementById('story-avatar').style.backgroundImage = `url('${story.profiles?.avatar_url || ''}')`;
-
-        const img = document.getElementById('story-img');
-        const vid = document.getElementById('story-video');
-        img.style.display = 'none';
-        vid.style.display = 'none';
-        vid.pause();
-
-        if (story.media_url) {
-            if (story.media_type === 'video') {
-                vid.src = story.media_url;
-                vid.style.display = 'block';
-                vid.play();
+            if (foundUser) {
+                const { data: newChat } = await supabase.from('chats').insert({ type: 'user', name: foundUser.name, owner_id: AppState.user.id }).select().single();
+                await supabase.from('chat_members').insert([{ chat_id: newChat.id, user_id: AppState.user.id }, { chat_id: newChat.id, user_id: foundUser.id }]);
+                loadChats(); openChatRoom(newChat.id, newChat.name);
             } else {
-                img.src = story.media_url;
-                img.style.display = 'block';
+                const inviteLink = `https://yarikhappy67-cloud.github.io/Molju/?invite=${btoa(query)}`;
+                if (navigator.share) navigator.share({ title: 'Molju', url: inviteLink });
+                else { navigator.clipboard.writeText(inviteLink); showToast('Ссылка-приглашение скопирована!'); }
+            }
+        });
+
+        // ================= ИСТОРИИ =================
+        async function loadStories() {
+            const container = document.getElementById('stories-container');
+            container.innerHTML = `<div class="story-item" onclick="openModal('modal-add-story')"><div class="story-circle add"><i class="ph ph-plus"></i></div><div class="story-name">Добавить</div></div>`;
+            const { data } = await supabase.from('stories').select('*, profiles(username, avatar_url, is_verified)').order('created_at', { ascending: true });
+            if (!data) return;
+            const now = Date.now(); const grouped = {};
+            data.forEach(story => {
+                if ((now - new Date(story.created_at).getTime()) / 36e5 > 48) return;
+                if (!grouped[story.user_id]) grouped[story.user_id] = [];
+                grouped[story.user_id].push(story);
+            });
+            for (const uid in grouped) {
+                const stories = grouped[uid]; const latest = stories[stories.length - 1];
+                const el = document.createElement('div'); el.className = 'story-item'; el.onclick = () => openStoryViewer(stories, 0);
+                const avatar = latest.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${latest.profiles?.username}&background=ff3b30&color=fff`;
+                const badge = latest.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : '';
+                el.innerHTML = `<div class="story-circle has-story" style="background-image: url('${avatar}')"></div><div class="story-name">${uid === AppState.user.id ? 'Моя' : latest.profiles?.username} ${badge}</div>`;
+                container.appendChild(el);
             }
         }
 
-        const textEl = document.getElementById('story-text-display');
-        textEl.textContent = story.text || '';
-        textEl.style.display = story.text ? 'block' : 'none';
+        window.openStoryViewer = function(stories, index) { AppState.activeStories = stories; AppState.storyIndex = index; document.getElementById('story-viewer').classList.add('active'); renderStory(); };
 
-        const bar = document.getElementById('story-progress-bar');
-        bar.style.animation = 'none';
-        bar.offsetHeight; // trigger reflow
-        bar.style.animation = 'storyProgress 10s linear forwards';
-
-        clearTimeout(AppState.storyTimer);
-        AppState.storyTimer = setTimeout(() => nextStory(), 10000);
-    }
-
-    window.closeStory = function() {
-        document.getElementById('story-viewer').classList.remove('active');
-        document.getElementById('story-video').pause();
-        clearTimeout(AppState.storyTimer);
-        loadStories();
-    };
-
-    window.nextStory = function() {
-        AppState.storyIndex++;
-        if (AppState.storyIndex >= AppState.activeStories.length) closeStory();
-        else renderStory();
-    };
-
-    window.prevStory = function() {
-        if (AppState.storyIndex > 0) {
-            AppState.storyIndex--;
-            renderStory();
+        function renderStory() {
+            const story = AppState.activeStories[AppState.storyIndex];
+            if (!story) return closeStory();
+            document.getElementById('story-name').innerHTML = `${story.profiles?.username} ${story.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge" style="color:#fff;"></i>' : ''}`;
+            document.getElementById('story-avatar').style.backgroundImage = `url('${story.profiles?.avatar_url || ''}')`;
+            const img = document.getElementById('story-img'), vid = document.getElementById('story-video');
+            img.style.display = 'none'; vid.style.display = 'none'; vid.pause();
+            if (story.media_url) {
+                if (story.media_type === 'video') { vid.src = story.media_url; vid.style.display = 'block'; vid.play(); }
+                else { img.src = story.media_url; img.style.display = 'block'; }
+            }
+            document.getElementById('story-text-display').textContent = story.text || '';
+            document.getElementById('story-text-display').style.display = story.text ? 'block' : 'none';
+            const bar = document.getElementById('story-progress-bar');
+            bar.style.animation = 'none'; bar.offsetHeight; bar.style.animation = 'storyProgress 10s linear forwards';
+            clearTimeout(AppState.storyTimer);
+            AppState.storyTimer = setTimeout(() => nextStory(), 10000);
         }
-    };
 
-    document.getElementById('story-file-input').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        AppState.currentStoryType = file.type.startsWith('video') ? 'video' : 'image';
-        
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            AppState.currentStoryFile = ev.target.result;
-            document.getElementById('story-file-btn').textContent = 'Файл выбран ✓';
+        window.closeStory = function() { document.getElementById('story-viewer').classList.remove('active'); document.getElementById('story-video').pause(); clearTimeout(AppState.storyTimer); loadStories(); };
+        window.nextStory = function() { AppState.storyIndex++; if (AppState.storyIndex >= AppState.activeStories.length) closeStory(); else renderStory(); };
+        window.prevStory = function() { if (AppState.storyIndex > 0) { AppState.storyIndex--; renderStory(); } };
+
+        document.getElementById('story-file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            AppState.currentStoryType = file.type.startsWith('video') ? 'video' : 'image';
+            const reader = new FileReader();
+            reader.onload = (ev) => { AppState.currentStoryFile = ev.target.result; document.getElementById('story-file-btn').textContent = 'Файл выбран ✓'; };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('btn-publish-story').addEventListener('click', async function() {
+            const text = document.getElementById('story-text-input').value.trim();
+            if (!AppState.currentStoryFile && !text) return showToast('Добавьте фото/видео или текст');
+            this.innerHTML = '<div class="spinner"></div>'; this.disabled = true;
+            const { error } = await supabase.from('stories').insert({ user_id: AppState.user.id, media_url: AppState.currentStoryFile, media_type: AppState.currentStoryType, text: text, visibility: document.getElementById('story-visibility').value });
+            this.innerHTML = 'Опубликовать'; this.disabled = false;
+            if (error) showToast(error.message);
+            else {
+                closeModal('modal-add-story'); AppState.currentStoryFile = null;
+                document.getElementById('story-file-btn').textContent = 'Выбрать фото/видео';
+                document.getElementById('story-text-input').value = '';
+                loadStories(); showToast('История опубликована!');
+            }
+        });
+
+        window.savePrivacy = async function() {
+            const isOnline = document.getElementById('toggle-online').checked;
+            await supabase.from('profiles').update({ show_online: isOnline }).eq('id', AppState.user.id);
+            showToast('Настройки приватности сохранены');
         };
-        reader.readAsDataURL(file);
+
+        if (localStorage.getItem('molju_theme') === 'light') { document.body.classList.add('light-theme'); document.getElementById('theme-toggle').checked = false; }
+        else { document.getElementById('theme-toggle').checked = true; }
+
+        supabase.auth.getSession().then(({ data: { session } }) => { if (!session) showScreen('screen-auth'); });
     });
-
-    document.getElementById('btn-publish-story').addEventListener('click', async function() {
-        const text = document.getElementById('story-text-input').value.trim();
-        if (!AppState.currentStoryFile && !text) return showToast('Добавьте фото/видео или текст');
-        
-        this.innerHTML = '<div class="spinner"></div>';
-        this.disabled = true;
-
-        const { error } = await supabase.from('stories').insert({
-            user_id: AppState.user.id,
-            media_url: AppState.currentStoryFile,
-            media_type: AppState.currentStoryType,
-            text: text,
-            visibility: document.getElementById('story-visibility').value
-        });
-
-        this.innerHTML = 'Опубликовать';
-        this.disabled = false;
-
-        if (error) {
-            showToast(error.message);
-        } else {
-            closeModal('modal-add-story');
-            AppState.currentStoryFile = null;
-            document.getElementById('story-file-btn').textContent = 'Выбрать фото/видео';
-            document.getElementById('story-text-input').value = '';
-            loadStories();
-            showToast('История опубликована!');
-        }
-    });
-
-    // ==========================================
-    // 6. ПРИВАТНОСТЬ И ИНИЦИАЛИЗАЦИЯ
-    // ==========================================
-    
-    window.savePrivacy = async function() {
-        const isOnline = document.getElementById('toggle-online').checked;
-        await supabase.from('profiles').update({ show_online: isOnline }).eq('id', AppState.user.id);
-        showToast('Настройки приватности сохранены');
-    };
-
-    // Инициализация темы при загрузке
-    if (localStorage.getItem('molju_theme') === 'light') {
-        document.body.classList.add('light-theme');
-        document.getElementById('theme-toggle').checked = false;
-    } else {
-        document.getElementById('theme-toggle').checked = true;
-    }
-
-    // Проверка сессии
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) showScreen('screen-auth');
-    });
-
 </script>
 </body>
-                </html>
+</html>
