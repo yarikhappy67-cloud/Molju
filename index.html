@@ -239,7 +239,7 @@ const SB_URL='https://dhmqbjfzkrmsbrwzenna.supabase.co',SB_KEY='sb_publishable_U
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
 let st={u:{id:null,user:'',name:'',sur:'',ava:null,phone:''},chats:[],stories:[],curr:null,tab:'chats'};
-let onbAva=null,editAva=null,stImg=null,emailAddr='';
+let onbAva=null,editAva=null,stImg=null;
 let scr={login:document.getElementById('scr-login'),onboard:document.getElementById('scr-onboard'),email:document.getElementById('scr-email'),qr:document.getElementById('scr-qr'),main:document.getElementById('scr-main'),chat:document.getElementById('scr-chat')};
 
 function showScr(n){Object.values(scr).forEach(s=>s.classList.remove('act'));setTimeout(()=>scr[n].classList.add('act'),10);}
@@ -250,7 +250,6 @@ function dName(){return((st.u.name||'')+' '+(st.u.sur||'')).trim()||('@'+st.u.us
 function setAva(el,ava,fb){let l=el.querySelector('.ava-l');if(ava){el.style.backgroundImage='url('+ava+')';if(l)l.textContent='';}else{el.style.backgroundImage='';if(l)l.textContent=fb||'?';}}
 function valU(u){return/^[a-z0-9_]{3,20}$/.test(u)?'':'Только латиница, цифры, _, от 3 до 20 символов.';}
 
-// Привязка кнопок "Назад"
 document.getElementById('btn-back-email').onclick=()=>showScr('login');
 document.getElementById('btn-back-qr').onclick=()=>showScr('login');
 
@@ -279,22 +278,45 @@ document.getElementById('btn-yandex').addEventListener('click',async()=>{
 });
 
 document.getElementById('btn-show-email').onclick=()=>showScr('email');
-document.getElementById('btn-send-code').onclick=async function(){
-  emailAddr=document.getElementById('email-inp').value.trim();
-  if(!emailAddr){document.getElementById('email-err').textContent='Введите email';return;}
-  let b=this;b.textContent='Отправка...';b.disabled=true;
-  const{error}=await sb.auth.signInWithOtp({email:emailAddr});
-  b.textContent='Получить код';b.disabled=false;
-  if(error){document.getElementById('email-err').textContent=error.message;}
-  else{document.getElementById('email-s1').style.display='none';document.getElementById('email-s2').style.display='block';document.getElementById('email-disp').textContent=emailAddr;}
-};
-document.getElementById('btn-verify-code').onclick=async()=>{
+
+document.getElementById('btn-send-code').addEventListener('click', async function() {
+  let email=document.getElementById('email-inp').value.trim();
+  let err=document.getElementById('email-err');
+  if(!email){err.textContent='Введите email';return;}
+  this.textContent='Отправка...';this.disabled=true;err.textContent='';
+  
+  const{error}=await sb.auth.signInWithOtp({email:email});
+  
+  this.textContent='Получить код';this.disabled=false;
+  if(error){
+    err.textContent=error.message;
+  }else{
+    localStorage.setItem('molju_email', email); // Сохраняем почту на случай перезагрузки
+    document.getElementById('email-s1').style.display='none';
+    document.getElementById('email-s2').style.display='block';
+    document.getElementById('email-disp').textContent=email;
+  }
+});
+
+document.getElementById('btn-verify-code').addEventListener('click', async function() {
   let code=document.getElementById('code-inp').value.trim();
-  let b=this;b.textContent='Проверка...';b.disabled=true;
-  const{error}=await sb.auth.verifyOtp({email:emailAddr,token:code,type:'email'});
-  b.textContent='Войти';b.disabled=false;
-  if(error)document.getElementById('email-err').textContent=error.message;
-};
+  let err=document.getElementById('email-err');
+  let savedEmail = localStorage.getItem('molju_email');
+  
+  if(code.length<6){err.textContent='Введите 6-значный код';return;}
+  if(!savedEmail){err.textContent='Ошибка: введите почту заново';return;}
+
+  this.textContent='Проверка...';this.disabled=true;err.textContent='';
+  
+  const{error}=await sb.auth.verifyOtp({email:savedEmail,token:code,type:'email'});
+  
+  this.textContent='Войти';this.disabled=false;
+  if(error){
+    err.textContent='Ошибка: '+error.message;
+  }else{
+    localStorage.removeItem('molju_email');
+  }
+});
 
 document.getElementById('btn-show-qr').onclick=()=>{
   showScr('qr');
@@ -305,15 +327,20 @@ document.getElementById('btn-show-qr').onclick=()=>{
 document.getElementById('onb-ava').onclick=()=>document.getElementById('onb-inp').click();
 document.getElementById('onb-inp').onchange=function(){let f=this.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{onbAva=e.target.result;setAva(document.getElementById('onb-ava'),onbAva,'?');};r.readAsDataURL(f);};
 document.getElementById('onb-user').oninput=function(){this.value=normU(this.value);};
-document.getElementById('btn-onb-cont').onclick=async function(){
+
+document.getElementById('btn-onb-cont').addEventListener('click', async function() {
   let u=normU(document.getElementById('onb-user').value),n=document.getElementById('onb-name').value.trim(),s=document.getElementById('onb-surname').value.trim(),err=document.getElementById('onb-err');
   let e=valU(u);if(e){err.textContent=e;return;}if(!n){err.textContent='Введите имя';return;}
+  
   this.textContent='Загрузка...';this.disabled=true;
+  
   const{error}=await sb.from('profiles').insert({id:st.u.id,username:u,name:n,surname:s,avatar_url:onbAva,phone:st.u.phone||null});
+  
   this.textContent='Продолжить';this.disabled=false;
   if(error){err.textContent=error.code==='23505'?'Юзернейм занят':error.message;return;}
+  
   st.u.user=u;st.u.name=n;st.u.sur=s;st.u.ava=onbAva;renderProf();showScr('main');loadChats();
-};
+});
 
 function switchTab(t){st.tab=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));document.getElementById('tab-'+t).classList.add('act');document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('act',b.dataset.tab===t));document.getElementById('fab').classList.toggle('hid',t==='profile');}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
@@ -358,31 +385,43 @@ function renderChats(){
 document.getElementById('srch-inp').oninput=renderChats;
 
 document.getElementById('btn-cncl-chat').onclick=()=>document.getElementById('mdl-chat').classList.remove('open');
-document.getElementById('btn-crt-chat').onclick=async function(){
+
+document.getElementById('btn-crt-chat').addEventListener('click', async function() {
   let inp=document.getElementById('new-phone'),d=inp.value.replace(/\D/g,''),err=document.getElementById('new-err');
   if(d.length<10){err.textContent='Неверный номер';return;}
-  this.textContent='Поиск...';
+  
+  this.textContent='Поиск...';this.disabled=true;
+  
   let chatName = '+7 ' + d.slice(1,4) + ' ' + d.slice(4,7) + '-' + d.slice(7,9) + '-' + d.slice(9,11);
   const { data: newChat, error: e1 } = await sb.from('chats').insert({ type: 'user', name: chatName, owner_id: st.u.id }).select().single();
-  if (e1) { toast(e1.message); this.textContent='Найти'; return; }
+  
+  if (e1) { toast(e1.message); this.textContent='Найти'; this.disabled=false; return; }
+  
   await sb.from('chat_members').insert({ chat_id: newChat.id, user_id: st.u.id });
-  this.textContent='Найти';
+  
+  this.textContent='Найти';this.disabled=false;
   document.getElementById('mdl-chat').classList.remove('open');
   loadChats();openChat(newChat.id, newChat.name, newChat.type);
-};
+});
 
 document.getElementById('btn-cncl-chnl').onclick=()=>document.getElementById('mdl-channel').classList.remove('open');
-document.getElementById('btn-crt-chnl').onclick=async function(){
+
+document.getElementById('btn-crt-chnl').addEventListener('click', async function() {
   let n=document.getElementById('ch-name').value.trim();
   if(!n)return toast('Введите название');
-  this.textContent='Создание...';
+  
+  this.textContent='Создание...';this.disabled=true;
+  
   const { data: newCh, error: e1 } = await sb.from('chats').insert({ type: 'channel', name: n, owner_id: st.u.id }).select().single();
-  if (e1) { toast(e1.message); this.textContent='Создать'; return; }
+  
+  if (e1) { toast(e1.message); this.textContent='Создать'; this.disabled=false; return; }
+  
   await sb.from('chat_members').insert({ chat_id: newCh.id, user_id: st.u.id });
-  this.textContent='Создать';
+  
+  this.textContent='Создать';this.disabled=false;
   document.getElementById('mdl-channel').classList.remove('open');
   loadChats();openChat(newCh.id, newCh.name, newCh.type);
-};
+});
 
 let currentChatId = null,realtimeChannel = null;
 async function openChat(id, name, type) {
@@ -425,7 +464,7 @@ function subscribeToChat(chatId) {
     .subscribe();
 }
 
-document.getElementById('cmp').onsubmit = async (e) => {
+document.getElementById('cmp').addEventListener('submit', async (e) => {
   e.preventDefault();
   let inp = document.getElementById('msg-inp'), t = inp.value.trim();
   if(!t || !currentChatId) return;
@@ -437,7 +476,7 @@ document.getElementById('cmp').onsubmit = async (e) => {
   m.appendChild(d);
   m.scrollTop = m.scrollHeight;
   await sb.from('messages').insert({ chat_id: currentChatId, sender_id: st.u.id, text: t });
-};
+});
 document.getElementById('btn-back').onclick=()=>{st.curr=null;if(realtimeChannel)sb.removeChannel(realtimeChannel);showScr('main');switchTab(st.tab);};
 
 let emos=['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','🙏','💪','🫶','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯','🔥','⭐'];
@@ -450,6 +489,7 @@ function renderProf(){
   document.getElementById('prof-name').textContent=dName();
   document.getElementById('prof-user').textContent='@'+st.u.user;
 }
+
 document.getElementById('btn-edit-prof').onclick=()=>{
   editAva=st.u.ava;setAva(document.getElementById('edit-ava'),editAva,ini(st.u.name));
   document.getElementById('edit-user').value=st.u.user;document.getElementById('edit-name').value=st.u.name;document.getElementById('edit-surname').value=st.u.sur;
@@ -458,19 +498,25 @@ document.getElementById('btn-edit-prof').onclick=()=>{
 document.getElementById('edit-ava').onclick=()=>document.getElementById('edit-inp').click();
 document.getElementById('edit-inp').onchange=function(){let f=this.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{editAva=e.target.result;setAva(document.getElementById('edit-ava'),editAva,ini(st.u.name));};r.readAsDataURL(f);};
 document.getElementById('btn-cncl-prof').onclick=()=>document.getElementById('mdl-prof').classList.remove('open');
-document.getElementById('btn-save-prof').onclick=async function(){
+
+document.getElementById('btn-save-prof').addEventListener('click', async function() {
   let u=normU(document.getElementById('edit-user').value),n=document.getElementById('edit-name').value.trim(),s=document.getElementById('edit-surname').value.trim();
   if(valU(u))return toast(valU(u));if(!n)return toast('Введите имя');
+  
   this.textContent='Сохр...';this.disabled=true;
+  
   const{error}=await sb.from('profiles').update({username:u,name:n,surname:s,avatar_url:editAva}).eq('id',st.u.id);
+  
   this.textContent='Сохранить';this.disabled=false;
   if(error)return toast(error.code==='23505'?'Юзернейм занят':error.message);
+  
   st.u.user=u;st.u.name=n;st.u.sur=s;st.u.ava=editAva;
   renderProf();document.getElementById('mdl-prof').classList.remove('open');toast('Сохранено');
-};
+});
 
 document.getElementById('st-img').onchange=function(){let f=this.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{stImg=e.target.result;document.getElementById('st-lbl').textContent='Фото выбрано ✓';};r.readAsDataURL(f);};
 document.getElementById('btn-cncl-st').onclick=()=>document.getElementById('mdl-story').classList.remove('open');
+
 document.getElementById('btn-pub-st').onclick=()=>{
   let t=document.getElementById('st-txt').value.trim();if(!stImg&&!t)return toast('Добавьте фото или текст');
   let l=document.getElementById('stories-list');
