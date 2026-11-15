@@ -3,799 +3,1498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Molju — Ultimate Secure Messenger</title>
+    <title>Molju — Enterprise Secure Messenger</title>
     
-    <!-- Внешние библиотеки -->
+    <!-- ========================================== -->
+    <!-- ПОДКЛЮЧЕНИЕ БИБЛИОТЕК -->
+    <!-- ========================================== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
         /* ========================================== */
-        /* 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И ТЕМЫ */
+        /* 1. ГЛОБАЛЬНАЯ КОНФИГУРАЦИЯ И ТЕМЫ */
         /* ========================================== */
         :root {
-            --bg: #080808;
-            --surf: #121212;
-            --surf2: #1c1c1e;
-            --glass: rgba(18, 18, 18, 0.85);
-            --brd: rgba(255, 255, 255, 0.08);
-            --txt: #ffffff;
-            --mut: #8e8e93;
-            --acc: #ff3b30;
-            --acc-glow: rgba(255, 59, 48, 0.4);
-            --grad: linear-gradient(135deg, #ff3b30, #b30000);
-            --msg-mine: linear-gradient(135deg, #ff3b30, #cc0000);
-            --msg-other: #262628;
+            /* Темная тема (по умолчанию) */
+            --bg-main: #080808;
+            --bg-surface: #121212;
+            --bg-surface-light: #1c1c1e;
+            --bg-glass: rgba(18, 18, 18, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --accent-color: #ff3b30;
+            --accent-glow: rgba(255, 59, 48, 0.4);
+            --accent-gradient: linear-gradient(135deg, #ff3b30, #b30000);
+            
+            /* Цвета сообщений */
+            --msg-outgoing: linear-gradient(135deg, #ff3b30, #cc0000);
+            --msg-incoming: #262628;
+            
+            /* Специальные цвета */
             --verified-blue: #0088cc;
             --bot-bg: #1e2a38;
             --bot-border: #2b3b4d;
+            --toast-bg: #2c2c2e;
+            
+            /* Тени и скругления */
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 15px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.5);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 50%;
         }
 
+        /* Светлая тема */
         body.light-theme {
-            --bg: #f2f2f7;
-            --surf: #ffffff;
-            --surf2: #e5e5ea;
-            --glass: rgba(255, 255, 255, 0.85);
-            --brd: rgba(0, 0, 0, 0.1);
-            --txt: #000000;
-            --mut: #8e8e93;
-            --msg-other: #e5e5ea;
+            --bg-main: #f2f2f7;
+            --bg-surface: #ffffff;
+            --bg-surface-light: #e5e5ea;
+            --bg-glass: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --text-primary: #000000;
+            --text-secondary: #8e8e93;
+            --msg-incoming: #e5e5ea;
             --bot-bg: #e1f0ff;
             --bot-border: #b3d4ff;
+            --toast-bg: #ffffff;
         }
 
         /* ========================================== */
-        /* 2. БАЗОВЫЕ СТИЛИ */
+        /* 2. БАЗОВЫЕ СТИЛИ И СБРОС */
         /* ========================================== */
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Inter', sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
-        
-        body { 
-            height: 100vh; 
-            background: var(--bg); 
-            color: var(--txt); 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-            transition: background 0.3s, color 0.3s;
+
+        body {
+            height: 100vh;
+            height: 100dvh;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        
-        .app { 
-            position: relative; 
-            width: 100%; 
-            height: 100%; 
-            max-width: 480px; 
-            background: var(--bg); 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
+
+        .app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 480px;
+            background-color: var(--bg-main);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
         /* ========================================== */
-        /* 3. АНИМАЦИИ */
+        /* 3. КЛЮЧЕВЫЕ АНИМАЦИИ */
         /* ========================================== */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes progress { from { width: 0%; } to { width: 100%; } }
-
-        /* ========================================== */
-        /* 4. ОБЩИЕ КОМПОНЕНТЫ */
-        /* ========================================== */
-        button { 
-            border: none; 
-            background: none; 
-            color: inherit; 
-            font-family: inherit; 
-            cursor: pointer; 
-            outline: none; 
-            transition: 0.2s; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        button:active { transform: scale(0.95); opacity: 0.8; }
-        
-        .btn { padding: 16px 24px; border-radius: 16px; font-weight: 600; font-size: 16px; width: 100%; }
-        .btn-p { background: var(--grad); color: #fff; box-shadow: 0 4px 15px var(--acc-glow); }
-        .btn-g { background: var(--surf2); color: var(--txt); border: 1px solid var(--brd); }
-        
-        .inp { 
-            width: 100%; 
-            padding: 16px; 
-            border-radius: 16px; 
-            background: var(--surf2); 
-            border: 1px solid var(--brd); 
-            color: var(--txt); 
-            font-size: 16px; 
-            outline: none; 
-            margin-bottom: 16px; 
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
-        .inp:focus { border-color: var(--acc); }
-
-        /* Аватарки */
-        .ava { 
-            width: 52px; 
-            height: 52px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 20px; 
-            font-weight: 600; 
-            color: #fff; 
-            background: var(--grad); 
-            flex-shrink: 0; 
-            background-size: cover; 
-            background-position: center; 
+        @keyframes popIn {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
-        .ava-sm { width: 36px; height: 36px; font-size: 14px; }
-        .verified-badge { color: var(--verified-blue); font-size: 18px; margin-left: 4px; }
-
-        /* Экраны */
-        .scr { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
-        .scr.act { display: flex; animation: fadeIn 0.2s ease; }
-
-        /* ========================================== */
-        /* 5. ЭКРАН ВХОДА */
-        /* ========================================== */
-        #scr-login { align-items: center; justify-content: center; padding: 24px; }
-        .login-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; align-items: center; }
-        .logo { font-size: 56px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
-        .login-input-wrap { width: 100%; position: relative; margin-bottom: 20px; }
-        .login-input-wrap input { 
-            width: 100%; 
-            background: var(--surf); 
-            border: 2px solid var(--acc); 
-            border-radius: 16px; 
-            padding: 20px 16px; 
-            color: #fff; 
-            font-size: 18px; 
-            outline: none; 
-            text-align: center; 
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
-        .floating-next { 
-            position: absolute; 
-            right: 16px; 
-            bottom: -80px; 
-            width: 60px; 
-            height: 60px; 
-            border-radius: 50%; 
-            background: #0088cc; 
-            font-size: 24px; 
-            color: #fff; 
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 59, 48, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+        @keyframes storyProgress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* ========================================== */
-        /* 6. ОСНОВНОЙ ЭКРАН (НАВИГАЦИЯ) */
+        /* 4. ОБЩИЕ КОМПОНЕНТЫ (КНОПКИ, ИНПУТЫ) */
         /* ========================================== */
-        .hdr { 
-            padding: 16px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: var(--glass); 
-            backdrop-filter: blur(20px); 
-            border-bottom: 1px solid var(--brd); 
-            position: sticky; 
-            top: 0; 
-            z-index: 20; 
+        button {
+            border: none;
+            background: none;
+            color: inherit;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .hdr-title { font-size: 22px; font-weight: 700; }
-        .icon-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--surf2); font-size: 20px; }
+        button:active {
+            transform: scale(0.94);
+            opacity: 0.8;
+        }
         
-        .content { flex: 1; overflow-y: auto; padding: 0 16px 100px 16px; }
-        .tab { display: none; } 
-        .tab.act { display: block; animation: fadeIn 0.3s; }
+        .btn {
+            padding: 16px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 16px;
+            width: 100%;
+            letter-spacing: 0.3px;
+        }
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #ffffff;
+            box-shadow: var(--shadow-md);
+        }
+        .btn-secondary {
+            background-color: var(--bg-surface-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-danger {
+            background-color: rgba(255, 59, 48, 0.1);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            background-color: var(--bg-surface-light);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .input-field:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        /* ========================================== */
+        /* 5. АВАТАРКИ И ГАЛОЧКИ ВЕРИФИКАЦИИ */
+        /* ========================================== */
+        .avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            background: var(--accent-gradient);
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .avatar-sm { width: 36px; height: 36px; font-size: 14px; }
+        .avatar-lg { width: 96px; height: 96px; font-size: 36px; }
         
-        .search-bar { width: 100%; padding: 12px 16px; border-radius: 16px; background: var(--surf2); display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-        .search-bar input { background: none; border: none; color: var(--txt); width: 100%; outline: none; font-size: 15px; }
-        
-        .chat-list { display: flex; flex-direction: column; gap: 4px; }
-        .chat-item { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 20px; cursor: pointer; }
-        .chat-item:active { background: var(--surf2); }
+        .verified-badge {
+            color: var(--verified-blue);
+            font-size: 18px;
+            margin-left: 4px;
+            display: inline-flex;
+            vertical-align: middle;
+        }
+
+        /* ========================================== */
+        /* 6. ЭКРАНЫ И НАВИГАЦИЯ */
+        /* ========================================== */
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            background-color: var(--bg-main);
+            z-index: 10;
+        }
+        .screen.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Экран входа */
+        #screen-auth {
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(-45deg, #080808, #1a0000, #080808, #2a0000);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        .auth-box {
+            width: 100%;
+            max-width: 340px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .app-logo {
+            font-size: 64px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -2px;
+        }
+        .auth-step {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        .auth-step.active { display: flex; }
+
+        /* Шапка */
+        .app-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .header-title { font-size: 22px; font-weight: 700; }
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background-color: var(--bg-surface-light);
+            font-size: 20px;
+        }
+
+        /* Контент */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 100px 16px;
+        }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; animation: fadeIn 0.3s; }
+
+        /* Поиск и списки */
+        .search-container {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            background-color: var(--bg-surface-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            margin-top: 16px;
+        }
+        .search-container input {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            width: 100%;
+            outline: none;
+            font-size: 15px;
+        }
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .chat-item:active { background-color: var(--bg-surface-light); }
         .chat-info { flex: 1; min-width: 0; }
+        .chat-name-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .chat-name { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
-        .chat-last { font-size: 14px; color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-preview { font-size: 14px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .nav-bar { 
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            right: 0; 
-            display: flex; 
-            justify-content: space-around; 
-            padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); 
-            background: var(--glass); 
-            backdrop-filter: blur(20px); 
-            border-top: 1px solid var(--brd); 
-            z-index: 30; 
+        /* Нижняя панель */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color);
+            z-index: 30;
         }
-        .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--mut); font-size: 11px; width: 70px; }
-        .nav-btn.act { color: var(--acc); }
-        .nav-btn i { font-size: 24px; }
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            width: 70px;
+        }
+        .nav-button.active { color: var(--accent-color); }
+        .nav-button i { font-size: 24px; }
+
+        .fab-button {
+            position: absolute;
+            right: 20px;
+            bottom: 90px;
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-full);
+            background: var(--accent-gradient);
+            color: #ffffff;
+            font-size: 24px;
+            box-shadow: var(--shadow-lg);
+            z-index: 25;
+        }
+
+        /* Чат */
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 20;
+        }
+        .chat-back-btn { font-size: 24px; padding: 8px; margin-left: -8px; }
+        .chat-header-name { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
+        .chat-header-status { font-size: 12px; color: var(--text-secondary); }
         
-        .fab { 
-            position: absolute; 
-            right: 20px; 
-            bottom: 90px; 
-            width: 56px; 
-            height: 56px; 
-            border-radius: 50%; 
-            background: var(--grad); 
-            color: #fff; 
-            font-size: 24px; 
-            box-shadow: 0 6px 20px var(--acc-glow); 
-            z-index: 25; 
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 15px;
+            position: relative;
+            animation: popIn 0.2s ease;
+            word-break: break-word;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+        }
+        .message-bubble.incoming {
+            align-self: flex-start;
+            background-color: var(--msg-incoming);
+            border-bottom-left-radius: 4px;
+        }
+        .message-bubble.outgoing {
+            align-self: flex-end;
+            background: var(--msg-outgoing);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+        .message-bubble.bot {
+            align-self: flex-start;
+            background-color: var(--bot-bg);
+            border: 1px solid var(--bot-border);
+            border-bottom-left-radius: 4px;
+            color: var(--text-primary);
+        }
+        .message-time {
+            font-size: 10px;
+            opacity: 0.7;
+            align-self: flex-end;
+            margin-top: 4px;
+        }
+
+        .message-input-area {
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            z-index: 20;
+        }
+        .message-input-area input {
+            flex: 1;
+            background-color: var(--bg-surface-light);
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            border-radius: 24px;
+            color: var(--text-primary);
+            outline: none;
+        }
+        .send-button {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-full);
+            background: var(--accent-gradient);
+            color: #ffffff;
+            font-size: 24px;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
         }
 
         /* ========================================== */
-        /* 7. ЭКРАН ЧАТА */
+        /* 7. МОДАЛЬНЫЕ ОКНА */
         /* ========================================== */
-        .chat-hdr { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
-        .back-btn { font-size: 24px; padding: 8px; margin-left: -8px; }
-        .chat-hdr-name { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
-        
-        .msgs { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 15px; position: relative; animation: popIn 0.2s ease; word-break: break-word; display: flex; flex-direction: column; }
-        .msg-other { align-self: flex-start; background: var(--msg-other); border-bottom-left-radius: 4px; }
-        .msg-mine { align-self: flex-end; background: var(--msg-mine); color: #fff; border-bottom-right-radius: 4px; }
-        .msg-bot { align-self: flex-start; background: var(--bot-bg); border: 1px solid var(--bot-border); border-bottom-left-radius: 4px; color: var(--txt); }
-        .msg-time { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 4px; }
-        
-        .input-bar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
-        .input-bar input { flex: 1; background: var(--surf2); border: 1px solid var(--brd); padding: 14px 18px; border-radius: 24px; color: var(--txt); outline: none; }
-        .send-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; }
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: flex-end;
+            z-index: 50;
+        }
+        .modal-backdrop.active { display: flex; animation: fadeIn 0.15s; }
+        .modal-content {
+            width: 100%;
+            background-color: var(--bg-surface);
+            border-top-left-radius: var(--radius-lg);
+            border-top-right-radius: var(--radius-lg);
+            padding: 24px;
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-top: 1px solid var(--border-color);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background-color: #555;
+            border-radius: 2px;
+            margin: 0 auto 20px auto;
+        }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .setting-label { flex: 1; font-size: 16px; margin-left: 12px; }
 
         /* ========================================== */
-        /* 8. МОДАЛЬНЫЕ ОКНА */
+        /* 8. УВЕДОМЛЕНИЯ (TOASTS) */
         /* ========================================== */
-        .mdl-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: flex-end; z-index: 50; }
-        .mdl-bg.act { display: flex; animation: fadeIn 0.15s; }
-        .mdl { width: 100%; background: var(--surf); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); animation: slideUp 0.25s ease; border-top: 1px solid var(--brd); max-height: 90vh; overflow-y: auto; }
-        .mdl-handle { width: 40px; height: 4px; background: #555; border-radius: 2px; margin: 0 auto 20px auto; }
-        .mdl-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-        
-        .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--brd); cursor: pointer; }
-        .setting-text { flex: 1; font-size: 16px; margin-left: 12px; }
-        
-        /* ========================================== */
-        /* 9. УВЕДОМЛЕНИЯ (TOASTS) */
-        /* ========================================== */
-        #toast-container { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 1000; pointer-events: none; }
-        .toast { background: var(--surf2); color: var(--txt); padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 500; animation: popIn 0.2s ease; border: 1px solid var(--brd); }
+        #toast-container {
+            position: absolute;
+            bottom: 100px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .toast {
+            background-color: var(--toast-bg);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            animation: popIn 0.2s ease;
+            border: 1px solid var(--border-color);
+        }
 
         /* ========================================== */
-        /* 10. СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ БЕЗОПАСНОСТИ */
+        /* 9. СПЕЦИАЛЬНЫЕ СТИЛИ (БЕЗОПАСНОСТЬ И ИСТОРИИ) */
         /* ========================================== */
-        .dev-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surf2); border-radius: 12px; margin-bottom: 8px; }
-        .qr-container { background: #fff; padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; }
-        .qr-container img { width: 200px; height: 200px; }
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background-color: var(--bg-surface-light);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+        .qr-box {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .qr-box img { width: 200px; height: 200px; }
 
-        /* ========================================== */
-        /* 11. СТИЛИ ДЛЯ ИСТОРИЙ */
-        /* ========================================== */
-        .stories-row { display: flex; gap: 16px; overflow-x: auto; padding: 16px 0; border-bottom: 1px solid var(--brd); margin-bottom: 16px; }
-        .story-item { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 68px; cursor: pointer; }
-        .story-circle { width: 64px; height: 64px; border-radius: 50%; background: var(--surf2); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid transparent; background-size: cover; background-position: center; }
-        .story-circle.add { border: 2px dashed var(--mut); color: var(--mut); }
-        .story-circle.has-story { border: 2px solid var(--acc); }
+        /* Стили для историй */
+        .stories-row {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 68px;
+            cursor: pointer;
+        }
+        .story-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-full);
+            background-color: var(--bg-surface-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 2px solid transparent;
+            background-size: cover;
+            background-position: center;
+        }
+        .story-circle.add { border: 2px dashed var(--text-secondary); color: var(--text-secondary); }
+        .story-circle.has-story { border: 2px solid var(--accent-color); }
         .story-name { font-size: 12px; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; justify-content: center; align-items: center; }
 
-        #story-viewer { position: absolute; inset: 0; background: #000; z-index: 100; display: none; flex-direction: column; }
-        #story-viewer.act { display: flex; }
-        .story-progress { position: absolute; top: 10px; left: 10px; right: 10px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; z-index: 20; }
-        .story-progress-bar { height: 100%; background: #fff; width: 0%; animation: progress 10s linear forwards; }
-        .story-header { position: absolute; top: 0; left: 0; right: 0; padding: 20px; display: flex; align-items: center; gap: 12px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 20; }
-        .story-media { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        .story-media img, .story-media video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        #story-viewer {
+            position: absolute;
+            inset: 0;
+            background-color: #000000;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+        #story-viewer.active { display: flex; }
+        .story-progress {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 3px;
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            z-index: 20;
+        }
+        .story-progress-bar { height: 100%; background-color: #fff; width: 0%; animation: storyProgress 10s linear forwards; }
+        .story-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            z-index: 20;
+        }
+        .story-media-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .story-media-container img, 
+        .story-media-container video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Загрузчик */
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: var(--radius-full);
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body>
-<div class="app">
+    <!-- Контейнер для уведомлений -->
     <div id="toast-container"></div>
 
-    <!-- ЭКРАН ВХОДА -->
-    <div id="scr-login" class="scr act">
-        <div class="login-box">
-            <div class="logo">Molju</div>
-            <div style="color: var(--mut); margin-bottom: 20px; text-align: center;" id="login-status-text">Вход в аккаунт</div>
-            
-            <div class="login-input-wrap" id="step-email">
-                <input type="email" id="inp-email" placeholder="Email">
-                <button class="floating-next" id="btn-step1"><i class="ph ph-arrow-right"></i></button>
-            </div>
-
-            <div class="login-input-wrap" id="step-password" style="display:none;">
-                <input type="password" id="inp-password" placeholder="Пароль">
-                <button class="floating-next" id="btn-step2"><i class="ph ph-arrow-right"></i></button>
-                <div style="text-align: center; margin-top: 100px;"><a href="#" onclick="resetPassword()" style="color: var(--acc); text-decoration: none;">Забыли пароль?</a></div>
-            </div>
-
-            <div class="login-input-wrap" id="step-code" style="display:none;">
-                <div style="text-align: center; color: var(--acc); margin-bottom: 10px; font-size: 14px; font-weight: 600;">⚠️ Новое устройство!</div>
-                <div style="text-align: center; color: var(--mut); margin-bottom: 10px; font-size: 14px;">Код отправлен в чат <b>Molju Code</b></div>
-                <input type="text" id="inp-code" placeholder="000000" maxlength="6">
-                <button class="floating-next active" id="btn-step3"><i class="ph ph-arrow-right"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ОНБОРДИНГ -->
-    <div id="scr-onboard" class="scr">
-        <div style="padding: 40px 24px; display: flex; flex-direction: column; height: 100%;">
-            <h1 class="hdr-title" style="margin-bottom: 30px;">Защита аккаунта</h1>
-            <p style="color: var(--mut); margin-bottom: 20px;">Придумайте пароль. Мы отправим код на вашу почту для его подтверждения.</p>
-            <input type="password" id="onb-password" class="inp" placeholder="Придумайте пароль">
-            <button class="btn btn-p" id="btn-request-pwd-code">Получить код на почту</button>
-            <div id="onb-code-block" style="display:none; margin-top: 20px;">
-                <input type="text" id="onb-code" class="inp" placeholder="Код из письма">
-                <button class="btn btn-p" id="btn-save-password">Установить пароль и войти</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ОСНОВНОЙ ЭКРАН -->
-    <div id="scr-main" class="scr">
-        <div class="hdr">
-            <div class="hdr-title" id="main-title">Molju</div>
-            <button class="icon-btn" onclick="document.getElementById('main-search').focus()"><i class="ph ph-magnifying-glass"></i></button>
-        </div>
-
-        <div class="content tab act" id="tab-chats">
-            <div class="stories-row" id="stories-container"></div>
-            <div class="search-bar">
-                <i class="ph ph-magnifying-glass" style="color: var(--mut);"></i>
-                <input type="text" id="main-search" placeholder="Поиск по @username" onkeypress="if(event.key === 'Enter') doSearch()">
-            </div>
-            <div class="chat-list" id="chat-list-container"></div>
-        </div>
-
-        <div class="content tab" id="tab-contacts">
-            <div class="chat-list" id="contacts-list-container"></div>
-        </div>
-
-        <div class="content tab" id="tab-settings">
-            <div class="setting-item" onclick="toggleTheme()">
-                <div style="display: flex; align-items: center;"><i class="ph ph-moon" style="font-size: 22px;"></i><div class="setting-text">Тёмная тема</div></div>
-                <input type="checkbox" id="theme-toggle" style="width: 20px; height: 20px; accent-color: var(--acc);">
-            </div>
-        </div>
-
-        <div class="content tab" id="tab-profile">
-            <div style="display: flex; flex-direction: column; align-items: center; margin-top: 40px;">
-                <div class="ava" id="settings-ava" style="width: 96px; height: 96px; font-size: 36px; margin-bottom: 16px;"></div>
-                <div style="font-size: 24px; font-weight: 700; display: flex; align-items: center;" id="settings-name">Имя</div>
-                <div style="color: var(--mut); margin-top: 4px;" id="settings-user">@username</div>
-                
-                <div style="width: 100%; margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
-                    <button class="btn btn-g" onclick="showModal('mdl-security')"><i class="ph ph-shield-check" style="margin-right: 8px;"></i> Безопасность</button>
-                </div>
-                <button class="btn" style="width: 100%; margin-top: 40px; color: var(--acc);" id="btn-logout">Выйти</button>
-            </div>
-        </div>
-
-        <button class="fab" onclick="document.getElementById('main-search').focus()"><i class="ph ph-plus"></i></button>
-
-        <div class="nav-bar">
-            <button class="nav-btn act" onclick="switchTab('chats', this)"><i class="ph ph-chats"></i><div>Чаты</div></button>
-            <button class="nav-btn" onclick="switchTab('contacts', this)"><i class="ph ph-users"></i><div>Контакты</div></button>
-            <button class="nav-btn" onclick="switchTab('settings', this)"><i class="ph ph-gear"></i><div>Настройки</div></button>
-            <button class="nav-btn" onclick="switchTab('profile', this)"><i class="ph ph-user"></i><div>Профиль</div></button>
-        </div>
-    </div>
-
-    <!-- ЭКРАН ЧАТА -->
-    <div id="scr-chat" class="scr">
-        <div class="chat-hdr">
-            <button class="back-btn" id="btn-back-chat"><i class="ph ph-caret-left"></i></button>
-            <div class="ava ava-sm" id="chat-ava">?</div>
-            <div style="flex: 1;">
-                <div class="chat-hdr-name" id="chat-name">Имя</div>
-                <div class="chat-hdr-status" id="chat-status">онлайн</div>
-            </div>
-        </div>
-        <div class="msgs" id="chat-msgs"></div>
-        <div class="input-bar">
-            <input type="text" id="msg-inp" placeholder="Сообщение...">
-            <button class="send-btn" id="btn-send-msg"><i class="ph ph-paper-plane-right"></i></button>
-        </div>
-    </div>
-
-    <!-- ПРОСМОТР ИСТОРИЙ -->
-    <div id="story-viewer">
-        <div class="story-progress"><div class="story-progress-bar" id="story-progress-bar"></div></div>
-        <div class="story-header">
-            <div class="ava ava-sm" id="story-author-ava"></div>
-            <div style="font-weight: 600; font-size: 16px; display:flex; align-items:center;" id="story-author-name"></div>
-            <button style="margin-left:auto; font-size: 24px; color: #fff;" onclick="closeStory()"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="story-media" id="story-media-container">
-            <img id="story-img" src="" style="display: none;">
-            <video id="story-video" src="" style="display: none;" playsinline autoplay></video>
-        </div>
-    </div>
-
-    <!-- МОДАЛКИ БЕЗОПАСНОСТИ -->
-    <div id="mdl-security" class="mdl-bg" onclick="hideModal('mdl-security', event)">
-        <div class="mdl">
-            <div class="mdl-handle"></div>
-            <div class="mdl-title">Безопасность</div>
-            <div class="setting-item" onclick="showModal('mdl-change-pwd')">
-                <div class="setting-text"><i class="ph ph-key"></i> Изменить пароль</div>
-            </div>
-            <div class="setting-item" onclick="showModal('mdl-devices')">
-                <div class="setting-text"><i class="ph ph-devices"></i> Активные устройства</div>
-            </div>
-            <div class="setting-item" onclick="showModal('mdl-qr-login')">
-                <div class="setting-text"><i class="ph ph-qr-code"></i> Вход по QR-коду</div>
-            </div>
-            <button class="btn btn-p" style="margin-top: 20px; background: var(--acc);" onclick="terminateAllSessions()">Завершить все сессии</button>
-        </div>
-    </div>
-
-    <div id="mdl-devices" class="mdl-bg" onclick="hideModal('mdl-devices', event)">
-        <div class="mdl">
-            <div class="mdl-handle"></div>
-            <div class="mdl-title">Активные устройства</div>
-            <div id="devices-list"></div>
-        </div>
-    </div>
-
-    <div id="mdl-qr-login" class="mdl-bg" onclick="hideModal('mdl-qr-login', event)">
-        <div class="mdl" style="text-align: center;">
-            <div class="mdl-handle"></div>
-            <div class="mdl-title">Вход по QR</div>
-            <div class="qr-container"><img id="qr-img" src="" alt="QR"></div>
-            <p style="color: var(--mut); font-size: 14px;">Отсканируйте камерой другого устройства, где вы уже вошли в Molju</p>
-        </div>
-    </div>
-
-    <div id="mdl-change-pwd" class="mdl-bg" onclick="hideModal('mdl-change-pwd', event)">
-        <div class="mdl">
-            <div class="mdl-handle"></div>
-            <div class="mdl-title">Изменить пароль</div>
-            <p style="color: var(--mut); font-size: 12px; margin-bottom: 10px;">Менять пароль можно не чаще раза в 24 часа.</p>
-            <input type="password" id="new-pwd" class="inp" placeholder="Новый пароль">
-            <button class="btn btn-p" id="btn-save-new-pwd">Сохранить</button>
-        </div>
-    </div>
-
-</div>
-
-<script>
-    (function() {
-        'use strict';
-
-        // ==========================================
-        // КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ
-        // ==========================================
-        const SB_URL = 'https://dhmqbjfzkrmsbrwzenna.supabase.co';
-        const SB_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
-        const sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { detectSessionInUrl: true, persistSession: true } });
-
-        let curUser = null, curProfile = null;
-        let loginEmail = '', pendingPassword = '', generatedBotCode = '';
-        let activeStoryGroup = [], activeStoryIndex = 0;
+    <div class="app-container">
         
-        function hashPwd(pwd) { return btoa(pwd + 'molju_salt'); }
+        <!-- ========================================== -->
+        <!-- ЭКРАН 1: АВТОРИЗАЦИЯ -->
+        <!-- ========================================== -->
+        <div id="screen-auth" class="screen active">
+            <div class="auth-box">
+                <div class="app-logo">Molju</div>
+                <div style="color: var(--text-secondary); margin-bottom: 30px; text-align: center;">Безопасный мессенджер</div>
+                
+                <!-- Шаг 1: Почта -->
+                <div class="auth-step active" id="auth-step-email">
+                    <input type="email" id="input-auth-email" class="input-field" placeholder="Ваш Email">
+                    <button class="btn btn-primary" id="btn-auth-email-next">Продолжить</button>
+                </div>
 
-        // ==========================================
-        // УТИЛИТЫ
-        // ==========================================
-        window.showToast = function(msg) {
-            let c = document.getElementById('toast-container');
-            let t = document.createElement('div'); t.className = 'toast'; t.innerHTML = msg;
-            c.appendChild(t);
-            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
-        };
-        window.showScreen = function(id) {
-            document.querySelectorAll('.scr').forEach(s => s.classList.remove('act'));
-            document.getElementById(id).classList.add('act');
-        };
-        window.showModal = function(id) { document.getElementById(id).classList.add('act'); };
-        window.hideModal = function(id, e) { if (e && e.target !== document.getElementById(id)) return; document.getElementById(id).classList.remove('act'); };
-        window.toggleTheme = function() { document.body.classList.toggle('light-theme'); };
+                <!-- Шаг 2: Пароль (если есть) -->
+                <div class="auth-step" id="auth-step-password">
+                    <input type="password" id="input-auth-password" class="input-field" placeholder="Ваш пароль">
+                    <button class="btn btn-primary" id="btn-auth-login">Войти</button>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" id="btn-auth-forgot">Забыли пароль?</button>
+                </div>
 
-        // ==========================================
-        // АВТОРИЗАЦИЯ
-        // ==========================================
-        document.getElementById('btn-step1').onclick = function() {
-            loginEmail = document.getElementById('inp-email').value.trim();
-            if(!loginEmail) return showToast('Введите Email');
-            document.getElementById('step-email').style.display = 'none';
-            document.getElementById('step-password').style.display = 'block';
-            document.getElementById('login-status-text').textContent = 'Введите пароль';
-        };
+                <!-- Шаг 3: Код на почту -->
+                <div class="auth-step" id="auth-step-otp">
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">Код отправлен на <b id="auth-display-email"></b></p>
+                    <input type="text" id="input-auth-otp" class="input-field" placeholder="000000" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 5px;">
+                    <button class="btn btn-primary" id="btn-auth-verify-otp">Подтвердить</button>
+                </div>
 
-        document.getElementById('btn-step2').onclick = async function() {
-            pendingPassword = document.getElementById('inp-password').value;
-            if(!pendingPassword) return showToast('Введите пароль');
+                <!-- Шаг 4: Новый пароль -->
+                <div class="auth-step" id="auth-step-new-pwd">
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;" id="auth-pwd-title">Придумайте пароль</p>
+                    <input type="password" id="input-auth-new-pwd" class="input-field" placeholder="Новый пароль">
+                    <button class="btn btn-primary" id="btn-auth-save-pwd">Сохранить и войти</button>
+                </div>
 
-            const { data: prof } = await sb.from('profiles').select('*').eq('email', loginEmail).maybeSingle();
-            if(!prof) return showToast('Аккаунт не найден');
-            if (prof.password_hash && prof.password_hash !== hashPwd(pendingPassword)) return showToast('Неверный пароль');
+                <!-- Шаг 5: Код от бота (2FA) -->
+                <div class="auth-step" id="auth-step-bot">
+                    <p style="text-align: center; color: var(--accent-color); font-weight: 600; margin-bottom: 5px;">⚠️ Новое устройство</p>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">Код отправлен в чат <b>Molju Code</b></p>
+                    <input type="text" id="input-auth-bot-code" class="input-field" placeholder="000000" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 5px;">
+                    <button class="btn btn-primary" id="btn-auth-verify-bot">Войти</button>
+                </div>
+            </div>
+        </div>
 
-            // ПРОВЕРКА УСТРОЙСТВ
-            const { data: activeDevices } = await sb.from('devices').select('id').eq('user_id', prof.id);
+        <!-- ========================================== -->
+        <!-- ЭКРАН 2: ГЛАВНЫЙ ЭКРАН -->
+        <!-- ========================================== -->
+        <div id="screen-main" class="screen">
+            <header class="app-header">
+                <div class="header-title" id="main-title">Молжу</div>
+                <button class="icon-btn" onclick="document.getElementById('input-search').focus()"><i class="ph ph-magnifying-glass"></i></button>
+            </header>
+
+            <main class="main-content">
+                <!-- Вкладка Чаты -->
+                <div id="tab-chats" class="tab-pane active">
+                    <div class="stories-row" id="stories-container"></div>
+                    <div class="search-container">
+                        <i class="ph ph-magnifying-glass" style="color: var(--text-secondary);"></i>
+                        <input type="text" id="input-search" placeholder="Поиск по @username" onkeypress="if(event.key === 'Enter') handleSearch()">
+                    </div>
+                    <div class="chat-list" id="chat-list-container"></div>
+                </div>
+
+                <!-- Вкладка Контакты -->
+                <div id="tab-contacts" class="tab-pane">
+                    <div class="chat-list" id="contacts-list-container" style="margin-top: 16px;"></div>
+                </div>
+
+                <!-- Вкладка Настройки -->
+                <div id="tab-settings" class="tab-pane">
+                    <div class="setting-row" style="margin-top: 16px;" onclick="toggleTheme()">
+                        <div style="display: flex; align-items: center;"><i class="ph ph-moon" style="font-size: 22px;"></i><div class="setting-label">Тёмная тема</div></div>
+                        <input type="checkbox" id="toggle-theme" style="width: 20px; height: 20px; accent-color: var(--accent-color);">
+                    </div>
+                </div>
+
+                <!-- Вкладка Профиль -->
+                <div id="tab-profile" class="tab-pane">
+                    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 40px;">
+                        <div class="avatar avatar-lg" id="profile-avatar"></div>
+                        <div style="font-size: 24px; font-weight: 700; margin-top: 16px; display: flex; align-items: center;" id="profile-name">Имя</div>
+                        <div style="color: var(--text-secondary); margin-top: 4px;" id="profile-username">@username</div>
+                        
+                        <div style="width: 100%; margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
+                            <button class="btn btn-secondary" onclick="openModal('modal-security')"><i class="ph ph-shield-check" style="margin-right: 8px;"></i> Безопасность</button>
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top: 40px; color: var(--accent-color); background: rgba(255,59,48,0.1); border: none;" id="btn-logout">Выйти из аккаунта</button>
+                    </div>
+                </div>
+            </main>
+
+            <button class="fab-button" onclick="document.getElementById('input-search').focus()"><i class="ph ph-plus"></i></button>
+
+            <nav class="bottom-nav">
+                <button class="nav-button active" onclick="switchTab('chats', this)"><i class="ph ph-chats"></i><span>Чаты</span></button>
+                <button class="nav-button" onclick="switchTab('contacts', this)"><i class="ph ph-users"></i><span>Контакты</span></button>
+                <button class="nav-button" onclick="switchTab('settings', this)"><i class="ph ph-gear"></i><span>Настройки</span></button>
+                <button class="nav-button" onclick="switchTab('profile', this)"><i class="ph ph-user"></i><span>Профиль</span></button>
+            </nav>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ЭКРАН 3: ЧАТ -->
+        <!-- ========================================== -->
+        <div id="screen-chat" class="screen">
+            <header class="chat-header">
+                <button class="chat-back-btn" onclick="closeChatRoom()"><i class="ph ph-caret-left"></i></button>
+                <div class="avatar avatar-sm" id="chat-header-avatar"></div>
+                <div class="chat-header-info">
+                    <div class="chat-header-name" id="chat-header-name">Имя</div>
+                    <div class="chat-header-status" id="chat-header-status">онлайн</div>
+                </div>
+            </header>
             
-            if (activeDevices && activeDevices.length > 0) {
-                generatedBotCode = Math.floor(100000 + Math.random() * 900000).toString();
-                await sb.from('bot_messages').insert({
-                    user_id: prof.id,
-                    text: `⚠️ Вход с нового устройства.\nКод: <b>${generatedBotCode}</b>\nЕсли это не вы, смените пароль!`
-                });
-                document.getElementById('step-password').style.display = 'none';
-                document.getElementById('step-code').style.display = 'block';
-            } else {
-                showToast('Успешный вход!');
-                loginUserDirectly(prof.id);
-            }
-        };
+            <div class="messages-area" id="messages-container"></div>
 
-        document.getElementById('btn-step3').onclick = async function() {
-            let code = document.getElementById('inp-code').value.trim();
-            if(code !== generatedBotCode) return showToast('Неверный код');
-            const { data: prof } = await sb.from('profiles').select('*').eq('email', loginEmail).maybeSingle();
-            loginUserDirectly(prof.id);
-        };
+            <div class="message-input-area">
+                <input type="text" id="input-message" placeholder="Сообщение...">
+                <button class="send-button" id="btn-send-message"><i class="ph ph-paper-plane-right"></i></button>
+            </div>
+        </div>
 
-        async function loginUserDirectly(userId) {
-            localStorage.setItem('molju_user_id', userId);
-            localStorage.setItem('molju_logged_in', 'true');
-            await sb.from('devices').insert({ user_id: userId, device_name: navigator.userAgent.includes('Mobile') ? 'Phone' : 'PC', location: 'Текущее' });
-            checkUserProfile();
-        }
+        <!-- ========================================== -->
+        <!-- ПОЛНОЭКРАННЫЙ ПРОСМОТР ИСТОРИЙ -->
+        <!-- ========================================== -->
+        <div id="story-viewer">
+            <div class="story-progress"><div class="story-progress-bar" id="story-progress-bar"></div></div>
+            <div class="story-header">
+                <div class="avatar avatar-sm" id="story-avatar"></div>
+                <div style="font-weight: 600; font-size: 16px; display:flex; align-items:center;" id="story-name"></div>
+                <button style="margin-left:auto; font-size: 24px; color: #fff;" onclick="closeStory()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="story-media-container" id="story-media">
+                <img id="story-image" src="" style="display: none;">
+                <video id="story-video" src="" style="display: none;" autoplay></video>
+            </div>
+        </div>
 
-        window.resetPassword = async function() {
-            if(!loginEmail) return showToast('Введите Email');
-            await sb.auth.signInWithOtp({ email: loginEmail });
-            showToast('Новый пароль отправлен на почту');
-        };
+        <!-- ========================================== -->
+        <!-- МОДАЛЬНЫЕ ОКНА -->
+        <!-- ========================================== -->
+        
+        <!-- Безопасность -->
+        <div id="modal-security" class="modal-backdrop" onclick="closeModal('modal-security', event)">
+            <div class="modal-content">
+                <div class="modal-handle"></div>
+                <div class="modal-title">Безопасность</div>
+                <div class="setting-row" onclick="openModal('modal-change-pwd')">
+                    <div class="setting-label"><i class="ph ph-key"></i> Изменить пароль</div>
+                </div>
+                <div class="setting-row" onclick="openModal('modal-devices')">
+                    <div class="setting-label"><i class="ph ph-devices"></i> Активные устройства</div>
+                </div>
+                <div class="setting-row" onclick="openModal('modal-qr')">
+                    <div class="setting-label"><i class="ph ph-qr-code"></i> Вход по QR-коду</div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 20px; background: var(--accent-color);" onclick="terminateAllSessions()">Завершить все сессии</button>
+            </div>
+        </div>
 
-        document.getElementById('btn-logout').onclick = () => { 
-            localStorage.removeItem('molju_user_id'); 
-            localStorage.removeItem('molju_logged_in');
-            location.reload(); 
-        };
+        <!-- Устройства -->
+        <div id="modal-devices" class="modal-backdrop" onclick="closeModal('modal-devices', event)">
+            <div class="modal-content">
+                <div class="modal-handle"></div>
+                <div class="modal-title">Активные устройства</div>
+                <div id="devices-list"></div>
+            </div>
+        </div>
 
-        async function checkUserProfile() {
-            let uid = localStorage.getItem('molju_user_id');
-            if (!uid) {
-                const { data: { session } } = await sb.auth.getSession();
-                if (session) uid = session.user.id;
-            }
+        <!-- QR-код -->
+        <div id="modal-qr" class="modal-backdrop" onclick="closeModal('modal-qr', event)">
+            <div class="modal-content" style="text-align: center;">
+                <div class="modal-handle"></div>
+                <div class="modal-title">Вход по QR</div>
+                <div class="qr-box"><img id="qr-image" src="" alt="QR"></div>
+                <p style="color: var(--text-secondary); font-size: 14px;">Отсканируйте камерой другого устройства, где вы уже вошли в Molju</p>
+            </div>
+        </div>
 
-            if (uid) {
-                curUser = { id: uid };
-                const { data } = await sb.from('profiles').select('*').eq('id', curUser.id).single();
-                if (data) {
-                    if (!data.password_hash) return showScreen('scr-onboard');
-                    curProfile = data;
-                    document.getElementById('settings-name').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : ''}`;
-                    document.getElementById('settings-user').textContent = '@' + data.username;
-                    if (data.avatar_url) document.getElementById('settings-ava').style.backgroundImage = `url('${data.avatar_url}')`;
-                    showScreen('scr-main');
-                    loadChats();
-                    loadStoriesFeed();
-                } else {
-                    showScreen('scr-onboard');
+        <!-- Смена пароля -->
+        <div id="modal-change-pwd" class="modal-backdrop" onclick="closeModal('modal-change-pwd', event)">
+            <div class="modal-content">
+                <div class="modal-handle"></div>
+                <div class="modal-title">Изменить пароль</div>
+                <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">Менять пароль можно не чаще раза в 24 часа.</p>
+                <input type="password" id="input-change-pwd" class="input-field" placeholder="Новый пароль">
+                <button class="btn btn-primary" id="btn-save-changed-pwd">Сохранить</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT ЛОГИКА -->
+    <!-- ========================================== -->
+    <script>
+        // Обертка для избежания конфликтов в глобальной области видимости
+        (function() {
+            'use strict';
+
+            // ==========================================
+            // 1. КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ SUPABASE
+            // ==========================================
+            const SUPABASE_URL = 'https://dhmqbjfzkrmsbrwzenna.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
+            
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                auth: {
+                    detectSessionInUrl: true,
+                    persistSession: true,
+                    autoRefreshToken: true
                 }
-            } else showScreen('scr-login');
-        }
-        checkUserProfile();
+            });
 
-        // ОНБОРДИНГ
-        document.getElementById('btn-request-pwd-code').onclick = async function() {
-            let pwd = document.getElementById('onb-password').value;
-            if(pwd.length < 6) return showToast('Пароль от 6 символов');
-            const { data: { session } } = await sb.auth.getSession();
-            let email = session ? session.user.email : prompt('Введите ваш Email:');
-            await sb.auth.signInWithOtp({ email: email });
-            document.getElementById('onb-code-block').style.display = 'block';
-        };
-
-        document.getElementById('btn-save-password').onclick = async function() {
-            let code = document.getElementById('onb-code').value.trim();
-            if(code.length < 6) return showToast('Введите код');
-            const { data: { session } } = await sb.auth.getSession();
-            let email = session ? session.user.email : prompt('Введите Email:');
+            // ==========================================
+            // 2. ГЛОБАЛЬНОЕ СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+            // ==========================================
+            let currentUser = null;
+            let currentProfile = null;
+            let currentChatId = null;
             
-            const { error } = await sb.auth.verifyOtp({ email: email, token: code, type: 'email' });
-            if(!error) {
-                let pwd = document.getElementById('onb-password').value;
-                let uid = session ? session.user.id : (await sb.auth.getUser()).data.user.id;
-                await sb.from('profiles').update({ password_hash: hashPwd(pwd), last_password_change: new Date() }).eq('id', uid);
+            let realtimeChannel = null;
+            let presenceChannel = null;
+            
+            let loginEmail = '';
+            let generatedBotCode = '';
+            let isResettingPassword = false;
+            let activeStories = [];
+            let activeStoryIndex = 0;
+
+            // ==========================================
+            // 3. УТИЛИТЫ И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+            // ==========================================
+            
+            // Хеширование пароля (базовая имитация для клиента)
+            function hashPassword(password) {
+                return btoa(password + 'molju_salt_v1');
+            }
+
+            // Показ уведомлений
+            window.showToast = function(message) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = message;
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            };
+
+            // Переключение экранов
+            window.showScreen = function(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+            };
+
+            // Переключение шагов авторизации
+            window.showAuthStep = function(stepId) {
+                document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+                document.getElementById(stepId).classList.add('active');
+            };
+
+            // Управление модалками
+            window.openModal = function(modalId) {
+                document.getElementById(modalId).classList.add('active');
+            };
+
+            window.closeModal = function(modalId, event) {
+                if (event && event.target !== document.getElementById(modalId)) return;
+                document.getElementById(modalId).classList.remove('active');
+            };
+
+            // Переключение темы
+            window.toggleTheme = function() {
+                document.body.classList.toggle('light-theme');
+                const isLight = document.body.classList.contains('light-theme');
+                localStorage.setItem('molju_theme', isLight ? 'light' : 'dark');
+                document.getElementById('toggle-theme').checked = !isLight;
+            };
+
+            // Инициализация темы
+            if (localStorage.getItem('molju_theme') === 'light') {
+                document.body.classList.add('light-theme');
+            } else {
+                document.getElementById('toggle-theme').checked = true;
+            }
+
+            // ==========================================
+            // 4. ЛОГИКА АВТОРИЗАЦИИ
+            // ==========================================
+            
+            // Шаг 1: Ввод email
+            document.getElementById('btn-auth-email-next').addEventListener('click', async function() {
+                loginEmail = document.getElementById('input-auth-email').value.trim();
+                if (!loginEmail) return showToast('Введите Email');
+                
+                this.innerHTML = '<div class="loading-spinner"></div>';
+                this.disabled = true;
+
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', loginEmail)
+                    .maybeSingle();
+                
+                this.innerHTML = 'Продолжить';
+                this.disabled = false;
+
+                if (profile && profile.password_hash) {
+                    showAuthStep('auth-step-password');
+                } else {
+                    // Новый пользователь - отправляем OTP
+                    const { error } = await supabase.auth.signInWithOtp({ email: loginEmail });
+                    if (error) return showToast(error.message);
+                    
+                    document.getElementById('auth-display-email').textContent = loginEmail;
+                    isResettingPassword = false;
+                    document.getElementById('auth-pwd-title').textContent = 'Придумайте пароль';
+                    showAuthStep('auth-step-otp');
+                }
+            });
+
+            // Шаг 2: Ввод пароля (старый пользователь)
+            document.getElementById('btn-auth-login').addEventListener('click', async function() {
+                const pwd = document.getElementById('input-auth-password').value;
+                if (!pwd) return showToast('Введите пароль');
+                
+                this.innerHTML = '<div class="loading-spinner"></div>';
+                this.disabled = true;
+
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', loginEmail)
+                    .maybeSingle();
+
+                if (!profile || profile.password_hash !== hashPassword(pwd)) {
+                    this.innerHTML = 'Войти';
+                    this.disabled = false;
+                    return showToast('Неверный пароль');
+                }
+
+                // Проверка активных устройств
+                const { data: devices } = await supabase
+                    .from('devices')
+                    .select('id')
+                    .eq('user_id', profile.id);
+
+                this.innerHTML = 'Войти';
+                this.disabled = false;
+
+                if (devices && devices.length > 0) {
+                    // Есть другие устройства - отправляем код в бота
+                    generatedBotCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    await supabase.from('bot_messages').insert({
+                        user_id: profile.id,
+                        text: `⚠️ Вход с нового устройства.\nКод: <b>${generatedBotCode}</b>`
+                    });
+                    showAuthStep('auth-step-bot');
+                } else {
+                    // Нет других устройств - пускаем сразу
+                    loginUserDirectly(profile.id);
+                }
+            });
+
+            // Сброс пароля
+            document.getElementById('btn-auth-forgot').addEventListener('click', async function() {
+                const { error } = await supabase.auth.signInWithOtp({ email: loginEmail });
+                if (error) return showToast(error.message);
+                
+                document.getElementById('auth-display-email').textContent = loginEmail;
+                isResettingPassword = true;
+                document.getElementById('auth-pwd-title').textContent = 'Придумайте новый пароль';
+                showAuthStep('auth-step-otp');
+            });
+
+            // Шаг 3: Ввод кода из почты
+            document.getElementById('btn-auth-verify-otp').addEventListener('click', async function() {
+                const code = document.getElementById('input-auth-otp').value.trim();
+                if (code.length < 6) return showToast('Введите код полностью');
+
+                this.innerHTML = '<div class="loading-spinner"></div>';
+                this.disabled = true;
+
+                const { error } = await supabase.auth.verifyOtp({ 
+                    email: loginEmail, 
+                    token: code, 
+                    type: 'email' 
+                });
+
+                this.innerHTML = 'Подтвердить';
+                this.disabled = false;
+
+                if (error) {
+                    showToast(error.message);
+                } else {
+                    showAuthStep('auth-step-new-pwd');
+                }
+            });
+
+            // Шаг 4: Сохранение нового пароля
+            document.getElementById('btn-auth-save-pwd').addEventListener('click', async function() {
+                const newPwd = document.getElementById('input-auth-new-pwd').value;
+                if (newPwd.length < 6) return showToast('Пароль от 6 символов');
+
+                this.innerHTML = '<div class="loading-spinner"></div>';
+                this.disabled = true;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return showToast('Ошибка сессии');
+
+                await supabase.from('profiles').update({
+                    password_hash: hashPassword(newPwd),
+                    email: loginEmail,
+                    last_password_change: new Date()
+                }).eq('id', session.user.id);
+
+                this.innerHTML = 'Сохранить и войти';
+                this.disabled = false;
+
                 showToast('Пароль установлен!');
+                isResettingPassword = false;
+                loginUserDirectly(session.user.id);
+            });
+
+            // Шаг 5: Ввод кода из бота
+            document.getElementById('btn-auth-verify-bot').addEventListener('click', function() {
+                const code = document.getElementById('input-auth-bot-code').value.trim();
+                if (code !== generatedBotCode) return showToast('Неверный код');
+                
+                const { data: profile } = supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', loginEmail)
+                    .maybeSingle();
+                
+                // В реальном приложении тут нужно дождаться запроса
+                // Но для простоты вызываем сразу
+                supabase.from('profiles').select('id').eq('email', loginEmail).single().then(({ data }) => {
+                    loginUserDirectly(data.id);
+                });
+            });
+
+            // Вспомогательная функция для входа
+            async function loginUserDirectly(userId) {
+                localStorage.setItem('molju_user_id', userId);
+                localStorage.setItem('molju_logged_in', 'true');
+                
+                await supabase.from('devices').insert({
+                    user_id: userId,
+                    device_name: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop',
+                    location: 'Текущее местоположение'
+                });
+
+                showToast('Успешный вход!');
                 checkUserProfile();
-            } else showToast('Неверный код');
-        };
-
-        // ==========================================
-        // ЧАТЫ
-        // ==========================================
-        window.switchTab = function(t, el) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('act'));
-            if(el) el.classList.add('act');
-            document.querySelectorAll('.tab').forEach(c => c.classList.remove('act'));
-            document.getElementById('tab-' + t).classList.add('act');
-            document.getElementById('main-title').textContent = t === 'chats' ? 'Molju' : 'Контакты';
-            document.querySelector('.fab').style.display = t === 'chats' ? 'flex' : 'none';
-        };
-
-        async function loadChats() {
-            const { data } = await sb.from('chat_members').select('chat_id, chats(id, name, type)').eq('user_id', curUser.id);
-            let c = document.getElementById('chat-list-container'); c.innerHTML = '';
-            
-            // ЧАТ С БОТОМ
-            let botChat = document.createElement('div'); botChat.className = 'chat-item';
-            botChat.innerHTML = `<div class="ava" style="background: var(--bot-bg); color: var(--verified-blue);"><i class="ph-fill ph-robot"></i></div>
-                                 <div class="chat-info"><div class="chat-name">Molju Code <i class="ph-fill ph-seal-check verified-badge"></i></div>
-                                 <div class="chat-last">Служебные уведомления</div></div>`;
-            botChat.onclick = () => openBotChat();
-            c.appendChild(botChat);
-
-            if (!data) return;
-            for (let item of data) {
-                let ch = item.chats; if (!ch) continue;
-                let d = document.createElement('div'); d.className = 'chat-item';
-                d.innerHTML = `<div class="ava">${ch.name[0].toUpperCase()}</div>
-                               <div class="chat-info"><div class="chat-name">${ch.name}</div></div>`;
-                d.onclick = () => openChat(ch.id, ch.name);
-                c.appendChild(d);
             }
-        }
 
-        window.openBotChat = async function() {
-            document.getElementById('chat-name').innerHTML = 'Molju Code <i class="ph-fill ph-seal-check verified-badge"></i>';
-            showScreen('scr-chat');
-            let c = document.getElementById('chat-msgs'); c.innerHTML = '';
-            const { data } = await sb.from('bot_messages').select('*').eq('user_id', curUser.id).order('created_at', { ascending: true });
-            data.forEach(m => {
-                let d = document.createElement('div'); d.className = 'msg msg-bot';
-                d.innerHTML = `${m.text.replace(/\n/g, '<br>')}<span class="msg-time">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
-                c.appendChild(d);
-            });
-            c.scrollTop = c.scrollHeight;
-        };
-
-        window.openChat = async function(id, name) {
-            document.getElementById('chat-name').textContent = name;
-            showScreen('scr-chat');
-            let c = document.getElementById('chat-msgs'); c.innerHTML = '';
-            const { data } = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', { ascending: true });
-            data.forEach(m => {
-                let d = document.createElement('div'); d.className = `msg ${m.sender_id === curUser.id ? 'msg-mine' : 'msg-other'}`;
-                d.innerHTML = `${m.text}<span class="msg-time">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
-                c.appendChild(d);
-            });
-            c.scrollTop = c.scrollHeight;
-        };
-
-        document.getElementById('btn-back-chat').onclick = () => { showScreen('scr-main'); loadChats(); };
-
-        // ==========================================
-        // ИСТОРИИ (С ФИЛЬТРОМ 48 ЧАСОВ)
-        // ==========================================
-        async function loadStoriesFeed() {
-            const container = document.getElementById('stories-container');
-            container.innerHTML = `<div class="story-avatar-item" onclick="showToast('Добавление историй в разработке')"><div class="story-avatar-circle add"><i class="ph ph-plus"></i></div><div class="story-name">Добавить</div></div>`;
-
-            const { data } = await sb.from('stories').select('*, profiles(username, avatar_url, is_verified)').order('created_at', { ascending: true });
-            if (!data) return;
-
-            const now = new Date().getTime();
-            const groupedStories = {};
-
-            data.forEach(story => {
-                // ФИЛЬТР 48 ЧАСОВ
-                const storyTime = new Date(story.created_at).getTime();
-                const hoursDiff = (now - storyTime) / (1000 * 60 * 60);
-                if (hoursDiff > 48) return; // Пропускаем старые
-
-                if (!groupedStories[story.user_id]) groupedStories[story.user_id] = [];
-                groupedStories[story.user_id].push(story);
-            });
-
-            for (const userId in groupedStories) {
-                const userStories = groupedStories[userId];
-                const latest = userStories[userStories.length - 1];
-                const item = document.createElement('div');
-                item.className = 'story-item';
-                item.onclick = () => openStoryViewer(userStories, 0);
+            // Проверка профиля при загрузке
+            async function checkUserProfile() {
+                let uid = localStorage.getItem('molju_user_id');
                 
-                const avatarUrl = latest.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${latest.profiles?.username}&background=ff3b30&color=fff`;
-                const badge = latest.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : '';
-                
-                item.innerHTML = `<div class="story-circle has-story" style="background-image: url('${avatarUrl}')"></div><div class="story-name">${userId === curUser.id ? 'Моя' : latest.profiles?.username} ${badge}</div>`;
-                container.appendChild(item);
+                if (!uid) {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session) uid = session.user.id;
+                }
+
+                if (uid) {
+                    currentUser = { id: uid };
+                    const { data } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+
+                    if (data) {
+                        if (!data.password_hash) return showScreen('screen-auth');
+                        
+                        currentProfile = data;
+                        
+                        document.getElementById('profile-name').innerHTML = `
+                            ${data.name} 
+                            ${data.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : ''}
+                        `;
+                        document.getElementById('profile-username').textContent = '@' + data.username;
+                        if (data.avatar_url) {
+                            document.getElementById('profile-avatar').style.backgroundImage = `url('${data.avatar_url}')`;
+                        }
+
+                        showScreen('screen-main');
+                        loadChats();
+                    } else {
+                        showScreen('screen-auth');
+                    }
+                } else {
+                    showScreen('screen-auth');
+                }
             }
-        }
+            checkUserProfile();
 
-        window.openStoryViewer = function(storiesArray, startIndex) {
-            activeStoryGroup = storiesArray;
-            activeStoryIndex = startIndex;
-            document.getElementById('story-viewer').classList.add('act');
-            renderCurrentStory();
-        };
-
-        function renderCurrentStory() {
-            const s = activeStoryGroup[activeStoryIndex];
-            if (!s) return closeStory();
-
-            document.getElementById('story-author-name').innerHTML = `${s.profiles?.username} ${s.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge" style="color:#fff;"></i>' : ''}`;
-            document.getElementById('story-author-ava').style.backgroundImage = `url('${s.profiles?.avatar_url || ''}')`;
-
-            let img = document.getElementById('story-img'); let vid = document.getElementById('story-video');
-            img.style.display = 'none'; vid.style.display = 'none'; vid.pause();
-            
-            if (s.media_url) {
-                if (s.media_type === 'video') { vid.src = s.media_url; vid.style.display = 'block'; vid.play(); }
-                else { img.src = s.media_url; img.style.display = 'block'; }
-            }
-            
-            let bar = document.getElementById('story-progress-bar');
-            bar.style.animation = 'none'; bar.offsetHeight; bar.style.animation = 'progress 10s linear forwards';
-            setTimeout(nextStory, 10000);
-        }
-
-        window.nextStory = function() { activeStoryIndex++; if (activeStoryIndex >= activeStoryGroup.length) closeStory(); else renderCurrentStory(); };
-        window.closeStory = function() { document.getElementById('story-viewer').classList.remove('act'); document.getElementById('story-video').pause(); };
-
-        // ==========================================
-        // БЕЗОПАСНОСТЬ
-        // ==========================================
-        window.terminateAllSessions = async function() {
-            let pwd = prompt('Введите ваш пароль для подтверждения:');
-            if(!pwd || curProfile.password_hash !== hashPwd(pwd)) return showToast('Неверный пароль');
-            
-            let confirmCode = Math.floor(100000 + Math.random() * 900000).toString();
-            alert('КОД ПОДТВЕРЖДЕНИЯ (в реальности придет на почту): ' + confirmCode);
-            
-            let inputCode = prompt('Введите код с почты:');
-            if(inputCode !== confirmCode) return showToast('Неверный код');
-
-            await sb.from('devices').delete().eq('user_id', curUser.id);
-            showToast('Все сессии завершены. Выход...');
-            setTimeout(() => { localStorage.clear(); location.reload(); }, 2000);
-        };
-
-        document.getElementById('btn-save-new-pwd').onclick = async function() {
-            let lastChange = new Date(curProfile.last_password_change);
-            let hoursDiff = (new Date() - lastChange) / 36e5;
-            if (hoursDiff < 24) return showToast(`Осталось ждать: ${Math.ceil(24 - hoursDiff)} ч.`);
-
-            let newPwd = document.getElementById('new-pwd').value;
-            if(newPwd.length < 6) return showToast('Пароль от 6 символов');
-
-            await sb.from('profiles').update({ password_hash: hashPwd(newPwd), last_password_change: new Date() }).eq('id', curUser.id);
-            curProfile.password_hash = hashPwd(newPwd);
-            hideModal('mdl-change-pwd');
-            showToast('Пароль успешно изменен');
-        };
-
-        document.getElementById('mdl-devices').addEventListener('click', async () => {
-            if(!curUser) return;
-            const { data } = await sb.from('devices').select('*').eq('user_id', curUser.id);
-            let container = document.getElementById('devices-list'); container.innerHTML = '';
-            data.forEach(d => {
-                container.innerHTML += `<div class="dev-item"><i class="ph ph-device-mobile" style="font-size: 24px;"></i><div><div style="font-weight: 600;">${d.device_name}</div><div style="font-size: 12px; color: var(--mut);">${d.location}</div></div></div>`;
+            document.getElementById('btn-logout').addEventListener('click', () => {
+                localStorage.removeItem('molju_user_id');
+                localStorage.removeItem('molju_logged_in');
+                location.reload();
             });
-        });
 
-        document.getElementById('mdl-qr-login').addEventListener('click', () => {
-            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MOLJU_LOGIN_${curUser.id}`;
-        });
+            // ==========================================
+            // 5. НАВИГАЦИЯ И СПИСКИ
+            // ==========================================
+            window.switchTab = function(tabName, btnElement) {
+                document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+                btnElement.classList.add('active');
+                
+                document.querySelectorAll('.tab-pane').forEach(c => c.classList.remove('active'));
+                document.getElementById('tab-' + tabName).classList.add('active');
+                
+                const titles = { chats: 'Molju', contacts: 'Контакты', settings: 'Настройки', profile: 'Профиль' };
+                document.getElementById('main-title').textContent = titles[tabName];
+                
+                document.querySelector('.fab-button').style.display = (tabName === 'chats') ? 'flex' : 'none';
+            };
 
-    })();
-</script>
+            async function loadChats() {
+                const { data } = await supabase
+                    .from('chat_members')
+                    .select('chat_id, chats(id, name, type)')
+                    .eq('user_id', currentUser.id);
+                
+                const container = document.getElementById('chat-list-container');
+                container.innerHTML = '';
+
+                // Бот
+                const botChat = document.createElement('div');
+                botChat.className = 'chat-item';
+                botChat.innerHTML = `
+                    <div class="avatar" style="background: var(--bot-bg); color: var(--verified-blue);"><i class="ph-fill ph-robot"></i></div>
+                    <div class="chat-info">
+                        <div class="chat-name-row"><div class="chat-name">Molju Code <i class="ph-fill ph-seal-check verified-badge"></i></div></div>
+                        <div class="chat-preview">Служебные уведомления</div>
+                    </div>
+                `;
+                botChat.onclick = () => openBotChat();
+                container.appendChild(botChat);
+
+                if (!data) return;
+
+                for (let item of data) {
+                    const chat = item.chats;
+                    if (!chat) continue;
+
+                    const chatEl = document.createElement('div');
+                    chatEl.className = 'chat-item';
+                    chatEl.innerHTML = `
+                        <div class="avatar">${chat.name[0].toUpperCase()}</div>
+                        <div class="chat-info">
+                            <div class="chat-name-row"><div class="chat-name">${chat.name}</div></div>
+                            <div class="chat-preview">Нажмите чтобы открыть</div>
+                        </div>
+                    `;
+                    chatEl.onclick = () => openChatRoom(chat.id, chat.name);
+                    container.appendChild(chatEl);
+                }
+            }
+
+            // ==========================================
+            // 6. ЛОГИКА ЧАТА
+            // ==========================================
+            window.openBotChat = async function() {
+                document.getElementById('chat-header-name').innerHTML = 'Molju Code <i class="ph-fill ph-seal-check verified-badge"></i>';
+                showScreen('screen-chat');
+                
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
+                
+                const { data } = await supabase
+                    .from('bot_messages')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: true });
+
+                data.forEach(msg => {
+                    const el = document.createElement('div');
+                    el.className = 'message-bubble bot';
+                    el.innerHTML = `
+                        ${msg.text.replace(/\n/g, '<br>')}
+                        <span class="message-time">${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    `;
+                    container.appendChild(el);
+                });
+                container.scrollTop = container.scrollHeight;
+            };
+
+            window.openChatRoom = async function(chatId, name) {
+                currentChatId = chatId;
+                document.getElementById('chat-header-name').textContent = name;
+                showScreen('screen-chat');
+                
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
+                
+                const { data } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .eq('chat_id', chatId)
+                    .order('created_at', { ascending: true });
+
+                data.forEach(msg => {
+                    const el = document.createElement('div');
+                    el.className = `message-bubble ${msg.sender_id === currentUser.id ? 'outgoing' : 'incoming'}`;
+                    el.innerHTML = `
+                        ${msg.text}
+                        <span class="message-time">${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    `;
+                    container.appendChild(el);
+                });
+                container.scrollTop = container.scrollHeight;
+            };
+
+            window.closeChatRoom = function() {
+                currentChatId = null;
+                showScreen('screen-main');
+                loadChats();
+            };
+
+            document.getElementById('btn-send-message').addEventListener('click', async function() {
+                const input = document.getElementById('input-message');
+                const text = input.value.trim();
+                if (!text || !currentChatId) return;
+
+                input.value = '';
+                
+                const { data } = await supabase.from('messages').insert({
+                    chat_id: currentChatId,
+                    sender_id: currentUser.id,
+                    text: text
+                }).select().single();
+
+                if (data) {
+                    const container = document.getElementById('messages-container');
+                    const el = document.createElement('div');
+                    el.className = 'message-bubble outgoing';
+                    el.innerHTML = `
+                        ${text}
+                        <span class="message-time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    `;
+                    container.appendChild(el);
+                    container.scrollTop = container.scrollHeight;
+                }
+            });
+
+            document.getElementById('input-message').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') document.getElementById('btn-send-message').click();
+            });
+
+            // ==========================================
+            // 7. БЕЗОПАСНОСТЬ
+            // ==========================================
+            window.terminateAllSessions = async function() {
+                const pwd = prompt('Введите пароль для подтверждения:');
+                if (!pwd || currentProfile.password_hash !== hashPassword(pwd)) {
+                    return showToast('Неверный пароль');
+                }
+
+                const confirmCode = Math.floor(100000 + Math.random() * 900000).toString();
+                alert('КОД (в реальности придет на почту): ' + confirmCode);
+                
+                const inputCode = prompt('Введите код:');
+                if (inputCode !== confirmCode) return showToast('Неверный код');
+
+                await supabase.from('devices').delete().eq('user_id', currentUser.id);
+                showToast('Все сессии завершены. Выход...');
+                setTimeout(() => {
+                    localStorage.clear();
+                    location.reload();
+                }, 2000);
+            };
+
+            document.getElementById('btn-save-changed-pwd').addEventListener('click', async function() {
+                const lastChange = new Date(currentProfile.last_password_change);
+                const hoursDiff = (new Date() - lastChange) / 36e5;
+                
+                if (hoursDiff < 24) {
+                    return showToast(`Осталось ждать: ${Math.ceil(24 - hoursDiff)} ч.`);
+                }
+
+                const newPwd = document.getElementById('input-change-pwd').value;
+                if (newPwd.length < 6) return showToast('Пароль от 6 символов');
+
+                await supabase.from('profiles').update({
+                    password_hash: hashPassword(newPwd),
+                    last_password_change: new Date()
+                }).eq('id', currentUser.id);
+
+                currentProfile.password_hash = hashPassword(newPwd);
+                closeModal('modal-change-pwd');
+                showToast('Пароль успешно изменен');
+            });
+
+            document.getElementById('modal-devices').addEventListener('click', async () => {
+                if (!currentUser) return;
+                
+                const { data } = await supabase
+                    .from('devices')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+                
+                const container = document.getElementById('devices-list');
+                container.innerHTML = '';
+                
+                data.forEach(device => {
+                    container.innerHTML += `
+                        <div class="device-item">
+                            <i class="ph ph-device-mobile" style="font-size: 24px;"></i>
+                            <div>
+                                <div style="font-weight: 600;">${device.device_name}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${device.location}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            document.getElementById('modal-qr').addEventListener('click', () => {
+                document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MOLJU_LOGIN_${currentUser.id}`;
+            });
+
+            // ==========================================
+            // 8. ИСТОРИИ
+            // ==========================================
+            async function loadStories() {
+                const container = document.getElementById('stories-container');
+                container.innerHTML = `<div class="story-item" onclick="showToast('Добавление в разработке')"><div class="story-circle add"><i class="ph ph-plus"></i></div><div class="story-name">Добавить</div></div>`;
+
+                const { data } = await supabase
+                    .from('stories')
+                    .select('*, profiles(username, avatar_url, is_verified)')
+                    .order('created_at', { ascending: true });
+
+                if (!data) return;
+
+                const now = new Date().getTime();
+                const grouped = {};
+
+                data.forEach(story => {
+                    const hoursDiff = (now - new Date(story.created_at).getTime()) / 36e5;
+                    if (hoursDiff > 48) return;
+                    
+                    if (!grouped[story.user_id]) grouped[story.user_id] = [];
+                    grouped[story.user_id].push(story);
+                });
+
+                for (const userId in grouped) {
+                    const stories = grouped[userId];
+                    const latest = stories[stories.length - 1];
+                    
+                    const item = document.createElement('div');
+                    item.className = 'story-item';
+                    item.onclick = () => openStoryViewer(stories, 0);
+                    
+                    const avatar = latest.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${latest.profiles?.username}&background=ff3b30&color=fff`;
+                    const badge = latest.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge"></i>' : '';
+                    
+                    item.innerHTML = `
+                        <div class="story-circle has-story" style="background-image: url('${avatar}')"></div>
+                        <div class="story-name">${userId === currentUser.id ? 'Моя' : latest.profiles?.username} ${badge}</div>
+                    `;
+                    container.appendChild(item);
+                }
+            }
+
+            window.openStoryViewer = function(stories, startIndex) {
+                activeStories = stories;
+                activeStoryIndex = startIndex;
+                document.getElementById('story-viewer').classList.add('active');
+                renderStory();
+            };
+
+            function renderStory() {
+                const story = activeStories[activeStoryIndex];
+                if (!story) return closeStory();
+
+                document.getElementById('story-name').innerHTML = `
+                    ${story.profiles?.username} 
+                    ${story.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge" style="color:#fff;"></i>' : ''}
+                `;
+                document.getElementById('story-avatar').style.backgroundImage = `url('${story.profiles?.avatar_url || ''}')`;
+
+                const img = document.getElementById('story-image');
+                const video = document.getElementById('story-video');
+                
+                img.style.display = 'none';
+                video.style.display = 'none';
+                video.pause();
+
+                if (story.media_url) {
+                    if (story.media_type === 'video') {
+                        video.src = story.media_url;
+                        video.style.display = 'block';
+                        video.play();
+                    } else {
+                        img.src = story.media_url;
+                        img.style.display = 'block';
+                    }
+                }
+
+                const bar = document.getElementById('story-progress-bar');
+                bar.style.animation = 'none';
+                bar.offsetHeight;
+                bar.style.animation = 'storyProgress 10s linear forwards';
+                
+                setTimeout(() => {
+                    activeStoryIndex++;
+                    if (activeStoryIndex >= activeStories.length) closeStory();
+                    else renderStory();
+                }, 10000);
+            }
+
+            window.closeStory = function() {
+                document.getElementById('story-viewer').classList.remove('active');
+                document.getElementById('story-video').pause();
+            };
+
+            // Инициализация историй при старте
+            setTimeout(loadStories, 2000);
+
+        })();
+    </script>
 </body>
-                                          </html>
+    </html>
