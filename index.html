@@ -85,6 +85,153 @@ body{height:100vh;background:var(--bg);color:var(--txt);font-family:-apple-syste
 .qr-box img{width:200px;height:200px;display:block}
 </style>
 </head>
+<body>
+<div class="app">
+  <section id="scr-login" class="scr act">
+    <div class="box">
+      <div class="logo">Mol<span>ju</span></div>
+      <p class="sub">Мессенджер</p>
+      <button class="btn btn-p btn-b" id="btn-yandex" style="margin-bottom:10px;">Войти через Яндекс</button>
+      <button class="btn btn-g btn-b" id="btn-show-email" style="margin-bottom:10px;">Войти по Email</button>
+      <button class="btn btn-g btn-b" id="btn-show-qr">Войти по QR-коду</button>
+      <p style="margin-top:20px;font-size:13px;color:var(--mut)">Без подписок</p>
+    </div>
+  </section>
+
+  <section id="scr-email" class="scr">
+    <div class="ttl">Вход по почте</div>
+    <div class="sttl">Введите email для получения кода</div>
+    <div id="email-s1">
+      <input type="email" class="fld" id="email-inp" placeholder="mail@example.com" style="margin-bottom:16px;">
+      <button class="btn btn-p btn-b" id="btn-send-code">Получить код</button>
+    </div>
+    <div id="email-s2" style="display:none;">
+      <p style="font-size:14px;color:var(--mut);margin-bottom:16px;">Код отправлен на <b id="email-disp"></b></p>
+      <input type="text" class="fld" id="code-inp" placeholder="123456" maxlength="6" style="text-align:center;font-size:20px;letter-spacing:4px;margin-bottom:16px;">
+      <button class="btn btn-p btn-b" id="btn-verify-code">Войти</button>
+    </div>
+    <div class="err" id="email-err" style="margin-top:10px;"></div>
+    <button class="btn btn-g btn-b" id="btn-back-email" style="margin-top:20px;">Назад</button>
+  </section>
+
+  <section id="scr-qr" class="scr">
+    <div class="box" style="text-align:center;">
+      <div class="ttl" style="margin-bottom:20px;">Вход по QR</div>
+      <div class="qr-box"><img id="qr-img" src="" alt="QR"></div>
+      <p style="font-size:14px;color:var(--mut);margin-bottom:20px;" id="qr-status">Отсканируйте в приложении Molju</p>
+      <button class="btn btn-g btn-b" id="btn-back-qr">Назад</button>
+    </div>
+  </section>
+
+  <section id="scr-onboard" class="scr">
+    <div class="ttl">Создание профиля</div>
+    <div class="sttl">Заполните данные</div>
+    <div style="display:flex;justify-content:center;margin-bottom:24px;">
+      <div class="ava ava-lg edit" id="onb-ava"><span class="ava-l">?</span><div class="clip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div></div>
+      <input type="file" accept="image/*" class="hid-in" id="onb-inp">
+    </div>
+    <div class="grp">
+      <label style="font-size:13px;color:var(--mut);margin-bottom:6px;display:block;">Юзернейм</label>
+      <div class="u-wrap"><span class="u-p">@</span><input type="text" id="onb-user" placeholder="username" maxlength="20"></div>
+      <div class="err" id="onb-err"></div>
+    </div>
+    <div class="grp"><label style="font-size:13px;color:var(--mut);margin-bottom:6px;display:block;">Имя</label><input type="text" class="fld" id="onb-name" placeholder="Иван"></div>
+    <div class="grp"><label style="font-size:13px;color:var(--mut);margin-bottom:6px;display:block;">Фамилия</label><input type="text" class="fld" id="onb-surname" placeholder="Иванов"></div>
+    <div class="ftr"><button class="btn btn-p btn-b" id="btn-onb-cont">Продолжить</button></div>
+  </section>
+
+  <section id="scr-main" class="scr">
+    <header class="hdr">
+      <div class="title">Mol<span>ju</span></div>
+      <button class="btn" style="padding:0;font-size:24px;" id="btn-menu">≡</button>
+    </header>
+    <main class="cnt">
+      <div id="tab-chats" class="tab act">
+        <div class="srch"><input type="text" class="fld" id="srch-inp" placeholder="Поиск"></div>
+        <div class="list" id="chat-list"></div>
+        <div class="empty" id="chat-empty"><div class="e-t">Чатов пока нет</div><div class="e-x">Нажмите + чтобы добавить</div></div>
+      </div>
+      <div id="tab-stories" class="tab">
+        <div class="stories" id="stories-list"></div>
+        <div class="empty" id="stories-empty"><div class="e-t">Историй нет</div><div class="e-x">Нажмите + чтобы выложить</div></div>
+      </div>
+      <div id="tab-profile" class="tab">
+        <div class="prof">
+          <div class="ava ava-lg" id="prof-ava"><span class="ava-l">?</span></div>
+          <div class="p-n" id="prof-name"></div>
+          <div class="p-u" id="prof-user"></div>
+          <button class="btn btn-g" id="btn-edit-prof">Изменить</button>
+          <button class="btn btn-g" id="btn-logout">Выйти</button>
+        </div>
+      </div>
+    </main>
+    <button class="fab" id="fab">+</button>
+    <nav class="nav-bar">
+      <button class="nav act" data-tab="chats">Чаты</button>
+      <button class="nav" data-tab="stories">Истории</button>
+      <button class="nav" data-tab="profile">Профиль</button>
+    </nav>
+  </section>
+
+  <section id="scr-chat" class="scr">
+    <header class="chat-hdr">
+      <button class="bck" id="btn-back">←</button>
+      <div class="ava ava-sm" id="chat-ava"><span class="ava-l">?</span></div>
+      <div><div class="c-ttl" id="chat-ttl"></div><div class="c-sub">онлайн</div></div>
+    </header>
+    <div class="msgs" id="msgs"></div>
+    <form class="cmp" id="cmp">
+      <button type="button" class="emo" id="btn-emo">🙂</button>
+      <input type="text" id="msg-inp" placeholder="Сообщение">
+      <button type="submit" class="snd">→</button>
+    </form>
+    <div class="emo-panel" id="emo-panel"></div>
+  </section>
+
+  <div class="mdl-bg" id="mdl-chat">
+    <div class="mdl">
+      <div class="m-ttl">Новый чат</div>
+      <input type="tel" class="fld" id="new-phone" placeholder="+7 (999) 123-45-67" style="margin-bottom:8px;">
+      <div class="err" id="new-err"></div>
+      <div class="m-act"><button class="btn btn-g" id="btn-cncl-chat">Отмена</button><button class="btn btn-p" id="btn-crt-chat">Найти</button></div>
+    </div>
+  </div>
+
+  <div class="mdl-bg" id="mdl-channel">
+    <div class="mdl">
+      <div class="m-ttl">Новый канал</div>
+      <input type="text" class="fld" id="ch-name" placeholder="Название канала" style="margin-bottom:10px;">
+      <textarea class="fld" id="ch-desc" placeholder="Описание" rows="3" style="margin-bottom:10px;resize:none;"></textarea>
+      <div class="m-act"><button class="btn btn-g" id="btn-cncl-chnl">Отмена</button><button class="btn btn-p" id="btn-crt-chnl">Создать</button></div>
+    </div>
+  </div>
+
+  <div class="mdl-bg" id="mdl-prof">
+    <div class="mdl">
+      <div class="m-ttl">Профиль</div>
+      <div style="display:flex;justify-content:center;margin-bottom:18px;">
+        <div class="ava ava-lg edit" id="edit-ava"><span class="ava-l">?</span><div class="clip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div></div>
+        <input type="file" accept="image/*" class="hid-in" id="edit-inp">
+      </div>
+      <div class="grp"><div class="u-wrap"><span class="u-p">@</span><input type="text" id="edit-user"></div></div>
+      <div class="grp"><input type="text" class="fld" id="edit-name" placeholder="Имя"></div>
+      <div class="grp"><input type="text" class="fld" id="edit-surname" placeholder="Фамилия"></div>
+      <div class="m-act"><button class="btn btn-g" id="btn-cncl-prof">Отмена</button><button class="btn btn-p" id="btn-save-prof">Сохранить</button></div>
+    </div>
+  </div>
+
+  <div class="mdl-bg" id="mdl-story">
+    <div class="mdl">
+      <div class="m-ttl">История</div>
+      <div class="grp"><label class="f-btn" for="st-img" id="st-lbl">Выбрать фото</label><input type="file" accept="image/*" class="hid-in" id="st-img"></div>
+      <div class="grp"><input type="text" class="fld" id="st-txt" placeholder="Текст"></div>
+      <div class="m-act"><button class="btn btn-g" id="btn-cncl-st">Отмена</button><button class="btn btn-p" id="btn-pub-st">Опубл.</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
 <script>
 (function(){
 'use strict';
@@ -102,6 +249,10 @@ function normU(v){return String(v||'').toLowerCase().replace(/[^a-z0-9_]/g,'');}
 function dName(){return((st.u.name||'')+' '+(st.u.sur||'')).trim()||('@'+st.u.user);}
 function setAva(el,ava,fb){let l=el.querySelector('.ava-l');if(ava){el.style.backgroundImage='url('+ava+')';if(l)l.textContent='';}else{el.style.backgroundImage='';if(l)l.textContent=fb||'?';}}
 function valU(u){return/^[a-z0-9_]{3,20}$/.test(u)?'':'Только латиница, цифры, _, от 3 до 20 символов.';}
+
+// Привязка кнопок "Назад"
+document.getElementById('btn-back-email').onclick=()=>showScr('login');
+document.getElementById('btn-back-qr').onclick=()=>showScr('login');
 
 sb.auth.onAuthStateChange(async(e,s)=>{
   if(e==='INITIAL_SESSION'){if(s)await handleLogin(s.user);else showScr('login');}
@@ -334,149 +485,3 @@ document.getElementById('btn-pub-st').onclick=()=>{
 </script>
 </body>
 </html>
-<body>
-<div class="app">
-  <section id="scr-login" class="scr act">
-    <div class="box">
-      <div class="logo">Mol<span>ju</span></div>
-      <p class="sub">Мессенджер</p>
-      <button class="btn btn-p btn-b" id="btn-yandex" style="margin-bottom:10px;">Войти через Яндекс</button>
-      <button class="btn btn-g btn-b" id="btn-show-email" style="margin-bottom:10px;">Войти по Email</button>
-      <button class="btn btn-g btn-b" id="btn-show-qr">Войти по QR-коду</button>
-      <p style="margin-top:20px;font-size:13px;color:var(--mut)">Без подписок</p>
-    </div>
-  </section>
-
-  <section id="scr-email" class="scr">
-    <div class="ttl">Вход по почте</div>
-    <div class="sttl">Введите email для получения кода</div>
-    <div id="email-s1">
-      <input type="email" class="fld" id="email-inp" placeholder="mail@example.com" style="margin-bottom:16px;">
-      <button class="btn btn-p btn-b" id="btn-send-code">Получить код</button>
-    </div>
-    <div id="email-s2" style="display:none;">
-      <p style="font-size:14px;color:var(--mut);margin-bottom:16px;">Код отправлен на <b id="email-disp"></b></p>
-      <input type="text" class="fld" id="code-inp" placeholder="123456" maxlength="6" style="text-align:center;font-size:20px;letter-spacing:4px;margin-bottom:16px;">
-      <button class="btn btn-p btn-b" id="btn-verify-code">Войти</button>
-    </div>
-    <div class="err" id="email-err" style="margin-top:10px;"></div>
-    <button class="btn btn-g btn-b" onclick="showScr('login')" style="margin-top:20px;">Назад</button>
-  </section>
-
-  <section id="scr-qr" class="scr">
-    <div class="box" style="text-align:center;">
-      <div class="ttl" style="margin-bottom:20px;">Вход по QR</div>
-      <div class="qr-box"><img id="qr-img" src="" alt="QR"></div>
-      <p style="font-size:14px;color:var(--mut);margin-bottom:20px;" id="qr-status">Отсканируйте в приложении Molju</p>
-      <button class="btn btn-g btn-b" onclick="showScr('login')">Назад</button>
-    </div>
-  </section>
-
-  <section id="scr-onboard" class="scr">
-    <div class="ttl">Создание профиля</div>
-    <div class="sttl">Заполните данные</div>
-    <div style="display:flex;justify-content:center;margin-bottom:24px;">
-      <div class="ava ava-lg edit" id="onb-ava"><span class="ava-l">?</span><div class="clip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div></div>
-      <input type="file" accept="image/*" class="hid-in" id="onb-inp">
-    </div>
-    <div class="grp">
-      <label style="font-size:13px;color:var(--mut);margin-bottom:6px;display:block;">Юзернейм</label>
-      <div class="u-wrap"><span class="u-p">@</span><input type="text" id="onb-user" placeholder="username" maxlength="20"></div>
-      <div class="err" id="onb-err"></div>
-    </div>
-    <div class="grp"><label style="font-size:13px;color:var(--mut);margin-bottom:6px;display:block;">Имя</label><input type="text" class="fld" id="onb-name" placeholder="Иван"></div>
-    <div class="grp"><label style="font-size:13px;color:var(--mut);margin-bottom:6px;display:block;">Фамилия</label><input type="text" class="fld" id="onb-surname" placeholder="Иванов"></div>
-    <div class="ftr"><button class="btn btn-p btn-b" id="btn-onb-cont">Продолжить</button></div>
-  </section>
-
-  <section id="scr-main" class="scr">
-    <header class="hdr">
-      <div class="title">Mol<span>ju</span></div>
-      <button class="btn" style="padding:0;font-size:24px;" id="btn-menu">≡</button>
-    </header>
-    <main class="cnt">
-      <div id="tab-chats" class="tab act">
-        <div class="srch"><input type="text" class="fld" id="srch-inp" placeholder="Поиск"></div>
-        <div class="list" id="chat-list"></div>
-        <div class="empty" id="chat-empty"><div class="e-t">Чатов пока нет</div><div class="e-x">Нажмите + чтобы добавить</div></div>
-      </div>
-      <div id="tab-stories" class="tab">
-        <div class="stories" id="stories-list"></div>
-        <div class="empty" id="stories-empty"><div class="e-t">Историй нет</div><div class="e-x">Нажмите + чтобы выложить</div></div>
-      </div>
-      <div id="tab-profile" class="tab">
-        <div class="prof">
-          <div class="ava ava-lg" id="prof-ava"><span class="ava-l">?</span></div>
-          <div class="p-n" id="prof-name"></div>
-          <div class="p-u" id="prof-user"></div>
-          <button class="btn btn-g" id="btn-edit-prof">Изменить</button>
-          <button class="btn btn-g" id="btn-logout">Выйти</button>
-        </div>
-      </div>
-    </main>
-    <button class="fab" id="fab">+</button>
-    <nav class="nav-bar">
-      <button class="nav act" data-tab="chats">Чаты</button>
-      <button class="nav" data-tab="stories">Истории</button>
-      <button class="nav" data-tab="profile">Профиль</button>
-    </nav>
-  </section>
-
-  <section id="scr-chat" class="scr">
-    <header class="chat-hdr">
-      <button class="bck" id="btn-back">←</button>
-      <div class="ava ava-sm" id="chat-ava"><span class="ava-l">?</span></div>
-      <div><div class="c-ttl" id="chat-ttl"></div><div class="c-sub">онлайн</div></div>
-    </header>
-    <div class="msgs" id="msgs"></div>
-    <form class="cmp" id="cmp">
-      <button type="button" class="emo" id="btn-emo">🙂</button>
-      <input type="text" id="msg-inp" placeholder="Сообщение">
-      <button type="submit" class="snd">→</button>
-    </form>
-    <div class="emo-panel" id="emo-panel"></div>
-  </section>
-
-  <div class="mdl-bg" id="mdl-chat">
-    <div class="mdl">
-      <div class="m-ttl">Новый чат</div>
-      <input type="tel" class="fld" id="new-phone" placeholder="+7 (999) 123-45-67" style="margin-bottom:8px;">
-      <div class="err" id="new-err"></div>
-      <div class="m-act"><button class="btn btn-g" id="btn-cncl-chat">Отмена</button><button class="btn btn-p" id="btn-crt-chat">Найти</button></div>
-    </div>
-  </div>
-
-  <div class="mdl-bg" id="mdl-channel">
-    <div class="mdl">
-      <div class="m-ttl">Новый канал</div>
-      <input type="text" class="fld" id="ch-name" placeholder="Название канала" style="margin-bottom:10px;">
-      <textarea class="fld" id="ch-desc" placeholder="Описание" rows="3" style="margin-bottom:10px;resize:none;"></textarea>
-      <div class="m-act"><button class="btn btn-g" id="btn-cncl-chnl">Отмена</button><button class="btn btn-p" id="btn-crt-chnl">Создать</button></div>
-    </div>
-  </div>
-
-  <div class="mdl-bg" id="mdl-prof">
-    <div class="mdl">
-      <div class="m-ttl">Профиль</div>
-      <div style="display:flex;justify-content:center;margin-bottom:18px;">
-        <div class="ava ava-lg edit" id="edit-ava"><span class="ava-l">?</span><div class="clip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div></div>
-        <input type="file" accept="image/*" class="hid-in" id="edit-inp">
-      </div>
-      <div class="grp"><div class="u-wrap"><span class="u-p">@</span><input type="text" id="edit-user"></div></div>
-      <div class="grp"><input type="text" class="fld" id="edit-name" placeholder="Имя"></div>
-      <div class="grp"><input type="text" class="fld" id="edit-surname" placeholder="Фамилия"></div>
-      <div class="m-act"><button class="btn btn-g" id="btn-cncl-prof">Отмена</button><button class="btn btn-p" id="btn-save-prof">Сохранить</button></div>
-    </div>
-  </div>
-
-  <div class="mdl-bg" id="mdl-story">
-    <div class="mdl">
-      <div class="m-ttl">История</div>
-      <div class="grp"><label class="f-btn" for="st-img" id="st-lbl">Выбрать фото</label><input type="file" accept="image/*" class="hid-in" id="st-img"></div>
-      <div class="grp"><input type="text" class="fld" id="st-txt" placeholder="Текст"></div>
-      <div class="m-act"><button class="btn btn-g" id="btn-cncl-st">Отмена</button><button class="btn btn-p" id="btn-pub-st">Опубл.</button></div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-</div>
