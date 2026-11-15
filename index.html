@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Molju — Messenger</title>
+<title>Molju — Premium Messenger</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080808;--surf:#141414;--surf2:#1f1f1f;--glass:rgba(20,20,20,0.85);--brd:rgba(255,255,255,0.06);--txt:#fff;--mut:#8e8e93;--acc:#ff3b30;--acc-glow:rgba(255,59,48,0.4);--grad:linear-gradient(135deg,#ff3b30,#b30000);--msg-mine:linear-gradient(135deg,#ff3b30,#cc0000);--msg-other:#1c1c1e}
+:root{--bg:#080808;--surf:#141414;--surf2:#1f1f1f;--glass:rgba(20,20,20,0.8);--brd:rgba(255,255,255,0.06);--txt:#fff;--mut:#8e8e93;--acc:#ff3b30;--acc-glow:rgba(255,59,48,0.4);--grad:linear-gradient(135deg,#ff3b30,#b30000);--msg-mine:linear-gradient(135deg,#ff3b30,#cc0000);--msg-other:#1c1c1e}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif;user-select:none}
 body{height:100vh;background:var(--bg);color:var(--txt);overflow:hidden;display:flex;justify-content:center}
 .app{position:relative;width:100%;height:100%;max-width:480px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
@@ -19,19 +19,21 @@ body{height:100vh;background:var(--bg);color:var(--txt);overflow:hidden;display:
 @keyframes popIn{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
 @keyframes pulseBtn{0%{box-shadow:0 0 0 0 var(--acc-glow)}70%{box-shadow:0 0 0 15px rgba(255,59,48,0)}100%{box-shadow:0 0 0 0 rgba(255,59,48,0)}}
 
+/* Экраны */
 .scr{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);z-index:10}
 .scr.act{display:flex;animation:fadeIn 0.25s ease}
+
+/* Общие элементы */
 button{border:none;background:none;color:inherit;font-family:inherit;cursor:pointer;outline:none;transition:0.2s}
 button:active{transform:scale(0.95);opacity:0.8}
 .btn{display:flex;align-items:center;justify-content:center;padding:16px 24px;border-radius:16px;font-weight:600;font-size:16px}
 .btn-p{background:var(--grad);color:#fff;box-shadow:0 4px 15px var(--acc-glow)}
-.btn-g{background:var(--surf2);color:var(--txt);border:1px solid var(--brd)}
 .inp{width:100%;padding:16px;border-radius:16px;background:var(--surf2);border:1px solid var(--brd);color:var(--txt);font-size:16px;outline:none;transition:0.3s;margin-bottom:16px}
 .inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-glow)}
 .ava{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#fff;background:var(--grad);flex-shrink:0;background-size:cover;background-position:center}
 .ava-sm{width:36px;height:36px;font-size:14px}
 
-/* Вход */
+/* Экран входа (как в ТГ, но с Email) */
 #scr-login{align-items:center;justify-content:center;background:linear-gradient(-45deg,#080808,#2a0000,#080808,#1a0000);background-size:400% 400%;animation:bgMove 10s ease infinite;padding:24px}
 .login-box{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;animation:fadeIn 0.5s ease}
 .logo{font-size:56px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;letter-spacing:-2px}
@@ -40,6 +42,7 @@ button:active{transform:scale(0.95);opacity:0.8}
 .login-input-wrap input{width:100%;background:var(--surf);border:2px solid var(--acc);border-radius:16px;padding:20px 16px;color:#fff;font-size:18px;outline:none;text-align:center}
 .login-input-wrap input::placeholder{color:#666;font-size:16px}
 .floating-next{position:absolute;right:16px;bottom:-80px;width:60px;height:60px;border-radius:50%;background:#0088cc;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;box-shadow:0 4px 15px rgba(0,136,204,0.4);transition:0.3s;animation:pulseBtn 2s infinite}
+.floating-next:hover{transform:scale(1.05)}
 .floating-next.active{background:var(--grad);box-shadow:0 4px 15px var(--acc-glow)}
 
 /* Главный экран */
@@ -49,15 +52,13 @@ button:active{transform:scale(0.95);opacity:0.8}
 .content{flex:1;overflow-y:auto;padding:16px;padding-bottom:100px}
 .tab{display:none}.tab.act{display:block;animation:fadeIn 0.3s}
 
-/* Нижнее меню */
-.nav-bar{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-around;padding:12px 0 calc(12px + env(safe-area-inset-bottom));background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--brd);z-index:30}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--mut);font-size:10px;font-weight:500;width:60px}
-.nav-btn.act{color:var(--acc)}
-.nav-icon{font-size:22px}
+/* Поиск */
+.search-bar{width:100%;padding:12px 16px;border-radius:16px;background:var(--surf2);border:1px solid var(--brd);color:var(--txt);outline:none;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.search-bar input{background:none;border:none;color:var(--txt);width:100%;outline:none;font-size:15px}
 
 /* Список чатов */
 .chat-list{display:flex;flex-direction:column;gap:8px}
-.chat-item{display:flex;align-items:center;gap:14px;padding:12px;border-radius:20px;transition:0.2s;cursor:pointer;background:var(--surf);margin-bottom:8px}
+.chat-item{display:flex;align-items:center;gap:14px;padding:12px;border-radius:20px;transition:0.2s;cursor:pointer}
 .chat-item:active{background:var(--surf2);transform:scale(0.98)}
 .chat-info{flex:1;min-width:0}
 .chat-top{display:flex;justify-content:space-between;margin-bottom:4px}
@@ -66,6 +67,15 @@ button:active{transform:scale(0.95);opacity:0.8}
 .chat-bottom{display:flex;justify-content:space-between;align-items:center}
 .chat-last{font-size:14px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .badge{background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:10px}
+
+/* Навигация */
+.nav-bar{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-around;padding:12px 0 calc(12px + env(safe-area-inset-bottom));background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--brd);z-index:30}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--mut);font-size:10px;font-weight:500;width:60px}
+.nav-btn.act{color:var(--acc)}
+.nav-icon{font-size:22px}
+
+/* FAB */
+.fab{position:absolute;right:20px;bottom:90px;width:56px;height:56px;border-radius:50%;background:var(--grad);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px var(--acc-glow);z-index:25}
 
 /* Экран чата */
 .chat-hdr{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--brd);z-index:20}
@@ -77,18 +87,28 @@ button:active{transform:scale(0.95);opacity:0.8}
 .msg-other{align-self:flex-start;background:var(--msg-other);border-bottom-left-radius:4px}
 .msg-mine{align-self:flex-end;background:var(--msg-mine);color:#fff;border-bottom-right-radius:4px}
 .msg-time{font-size:10px;opacity:0.7;float:right;margin-top:8px;margin-left:8px}
+.msg-reply{font-size:12px;border-left:2px solid #fff;padding-left:8px;margin-bottom:8px;opacity:0.8;background:rgba(0,0,0,0.2);border-radius:4px;padding:4px 8px}
+.msg-img{max-width:100%;border-radius:10px;margin-bottom:8px;display:block}
 .input-bar{padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--brd);display:flex;gap:10px;align-items:flex-end;z-index:20}
 .input-bar input{flex:1;background:var(--surf2);border:1px solid var(--brd);padding:14px 18px;border-radius:24px;color:var(--txt);outline:none;font-size:15px}
 .send-btn{width:48px;height:48px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px var(--acc-glow)}
 
-/* Модалки */
-.mdl-bg{position:absolute;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+/* Модалки и меню */
+.mdl-bg{position:absolute;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);display:none;align-items:flex-end;z-index:50}
 .mdl-bg.act{display:flex;animation:fadeIn 0.2s}
-.mdl{width:100%;max-width:360px;background:var(--surf);border-radius:24px;padding:24px;animation:popIn 0.2s ease;border:1px solid var(--brd)}
+.mdl{width:100%;background:var(--surf);border-top-left-radius:24px;border-top-right-radius:24px;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);border-top:1px solid var(--brd)}
+.mdl-handle{width:40px;height:4px;background:#333;border-radius:2px;margin:0 auto 20px auto}
 .mdl-title{font-size:20px;font-weight:700;margin-bottom:20px}
-
-/* FAB */
-.fab{position:absolute;right:20px;bottom:90px;width:60px;height:60px;border-radius:50%;background:var(--grad);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px var(--acc-glow);z-index:25}
+.ctx-menu{position:absolute;background:var(--surf2);border:1px solid var(--brd);border-radius:12px;padding:8px;z-index:100;display:none;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,0.5);min-width:150px}
+.ctx-menu.act{display:flex;animation:popIn 0.15s}
+.ctx-item{padding:12px;font-size:14px;display:flex;align-items:center;gap:10px;border-radius:8px}
+.ctx-item:active{background:var(--surf)}
+.emoji-panel{position:absolute;bottom:70px;left:0;right:0;height:250px;background:var(--surf);border-top:1px solid var(--brd);display:none;grid-template-columns:repeat(8,1fr);gap:8px;padding:16px;overflow-y:auto;z-index:15}
+.emoji-panel.act{display:grid}
+.emoji-btn{font-size:24px;padding:4px}
+.setting-item{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--brd);cursor:pointer}
+.setting-icon{width:40px;height:40px;border-radius:12px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:18px}
+.setting-text{flex:1;font-size:16px;font-weight:500}
 </style>
 </head>
 <body>
@@ -98,13 +118,15 @@ button:active{transform:scale(0.95);opacity:0.8}
   <div id="scr-login" class="scr act">
     <div class="login-box">
       <div class="logo">Molju</div>
-      <div class="sub">Введите вашу почту, и мы отправим код.</div>
+      <div class="sub">Введите вашу электронную почту, и мы отправим код для входа.</div>
+      
       <div class="login-input-wrap" id="wrap-email">
-        <input type="email" id="login-email" placeholder="example@gmail.com">
+        <input type="email" id="login-email" placeholder="Email (example@gmail.com)">
         <button class="floating-next" id="btn-send-otp">→</button>
       </div>
+
       <div class="login-input-wrap" id="wrap-code" style="display:none;">
-        <input type="text" id="login-code" placeholder="Код из письма" maxlength="6">
+        <input type="text" id="login-code" placeholder="Введите код (6 цифр)" maxlength="6">
         <button class="floating-next active" id="btn-verify-otp">→</button>
       </div>
       <div style="color:var(--acc);font-size:14px;margin-top:20px;font-weight:600;" id="login-err"></div>
@@ -115,6 +137,13 @@ button:active{transform:scale(0.95);opacity:0.8}
   <div id="scr-onboard" class="scr">
     <div style="padding:40px 24px;display:flex;flex-direction:column;height:100%;">
       <div class="hdr-title" style="margin-bottom:30px;">Настройка профиля</div>
+      <div style="display:flex;justify-content:center;margin-bottom:30px;">
+        <div class="ava" style="width:96px;height:96px;font-size:36px;border:3px solid var(--surf2);position:relative;" id="onb-ava" onclick="document.getElementById('onb-inp').click()">
+          <span>+</span>
+          <div style="position:absolute;bottom:0;right:0;background:var(--acc);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:3px solid var(--bg);">📷</div>
+        </div>
+        <input type="file" id="onb-inp" style="display:none;" accept="image/*">
+      </div>
       <input type="text" id="onb-user" class="inp" placeholder="@username">
       <input type="text" id="onb-name" class="inp" placeholder="Имя">
       <div style="flex:1;"></div>
@@ -125,25 +154,25 @@ button:active{transform:scale(0.95);opacity:0.8}
   <!-- ГЛАВНЫЙ ЭКРАН -->
   <div id="scr-main" class="scr">
     <div class="hdr">
-      <div class="hdr-title" id="main-title">Molju</div>
+      <div class="hdr-title" id="main-title">Чаты</div>
       <div style="display:flex;gap:12px;">
-        <button class="icon-btn" onclick="showModal('mdl-search')">🔍</button>
+        <button class="icon-btn">🔍</button>
       </div>
     </div>
 
     <!-- ЧАТЫ -->
     <div class="content tab act" id="tab-chats">
+      <div class="search-bar"><span>🔍</span><input type="text" placeholder="Поиск..."></div>
       <div class="chat-list" id="chat-list-container"></div>
-      <div id="empty-chats" style="text-align:center;color:var(--mut);margin-top:40px;">У вас пока нет чатов.<br>Нажмите на "+" чтобы найти друга.</div>
+      <div id="empty-chats" style="text-align:center;color:var(--mut);margin-top:40px;display:none;">У вас пока нет чатов.</div>
     </div>
 
     <!-- КОНТАКТЫ -->
     <div class="content tab" id="tab-contacts">
-      <div style="text-align:center;margin-top:40px;color:var(--mut);">
-        <div style="font-size:48px;margin-bottom:16px;">👥</div>
-        <div style="font-size:18px;font-weight:600;color:var(--txt);">Поиск друзей</div>
-        <div style="font-size:14px;margin-top:8px;margin-bottom:20px;">Найдите человека по номеру или @username</div>
-        <button class="btn btn-p" onclick="showModal('mdl-search')">Найти человека</button>
+      <div class="search-bar"><span>🔍</span><input type="text" placeholder="Найти контакты..."></div>
+      <div class="chat-item">
+        <div class="ava">A</div>
+        <div class="chat-info"><div class="chat-name">Анна Смирнова</div><div class="chat-time">@anna_s</div></div>
       </div>
     </div>
 
@@ -152,7 +181,21 @@ button:active{transform:scale(0.95);opacity:0.8}
       <div style="text-align:center;margin-top:60px;color:var(--mut);">
         <div style="font-size:48px;margin-bottom:16px;">📸</div>
         <div style="font-size:18px;font-weight:600;color:var(--txt);">Истории</div>
-        <div style="font-size:14px;margin-top:8px;">Здесь появятся истории.</div>
+        <div style="font-size:14px;margin-top:8px;">Здесь появятся истории ваших друзей.</div>
+      </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЯ -->
+    <div class="content tab" id="tab-notifications">
+      <div class="setting-item">
+        <div class="setting-icon">🔔</div>
+        <div class="setting-text">Добро пожаловать в Molju!</div>
+        <div style="font-size:12px;color:var(--mut);">Только что</div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-icon">🎉</div>
+        <div class="setting-text">Обновление интерфейса</div>
+        <div style="font-size:12px;color:var(--mut);">1 час назад</div>
       </div>
     </div>
 
@@ -165,17 +208,19 @@ button:active{transform:scale(0.95);opacity:0.8}
           <div style="color:var(--mut);" id="settings-user">@username</div>
         </div>
       </div>
+      <div class="setting-item" onclick="showModal('mdl-edit-profile')"><div class="setting-icon">✏️</div><div class="setting-text">Редактировать профиль</div><div style="color:var(--mut);">›</div></div>
+      <div class="setting-item"><div class="setting-icon">🔒</div><div class="setting-text">Конфиденциальность</div><div style="color:var(--mut);">›</div></div>
+      <div class="setting-item"><div class="setting-icon">🎨</div><div class="setting-text">Оформление</div><div style="color:var(--mut);">›</div></div>
       <button class="btn btn-g" style="width:100%;margin-top:20px;color:var(--acc);border:1px solid var(--acc);" id="btn-logout">Выйти из аккаунта</button>
     </div>
 
-    <!-- Кнопка поиска/создания -->
-    <button class="fab" onclick="showModal('mdl-search')">+</button>
+    <button class="fab" onclick="showModal('mdl-new-chat')">+</button>
 
-    <!-- НИЖНЕЕ МЕНЮ -->
     <div class="nav-bar">
       <button class="nav-btn act" onclick="switchMainTab('chats')"><div class="nav-icon">💬</div><div>Чаты</div></button>
       <button class="nav-btn" onclick="switchMainTab('contacts')"><div class="nav-icon">👥</div><div>Контакты</div></button>
       <button class="nav-btn" onclick="switchMainTab('stories')"><div class="nav-icon">📸</div><div>Истории</div></button>
+      <button class="nav-btn" onclick="switchMainTab('notifications')"><div class="nav-icon">🔔</div><div>Уведомления</div></button>
       <button class="nav-btn" onclick="switchMainTab('settings')"><div class="nav-icon">⚙️</div><div>Настройки</div></button>
     </div>
   </div>
@@ -191,29 +236,54 @@ button:active{transform:scale(0.95);opacity:0.8}
       </div>
     </div>
     <div class="msgs" id="chat-msgs"></div>
+    <div class="emoji-panel" id="emoji-panel"></div>
     <div class="input-bar">
+      <button style="font-size:22px;color:var(--mut);" onclick="toggleEmoji()">🙂</button>
+      <button style="font-size:22px;color:var(--mut);" onclick="document.getElementById('attach-inp').click()">📎</button>
+      <input type="file" id="attach-inp" style="display:none;" accept="image/*">
       <input type="text" id="msg-inp" placeholder="Сообщение...">
       <button class="send-btn" id="btn-send-msg">↑</button>
     </div>
   </div>
 
-  <!-- МОДАЛКА ПОИСКА -->
-  <div id="mdl-search" class="mdl-bg" onclick="hideModal('mdl-search', event)">
+  <!-- КОНТЕКСТНОЕ МЕНЮ -->
+  <div class="ctx-menu" id="ctx-menu">
+    <div class="ctx-item" onclick="replyToMessage()">↩️ Ответить</div>
+    <div class="ctx-item" onclick="copyMessage()">📋 Копировать</div>
+    <div class="ctx-item" onclick="reactMessage('❤️')">❤️ Реакция</div>
+    <div class="ctx-item" onclick="deleteMessage()" style="color:var(--acc);">🗑 Удалить</div>
+  </div>
+
+  <!-- МОДАЛКИ -->
+  <div id="mdl-edit-profile" class="mdl-bg" onclick="hideModal('mdl-edit-profile', event)">
     <div class="mdl">
-      <div class="mdl-title">Новый чат</div>
-      <input type="text" id="search-inp" class="inp" placeholder="@username или +7 999...">
-      <button class="btn btn-p" style="width:100%;" id="btn-do-search">Найти</button>
+      <div class="mdl-handle"></div>
+      <div class="mdl-title">Профиль</div>
+      <div style="display:flex;justify-content:center;margin-bottom:20px;">
+        <div class="ava" id="edit-ava" style="width:96px;height:96px;font-size:36px;" onclick="document.getElementById('edit-inp').click()">?</div>
+        <input type="file" id="edit-inp" style="display:none;" accept="image/*">
+      </div>
+      <input type="text" id="edit-name" class="inp" placeholder="Имя">
+      <input type="text" id="edit-surname" class="inp" placeholder="Фамилия">
+      <button class="btn btn-p" style="width:100%;" id="btn-save-edit">Сохранить</button>
     </div>
   </div>
 
-  <!-- МОДАЛКА: НЕ НАЙДЕН -->
-  <div id="mdl-notfound" class="mdl-bg" onclick="hideModal('mdl-notfound', event)">
-    <div class="mdl" style="text-align:center;">
-      <div style="font-size:40px;margin-bottom:16px;">🤷‍♂️</div>
-      <div class="mdl-title">Пользователь не найден</div>
-      <p style="color:var(--mut);font-size:14px;margin-bottom:20px;" id="notfound-text">Этого человека пока нет в Molju. Отправьте ему приглашение!</p>
-      <button class="btn btn-p" style="width:100%;margin-bottom:10px;" id="btn-share-invite">Поделиться ссылкой</button>
-      <button class="btn btn-g" style="width:100%;" id="btn-copy-invite">Скопировать ссылку</button>
+  <div id="mdl-new-chat" class="mdl-bg" onclick="hideModal('mdl-new-chat', event)">
+    <div class="mdl">
+      <div class="mdl-handle"></div>
+      <div class="mdl-title">Создать</div>
+      <button class="btn btn-g" style="width:100%;margin-bottom:12px;justify-content:flex-start;padding-left:20px;" onclick="showNewChatForm()">👤 Личный чат</button>
+      <button class="btn btn-g" style="width:100%;justify-content:flex-start;padding-left:20px;" onclick="showNewChannelForm()">📢 Канал</button>
+    </div>
+  </div>
+
+  <div id="mdl-create-form" class="mdl-bg" onclick="hideModal('mdl-create-form', event)">
+    <div class="mdl">
+      <div class="mdl-handle"></div>
+      <div class="mdl-title" id="create-title">Новый чат</div>
+      <input type="text" id="create-name" class="inp" placeholder="Введите название/имя">
+      <button class="btn btn-p" style="width:100%;" id="btn-do-create">Создать</button>
     </div>
   </div>
 
@@ -225,13 +295,13 @@ button:active{transform:scale(0.95);opacity:0.8}
 const SB_URL='https://dhmqbjfzkrmsbrwzenna.supabase.co',SB_KEY='sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-let curUser=null,curChatId=null,rtChannel=null,curEmail='',presenceChannel=null,inviteLink='';
+let curUser=null,curChatId=null,curTab='chats',rtChannel=null,curEmail='',avatarBase64=null,editAvatarBase64=null,activeMsgId=null,activeMsgText='',replyToMsg=null,presenceChannel=null,createType='chat';
 
 window.showScreen=function(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('act'));setTimeout(()=>document.getElementById(id).classList.add('act'),50);};
 window.showModal=function(id){document.getElementById(id).classList.add('act');};
 window.hideModal=function(id,e){if(e&&e.target!==document.getElementById(id))return;document.getElementById(id).classList.remove('act');};
 
-// АВТОРИЗАЦИЯ
+// AUTH
 document.getElementById('btn-send-otp').addEventListener('click',async function(e){
   e.preventDefault();let email=document.getElementById('login-email').value.trim();
   if(!email)return alert('Введите Email');
@@ -261,34 +331,57 @@ sb.auth.onAuthStateChange(async(e,s)=>{
 async function checkProfile(){
   const{data}=await sb.from('profiles').select('*').eq('id',curUser.id).single();
   if(data&&data.username){
-    document.getElementById('settings-name').textContent=data.name;
+    document.getElementById('settings-name').textContent=data.name+' '+(data.surname||'');
     document.getElementById('settings-user').textContent='@'+data.username;
+    document.getElementById('edit-name').value=data.name;
+    document.getElementById('edit-surname').value=data.surname||'';
+    if(data.avatar_url)document.getElementById('settings-ava').style.backgroundImage='url('+data.avatar_url+')';
     window.showScreen('scr-main');loadChats();
   }else window.showScreen('scr-onboard');
 }
 
-// ОНБОРДИНГ
+// ONBOARD
+document.getElementById('onb-inp').addEventListener('change',function(e){
+  let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=ev=>{avatarBase64=ev.target.result;document.getElementById('onb-ava').innerHTML='<img src="'+avatarBase64+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';};r.readAsDataURL(f);
+});
+
 document.getElementById('btn-save-profile').addEventListener('click',async function(){
   let u=document.getElementById('onb-user').value.trim().replace(/[^a-z0-9_]/g,''),n=document.getElementById('onb-name').value.trim();
   if(u.length<3)return alert('Юзернейм от 3 символов');if(!n)return alert('Введите имя');
   this.textContent='...';this.disabled=true;
-  const{error}=await sb.from('profiles').insert({id:curUser.id,username:u,name:n});
+  const{error}=await sb.from('profiles').insert({id:curUser.id,username:u,name:n,avatar_url:avatarBase64});
   this.textContent='Создать аккаунт';this.disabled=false;
   if(error)alert(error.code==='23505'?'Юзернейм занят':error.message);
   else checkProfile();
 });
 
-// НАВИГАЦИЯ
+// EDIT PROFILE
+document.getElementById('edit-ava').addEventListener('click',()=>document.getElementById('edit-inp').click());
+document.getElementById('edit-inp').addEventListener('change',function(e){
+  let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=ev=>{editAvatarBase64=ev.target.result;document.getElementById('edit-ava').style.backgroundImage='url('+editAvatarBase64+')';};r.readAsDataURL(f);
+});
+
+document.getElementById('btn-save-edit').addEventListener('click',async function(){
+  let n=document.getElementById('edit-name').value.trim(),s=document.getElementById('edit-surname').value.trim();
+  if(!n)return alert('Введите имя');
+  this.textContent='...';this.disabled=true;
+  let updateData={name:n,surname:s};if(editAvatarBase64)updateData.avatar_url=editAvatarBase64;
+  const{error}=await sb.from('profiles').update(updateData).eq('id',curUser.id);
+  this.textContent='Сохранить';this.disabled=false;
+  if(error)alert(error.message);else{window.hideModal('mdl-edit-profile');checkProfile();}
+});
+
+// NAV
 window.switchMainTab=function(t){
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('act'));
+  curTab=t;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('act'));
   document.querySelectorAll('.tab').forEach(c=>c.classList.remove('act'));
-  document.querySelectorAll('.nav-btn')[['chats','contacts','stories','settings'].indexOf(t)].classList.add('act');
+  document.querySelectorAll('.nav-btn')[['chats','contacts','stories','notifications','settings'].indexOf(t)].classList.add('act');
   document.getElementById('tab-'+t).classList.add('act');
-  document.getElementById('main-title').textContent=t==='chats'?'Molju':t==='contacts'?'Контакты':t==='stories'?'Истории':'Настройки';
-  document.querySelector('.fab').style.display=(t==='chats'||t==='contacts')?'flex':'none';
+  document.getElementById('main-title').textContent=t==='chats'?'Чаты':t==='contacts'?'Контакты':t==='stories'?'Истории':t==='notifications'?'Уведомления':'Настройки';
+  document.querySelector('.fab').style.display=(t==='chats')?'flex':'none';
 };
 
-// ЗАГРУЗКА ЧАТОВ
+// CHATS
 async function loadChats(){
   const{data,error}=await sb.from('chat_members').select('chat_id,chats(id,name,type)').eq('user_id',curUser.id);
   if(error)return;let c=document.getElementById('chat-list-container');c.innerHTML='';
@@ -299,74 +392,42 @@ async function loadChats(){
     const{data:m}=await sb.from('messages').select('text,created_at').eq('chat_id',ch.id).order('created_at',{ascending:false}).limit(1);
     let last=m.length?m[0].text:'Нет сообщений';let time=m.length?new Date(m[0].created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
     let d=document.createElement('div');d.className='chat-item';d.onclick=()=>openChat(ch.id,ch.name,ch.type);
-    d.innerHTML=`<div class="ava">${ch.name.charAt(0).toUpperCase()}</div>
+    d.innerHTML=`<div class="ava">${ch.type==='channel'?'📢':ch.name.charAt(0).toUpperCase()}</div>
     <div class="chat-info"><div class="chat-top"><div class="chat-name">${ch.name}</div><div class="chat-time">${time}</div></div>
     <div class="chat-bottom"><div class="chat-last">${last}</div></div></div>`;
     c.appendChild(d);
   }
 }
 
-// ПОИСК ПОЛЬЗОВАТЕЛЯ (ЛИЧНЫЕ СООБЩЕНИЯ)
-document.getElementById('btn-do-search').addEventListener('click', async function(){
-  let q=document.getElementById('search-inp').value.trim();
-  if(!q)return;
-  this.textContent='Поиск...';this.disabled=true;
+window.showNewChatForm=function(){createType='chat';document.getElementById('create-title').textContent='Новый чат';window.hideModal('mdl-new-chat');window.showModal('mdl-create-form');};
+window.showNewChannelForm=function(){createType='channel';document.getElementById('create-title').textContent='Новый канал';window.hideModal('mdl-new-chat');window.showModal('mdl-create-form');};
 
-  // Ищем по username или номеру телефона
-  const{data:foundUser,error}=await sb.from('profiles').select('*').or(`username.eq.${q.replace('@','')},phone.eq.${q}`).maybeSingle();
-  
-  this.textContent='Найти';this.disabled=false;
-  window.hideModal('mdl-search');
-
-  if(foundUser){
-    // ЕСЛИ НАШЛИ: Создаем или открываем личный чат
-    const{data:existingChat}=await sb.from('chats').select('*').eq('name', foundUser.name).eq('owner_id', curUser.id).maybeSingle();
-    
-    if(existingChat){
-      openChat(existingChat.id, existingChat.name, existingChat.type);
-    }else{
-      const{data:newChat}=await sb.from('chats').insert({type:'user',name:foundUser.name,owner_id:curUser.id}).select().single();
-      await sb.from('chat_members').insert([
-        {chat_id:newChat.id,user_id:curUser.id},
-        {chat_id:newChat.id,user_id:foundUser.id} // Добавляем собеседника в чат
-      ]);
-      loadChats();
-      openChat(newChat.id, newChat.name, newChat.type);
-    }
-  }else{
-    // ЕСЛИ НЕ НАШЛИ: Генерируем ссылку-приглашение
-    inviteLink = 'https://yarikhappy67-cloud.github.io/Molju/?invite=' + btoa(q);
-    document.getElementById('notfound-text').textContent = `Пользователя "${q}" нет в Molju. Отправьте ему приглашение!`;
-    
-    // Настраиваем кнопку "Поделиться"
-    document.getElementById('btn-share-invite').onclick = () => {
-      if(navigator.share) navigator.share({title: 'Molju', text: 'Присоединяйся ко мне в Molju!', url: inviteLink});
-      else alert('Ссылка: ' + inviteLink);
-    };
-    // Настраиваем кнопку "Копировать"
-    document.getElementById('btn-copy-invite').onclick = () => {
-      navigator.clipboard.writeText(inviteLink);
-      alert('Ссылка скопирована!');
-    };
-    window.showModal('mdl-notfound');
-  }
+document.getElementById('btn-do-create').addEventListener('click',async function(){
+  let n=document.getElementById('create-name').value.trim();if(!n)return alert('Введите название');
+  this.textContent='...';this.disabled=true;
+  const{data:newC,error}=await sb.from('chats').insert({type:createType,name:n,owner_id:curUser.id}).select().single();
+  if(error){alert(error.message);this.textContent='Создать';this.disabled=false;return;}
+  await sb.from('chat_members').insert({chat_id:newC.id,user_id:curUser.id});
+  this.textContent='Создать';this.disabled=false;window.hideModal('mdl-create-form');
+  window.switchMainTab('chats');loadChats();setTimeout(()=>openChat(newC.id,newC.name,newC.type),500);
 });
 
-// ЭКРАН ЧАТА
+// CHAT ROOM
 window.openChat=async function(id,name,type){
-  curChatId=id;
+  curChatId=id;replyToMsg=null;
   document.getElementById('chat-name').textContent=name;
-  document.getElementById('chat-ava').textContent=name.charAt(0).toUpperCase();
+  document.getElementById('chat-ava').textContent=type==='channel'?'📢':name.charAt(0).toUpperCase();
   window.showScreen('scr-chat');
   
   const{data}=await sb.from('messages').select('*').eq('chat_id',id).order('created_at',{ascending:true});
   let mc=document.getElementById('chat-msgs');mc.innerHTML='';
-  if(data.length===0)mc.innerHTML='<div style="text-align:center;color:var(--mut);margin-top:20px;">Напишите первое сообщение</div>';
+  if(data.length===0)mc.innerHTML='<div style="text-align:center;color:var(--mut);margin-top:20px;">Нет сообщений</div>';
   else data.forEach(m=>appendMsg(m));
   
   if(rtChannel)sb.removeChannel(rtChannel);
   rtChannel=sb.channel('chat_'+id)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`chat_id=eq.${id}`},p=>{if(p.new.sender_id!==curUser.id)appendMsg(p.new);})
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages',filter:`chat_id=eq.${id}`},p=>{let el=document.getElementById('msg-'+p.old.id);if(el)el.remove();})
     .subscribe();
     
   if(presenceChannel)sb.removeChannel(presenceChannel);
@@ -384,20 +445,53 @@ function appendMsg(m){
   let c=document.getElementById('chat-msgs');if(!c)return;
   let isMine=m.sender_id===curUser.id;
   let d=document.createElement('div');d.className='msg '+(isMine?'msg-mine':'msg-other');d.id='msg-'+m.id;
+  
+  if(m.reply_to){let replyEl=document.querySelector(`#msg-${m.reply_to} .msg-text`);let replyTxt=replyEl?replyEl.textContent:'Сообщение удалено';d.innerHTML+=`<div class="msg-reply">${replyTxt}</div>`;}
+  
   let time=new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  d.innerHTML+=`<span class="msg-text">${m.text}</span><span class="msg-time">${time} ${isMine?'✓✓':''}</span>`;
+  let txt = m.file_url ? `<img src="${m.file_url}" class="msg-img">` : '';
+  d.innerHTML+=`${txt}<span class="msg-text">${m.text}</span><span class="msg-time">${time} ${isMine?'✓✓':''}</span>`;
+  
+  let pressTimer;
+  d.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>{showCtxMenu(m.id,m.text,d)},600);});
+  d.addEventListener('touchend',()=>clearTimeout(pressTimer));
+  d.addEventListener('contextmenu',(e)=>{e.preventDefault();showCtxMenu(m.id,m.text,d);});
+  
   c.appendChild(d);c.scrollTop=c.scrollHeight;
 }
 
-// ОТПРАВКА СООБЩЕНИЙ
+function showCtxMenu(id,text,el){
+  activeMsgId=id;activeMsgText=text;let menu=document.getElementById('ctx-menu');
+  let rect=el.getBoundingClientRect();menu.style.top=(rect.top-50)+'px';menu.style.left=(rect.left)+'px';
+  menu.classList.add('act');setTimeout(()=>document.addEventListener('click',()=>menu.classList.remove('act'),{once:true}),100);
+}
+
+window.replyToMessage=function(){replyToMsg=activeMsgId;document.getElementById('msg-inp').placeholder='Ответ...';document.getElementById('msg-inp').focus();};
+window.copyMessage=function(){navigator.clipboard.writeText(activeMsgText);alert('Скопировано');};
+window.deleteMessage=async function(){if(!confirm('Удалить?'))return;await sb.from('messages').delete().eq('id',activeMsgId);document.getElementById('msg-'+activeMsgId)?.remove();};
+
+// SEND MSG
 document.getElementById('btn-send-msg').addEventListener('click',sendMsg);
 document.getElementById('msg-inp').addEventListener('keypress',e=>{if(e.key==='Enter')sendMsg();});
+
+document.getElementById('attach-inp').addEventListener('change',function(e){
+  let f=e.target.files[0];if(!f)return;let r=new FileReader();
+  r.onload=async ev=>{
+    let base64=ev.target.result;
+    let payload={chat_id:curChatId,sender_id:curUser.id,text:'📷 Изображение',file_url:base64};
+    if(replyToMsg)payload.reply_to=replyToMsg;
+    const{data,error}=await sb.from('messages').insert(payload).select().single();
+    if(!error)appendMsg(data);replyToMsg=null;
+  };r.readAsDataURL(f);
+});
 
 async function sendMsg(){
   let inp=document.getElementById('msg-inp'),txt=inp.value.trim();if(!txt||!curChatId)return;
   inp.value='';if(presenceChannel)presenceChannel.track({name:'User',typing:false});
-  const{data,error}=await sb.from('messages').insert({chat_id:curChatId,sender_id:curUser.id,text:txt}).select().single();
-  if(!error)appendMsg(data);
+  let payload={chat_id:curChatId,sender_id:curUser.id,text:txt};
+  if(replyToMsg)payload.reply_to=replyToMsg;
+  const{data,error}=await sb.from('messages').insert(payload).select().single();
+  if(!error)appendMsg(data);replyToMsg=null;inp.placeholder='Сообщение...';
 }
 
 let typingTimeout;
@@ -411,6 +505,12 @@ document.getElementById('btn-back-chat').addEventListener('click',()=>{
   curChatId=null;if(rtChannel)sb.removeChannel(rtChannel);if(presenceChannel)sb.removeChannel(presenceChannel);
   window.showScreen('scr-main');
 });
+
+// EMOJI PANEL
+let emojis=['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','🙏','💪','🫶','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯','🔥','⭐'];
+let ep=document.getElementById('emoji-panel');
+emojis.forEach(e=>{let b=document.createElement('button');b.className='emoji-btn';b.textContent=e;b.onclick=()=>{document.getElementById('msg-inp').value+=e;};ep.appendChild(b);});
+window.toggleEmoji=function(){ep.classList.toggle('act');};
 
 document.getElementById('btn-logout').addEventListener('click',()=>{sb.auth.signOut();});
 
