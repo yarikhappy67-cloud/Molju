@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Molju</title>
+<!-- Подключаем библиотеку Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #0b0b0b;
@@ -52,12 +54,14 @@
     opacity: 0;
     transform: translateY(8px);
     transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 1;
   }
 
   .screen.active {
     display: flex;
     opacity: 1;
     transform: translateY(0);
+    z-index: 10;
   }
 
   /* ---------- Кнопки и анимация нажатия ---------- */
@@ -157,7 +161,7 @@
   }
   .avatar-lg.editable:active { transform: scale(0.97); }
 
-  /* Скрепка — полукруг внизу аватара (вместо бейджа-кружка) */
+  /* Скрепка */
   .avatar-clip {
     position: absolute;
     left: 0;
@@ -365,7 +369,7 @@
   .fab:active { background: var(--accent-dark); }
   .fab.hidden { display: none; }
 
-  /* ---------- Нижняя навигация (выше) ---------- */
+  /* ---------- Нижняя навигация ---------- */
   .bottom-nav {
     flex: 0 0 auto;
     display: flex;
@@ -627,13 +631,24 @@
     white-space: nowrap;
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  
+  .loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 <div class="app">
 
   <!-- ===== Экран входа ===== -->
-  <section id="screen-login" class="screen active">
+  <section id="screen-login" class="screen">
     <div class="login-box">
       <div class="logo">Mol<span>ju</span></div>
       <p class="login-sub">Мессенджер</p>
@@ -665,7 +680,7 @@
         <span class="username-prefix">@</span>
         <input type="text" id="onboard-username" placeholder="username" autocomplete="off" maxlength="20">
       </div>
-      <div class="hint">Только латиница, цифры и «_», от 3 до 20 символов. Уникален.</div>
+      <div class="hint">Только латиница, цифры и «_», от 3 до 20 символов.</div>
       <div class="error" id="onboard-error"></div>
     </div>
 
@@ -759,7 +774,6 @@
       <div class="modal-title">Новый чат</div>
       <label class="label" for="chat-phone-input">Номер телефона</label>
       <input type="tel" class="field" id="chat-phone-input" placeholder="+7 (999) 123-45-67" autocomplete="off">
-      <div class="hint">Ровно 11 цифр. Демо-номера для теста: +7 999 123-45-67, +7 999 765-43-21.</div>
       <div class="error" id="chat-phone-error"></div>
       <div class="modal-actions">
         <button class="btn btn-ghost" id="btn-cancel-chat">Отмена</button>
@@ -861,14 +875,18 @@
   (function () {
     'use strict';
 
-    // ============ Константы (замени ссылку, когда пришлёшь реальную) ============
-    var INVITE_BASE_URL = 'https://molju.app/i/';
-    var DEMO_NUMBERS = ['79991234567', '79997654321', '79990001122'];
+    // =====================================================================
+    // ТВОИ ДАННЫЕ ИЗ SUPABASE (уже вставлены)
+    // =====================================================================
+    const SUPABASE_URL = 'https://dhmqbjfzkrmsbrwzenna.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
+    // =====================================================================
 
-    // ============ Состояние ============
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Состояние
     var state = {
-      user: { username: '', name: '', surname: '', avatar: null },
-      takenUsernames: ['sonya', 'admin', 'molju', 'test', 'support', 'help'],
+      user: { id: null, username: '', name: '', surname: '', avatar: null, phone: '' },
       chats: [],
       stories: [],
       currentChatId: null,
@@ -876,8 +894,9 @@
     };
 
     var currentInviteLink = '';
+    var isOnboarded = false;
 
-    // ============ Элементы ============
+    // Элементы
     var screens = {
       login: document.getElementById('screen-login'),
       onboard: document.getElementById('screen-onboard'),
@@ -910,14 +929,10 @@
     var emojiPanel = document.getElementById('emoji-panel');
     var msgInput = document.getElementById('msg-input');
 
-    // ============ Утилиты ============
+    // Утилиты
     function showScreen(name) {
-      Object.keys(screens).forEach(function (k) {
-        screens[k].classList.remove('active');
-      });
-      setTimeout(function () {
-        screens[name].classList.add('active');
-      }, 10);
+      Object.keys(screens).forEach(function (k) { screens[k].classList.remove('active'); });
+      setTimeout(function () { screens[name].classList.add('active'); }, 10);
     }
 
     function openModal(el) { el.classList.add('open'); }
@@ -945,7 +960,6 @@
       return full || ('@' + (state.user.username || ''));
     }
 
-    // Ставит фото в аватар или букву-заглушку. Дочерние элементы (скрепка) не трогает.
     function applyAvatar(el, avatar, fallbackText) {
       var letterEl = el.querySelector('.avatar-letter');
       if (avatar) {
@@ -957,17 +971,9 @@
       }
     }
 
-    function isUsernameTaken(username) {
-      if (username === state.user.username) return false;
-      return state.takenUsernames.indexOf(username) !== -1;
-    }
-
     function validateUsername(username) {
       if (!/^[a-z0-9_]{3,20}$/.test(username)) {
         return 'Юзернейм: только латиница, цифры и «_», от 3 до 20 символов.';
-      }
-      if (isUsernameTaken(username)) {
-        return 'Этот юзернейм уже занят.';
       }
       return '';
     }
@@ -979,7 +985,6 @@
       return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
     }
 
-    // Автоформат: только цифры, ровно 11, начинается с 7
     function formatPhone(digits) {
       var rest = digits.slice(1);
       var s = '+7';
@@ -1001,37 +1006,95 @@
     }
 
     function copyText(text) {
-      function fallback() {
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try {
-          document.execCommand('copy');
-          showToast('Ссылка скопирована');
-        } catch (e) {
-          showToast('Не удалось скопировать');
-        }
-        document.body.removeChild(ta);
-      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () {
-          showToast('Ссылка скопирована');
-        }, fallback);
+        navigator.clipboard.writeText(text).then(function () { showToast('Ссылка скопирована'); });
       } else {
-        fallback();
+        showToast('Скопируйте вручную: ' + text);
       }
     }
 
-    // ============ Вход ============
-    document.getElementById('btn-yandex').addEventListener('click', function () {
-      // Позже здесь будет реальный OAuth Яндекса
-      showScreen('onboard');
+    // ==========================================
+    // АВТОРИЗАЦИЯ И SUPABASE
+    // ==========================================
+    
+    // Кнопка входа
+    document.getElementById('btn-yandex').addEventListener('click', async () => {
+      document.getElementById('btn-yandex').innerHTML = '<span class="loader"></span>';
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'custom:yandex',
+        options: {
+          redirectTo: 'https://yarikhappy67-cloud.github.io/Molju/'
+        }
+      });
+      
+      if (error) {
+        showToast('Ошибка: ' + error.message);
+        document.getElementById('btn-yandex').textContent = 'Войти через Яндекс';
+      }
     });
 
-    // ============ Онбординг ============
+    // Слушатель состояния авторизации (срабатывает при загрузке и после входа)
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const user = session.user;
+        state.user.id = user.id;
+        
+        // Запрашиваем профиль из базы
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profile && profile.username) {
+          // Профиль есть, загружаем данные
+          state.user.username = profile.username;
+          state.user.name = profile.name || '';
+          state.user.surname = profile.surname || '';
+          state.user.avatar = profile.avatar_url;
+          state.user.phone = profile.phone || '';
+          
+          renderProfile();
+          showScreen('main');
+          switchTab('chats');
+        } else {
+          // Профиля нет, отправляем на онбординг
+          const meta = user.user_metadata || {};
+          
+          document.getElementById('onboard-name').value = meta.first_name || '';
+          document.getElementById('onboard-surname').value = meta.last_name || '';
+          
+          if (meta.avatar_url) {
+             onboardAvatarData = meta.avatar_url;
+             applyAvatar(onboardAvatarEl, meta.avatar_url, '?');
+          }
+          
+          showScreen('onboard');
+        }
+      } else if (event === 'SIGNED_OUT') {
+        state.user = { id: null, username: '', name: '', surname: '', avatar: null, phone: '' };
+        showScreen('login');
+        document.getElementById('btn-yandex').textContent = 'Войти через Яндекс';
+      }
+    });
+
+    // Проверка сессии при загрузке страницы
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        showScreen('login');
+      }
+    });
+
+    // Выход
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      showToast('Вы вышли из аккаунта');
+    });
+
+    // ==========================================
+    // ОНБОРДИНГ
+    // ==========================================
     var onboardAvatarEl = document.getElementById('onboard-avatar');
     var onboardAvatarInput = document.getElementById('onboard-avatar-input');
     var onboardUsername = document.getElementById('onboard-username');
@@ -1040,9 +1103,7 @@
     var onboardError = document.getElementById('onboard-error');
     var onboardAvatarData = null;
 
-    onboardAvatarEl.addEventListener('click', function () {
-      onboardAvatarInput.click();
-    });
+    onboardAvatarEl.addEventListener('click', function () { onboardAvatarInput.click(); });
 
     onboardAvatarInput.addEventListener('change', function () {
       var file = onboardAvatarInput.files && onboardAvatarInput.files[0];
@@ -1058,7 +1119,7 @@
       onboardError.textContent = '';
     });
 
-    document.getElementById('btn-onboard-continue').addEventListener('click', function () {
+    document.getElementById('btn-onboard-continue').addEventListener('click', async function () {
       var username = normalizeUsername(onboardUsername.value);
       var name = onboardName.value.trim();
       var surname = onboardSurname.value.trim();
@@ -1067,16 +1128,34 @@
       if (err) { onboardError.textContent = err; return; }
       if (!name) { onboardError.textContent = 'Введите имя.'; return; }
 
+      document.getElementById('btn-onboard-continue').textContent = 'Загрузка...';
+
+      // Пытаемся сохранить профиль в Supabase
+      const { error } = await supabase.from('profiles').insert({
+        id: state.user.id,
+        username: username,
+        name: name,
+        surname: surname,
+        avatar_url: onboardAvatarData,
+        phone: state.user.phone || null // Номер из Яндекса или null
+      });
+
+      document.getElementById('btn-onboard-continue').textContent = 'Продолжить';
+
+      if (error) {
+        if (error.code === '23505') { // Unique violation
+          onboardError.textContent = 'Этот юзернейм уже занят.';
+        } else {
+          onboardError.textContent = 'Ошибка: ' + error.message;
+        }
+        return;
+      }
+
       state.user.username = username;
       state.user.name = name;
       state.user.surname = surname;
       state.user.avatar = onboardAvatarData;
 
-      if (state.takenUsernames.indexOf(username) === -1) {
-        state.takenUsernames.push(username);
-      }
-
-      onboardError.textContent = '';
       renderProfile();
       renderChats();
       renderStories();
@@ -1084,29 +1163,22 @@
       switchTab('chats');
     });
 
-    // ============ Вкладки ============
+    // ==========================================
+    // ВКЛАДКИ И FAB
+    // ==========================================
     navButtons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        switchTab(btn.getAttribute('data-tab'));
-      });
+      btn.addEventListener('click', function () { switchTab(btn.getAttribute('data-tab')); });
     });
 
     function switchTab(tab) {
       state.currentTab = tab;
-      document.querySelectorAll('.tab').forEach(function (t) {
-        t.classList.remove('active');
-      });
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
-
-      navButtons.forEach(function (b) {
-        b.classList.toggle('active', b.getAttribute('data-tab') === tab);
-      });
-
+      navButtons.forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
       fab.classList.toggle('hidden', tab === 'profile');
       closeEmojiPanel();
     }
 
-    // ============ FAB ============
     fab.addEventListener('click', function () {
       if (state.currentTab === 'chats') {
         chatPhoneInput.value = '';
@@ -1124,7 +1196,9 @@
       }
     });
 
-    // ============ Чаты ============
+    // ==========================================
+    // ЧАТЫ
+    // ==========================================
     function getChat(id) {
       for (var i = 0; i < state.chats.length; i++) {
         if (state.chats[i].id === id) return state.chats[i];
@@ -1140,14 +1214,10 @@
 
       if (state.chats.length === 0) {
         chatsEmptyEl.style.display = 'block';
-        chatsEmptyTitle.textContent = 'Чатов пока нет';
-        chatsEmptyText.textContent = 'Нажмите «+», чтобы добавить чат по номеру телефона';
         return;
       }
 
-      var list = state.chats.filter(function (c) {
-        return !query || c.digits.indexOf(query) !== -1;
-      });
+      var list = state.chats.filter(function (c) { return !query || c.digits.indexOf(query) !== -1; });
 
       if (list.length === 0) {
         chatsEmptyEl.style.display = 'block';
@@ -1200,22 +1270,14 @@
       });
     }
 
-    // Модалка нового чата
-    document.getElementById('btn-cancel-chat').addEventListener('click', function () {
-      closeModal(modalChat);
-    });
-    modalChat.addEventListener('click', function (e) {
-      if (e.target === modalChat) closeModal(modalChat);
-    });
+    document.getElementById('btn-cancel-chat').addEventListener('click', function () { closeModal(modalChat); });
+    modalChat.addEventListener('click', function (e) { if (e.target === modalChat) closeModal(modalChat); });
 
     chatPhoneInput.addEventListener('input', function () {
       var digits = chatPhoneInput.value.replace(/\D/g, '');
       if (digits.length) {
-        if (digits.charAt(0) === '8') {
-          digits = '7' + digits.slice(1);
-        } else if (digits.charAt(0) !== '7') {
-          digits = '7' + digits;
-        }
+        if (digits.charAt(0) === '8') { digits = '7' + digits.slice(1); }
+        else if (digits.charAt(0) !== '7') { digits = '7' + digits; }
       }
       digits = digits.slice(0, 11);
       chatPhoneInput.dataset.digits = digits;
@@ -1223,15 +1285,10 @@
       chatPhoneError.textContent = '';
     });
 
-    document.getElementById('chat-phone-input').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') createChatFromPhone();
-    });
-
     document.getElementById('btn-create-chat').addEventListener('click', createChatFromPhone);
 
-    function createChatFromPhone() {
+    async function createChatFromPhone() {
       var digits = chatPhoneInput.dataset.digits || '';
-
       if (digits.length !== 11) {
         chatPhoneError.textContent = 'Введите номер полностью: +7 (999) 123-45-67';
         return;
@@ -1239,7 +1296,14 @@
       chatPhoneError.textContent = '';
       var phone = formatPhone(digits);
 
-      // Уже есть такой чат
+      document.getElementById('btn-create-chat').textContent = 'Поиск...';
+
+      // Имитация задержки поиска
+      await new Promise(r => setTimeout(r, 600));
+
+      document.getElementById('btn-create-chat').textContent = 'Найти';
+
+      // Проверка существующих
       for (var i = 0; i < state.chats.length; i++) {
         if (state.chats[i].digits === digits) {
           closeModal(modalChat);
@@ -1248,9 +1312,9 @@
         }
       }
 
-      // Не найден -> приглашение
-      if (DEMO_NUMBERS.indexOf(digits) === -1) {
-        currentInviteLink = INVITE_BASE_URL + digits;
+      // Симуляция "пользователь не найден"
+      if (digits !== '79991234567' && digits !== '79997654321') {
+        currentInviteLink = 'https://yarikhappy67-cloud.github.io/Molju/?phone=' + digits;
         document.getElementById('notfound-phone').textContent = phone;
         document.getElementById('invite-link').textContent = currentInviteLink;
         closeModal(modalChat);
@@ -1258,7 +1322,7 @@
         return;
       }
 
-      // Найден -> создаём чат
+      // Создаем чат
       var chat = {
         id: 'c' + Date.now(),
         phone: phone,
@@ -1271,28 +1335,20 @@
       openChat(chat.id);
     }
 
-    // Не найден: поделиться / скопировать
-    document.getElementById('btn-close-notfound').addEventListener('click', function () {
-      closeModal(modalNotFound);
-    });
-    modalNotFound.addEventListener('click', function (e) {
-      if (e.target === modalNotFound) closeModal(modalNotFound);
-    });
-
+    document.getElementById('btn-close-notfound').addEventListener('click', function () { closeModal(modalNotFound); });
+    modalNotFound.addEventListener('click', function (e) { if (e.target === modalNotFound) closeModal(modalNotFound); });
     document.getElementById('btn-share-invite').addEventListener('click', function () {
-      var text = 'Присоединяйся ко мне в Molju!';
       if (navigator.share) {
-        navigator.share({ title: 'Molju', text: text, url: currentInviteLink }).catch(function () {});
+        navigator.share({ title: 'Molju', url: currentInviteLink }).catch(function () {});
       } else {
-        copyText(text + ' ' + currentInviteLink);
+        copyText(currentInviteLink);
       }
     });
+    document.getElementById('btn-copy-invite').addEventListener('click', function () { copyText(currentInviteLink); });
 
-    document.getElementById('btn-copy-invite').addEventListener('click', function () {
-      copyText(currentInviteLink);
-    });
-
-    // ============ Экран чата ============
+    // ==========================================
+    // ЭКРАН ЧАТА
+    // ==========================================
     function openChat(chatId) {
       state.currentChatId = chatId;
       var chat = getChat(chatId);
@@ -1303,7 +1359,6 @@
       renderMessages();
       closeEmojiPanel();
       showScreen('chat');
-
       setTimeout(function () { msgInput.focus(); }, 100);
     }
 
@@ -1329,10 +1384,8 @@
         time.className = 'msg-time';
         time.textContent = formatTime(m.ts);
         bubble.appendChild(time);
-
         messagesEl.appendChild(bubble);
       });
-
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
@@ -1358,28 +1411,17 @@
       switchTab(state.currentTab);
     });
 
-    // ============ Смайлики ============
-    var EMOJIS = [
-      '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰',
-      '😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒',
-      '😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡',
-      '🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶',
-      '😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴',
-      '🤢','🤮','🤧','😷','🤒','🤕','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉',
-      '👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','🙏','💪','🫶','❤️','🧡','💛','💚',
-      '💙','💜','🖤','🤍','💔','💯','🔥','⭐','🎉','🎊','🎁','☀️','🌙','⚡','❄️','🌈',
-      '🍀','🌹','🌸','🍕','🍔','🍟','🍦','🍰','☕','🍺','⚽','🏀','🎮','🎧','🎵','✈️',
-      '🚗','🚀','💻','📱','📎'
-    ];
+    // ==========================================
+    // СМАЙЛИКИ
+    // ==========================================
+    var EMOJIS = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐','🖖','👋','🤝','🙏','💪','🫶','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯','🔥','⭐','🎉','🎊','🎁','☀️','🌙','⚡','❄️','🌈','🍀','🌹','🌸','🍕','🍔','🍟','🍦','🍰','☕','🍺','⚽','🏀','🎮','🎧','🎵','✈️','🚗','🚀','💻','📱','📎'];
 
     EMOJIS.forEach(function (emoji) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'emoji-item';
       b.textContent = emoji;
-      b.addEventListener('click', function () {
-        insertAtCursor(msgInput, emoji);
-      });
+      b.addEventListener('click', function () { insertAtCursor(msgInput, emoji); });
       emojiPanel.appendChild(b);
     });
 
@@ -1392,21 +1434,16 @@
       input.focus();
     }
 
-    function closeEmojiPanel() {
-      emojiPanel.classList.remove('open');
-    }
+    function closeEmojiPanel() { emojiPanel.classList.remove('open'); }
 
     document.getElementById('btn-emoji').addEventListener('click', function () {
       var isOpen = emojiPanel.classList.contains('open');
-      if (isOpen) {
-        closeEmojiPanel();
-      } else {
-        emojiPanel.classList.add('open');
-        msgInput.focus();
-      }
+      if (isOpen) { closeEmojiPanel(); } else { emojiPanel.classList.add('open'); msgInput.focus(); }
     });
 
-    // ============ Профиль ============
+    // ==========================================
+    // ПРОФИЛЬ
+    // ==========================================
     var profileAvatarEl = document.getElementById('profile-avatar');
     var profileNameEl = document.getElementById('profile-name');
     var profileUsernameEl = document.getElementById('profile-username');
@@ -1416,11 +1453,6 @@
       profileNameEl.textContent = displayName();
       profileUsernameEl.textContent = '@' + (state.user.username || '');
     }
-
-    document.getElementById('btn-logout').addEventListener('click', function () {
-      state.currentChatId = null;
-      showScreen('login');
-    });
 
     var profileModalAvatarEl = document.getElementById('profile-modal-avatar');
     var profileModalAvatarInput = document.getElementById('profile-modal-avatar-input');
@@ -1440,9 +1472,7 @@
       openModal(modalProfile);
     });
 
-    profileModalAvatarEl.addEventListener('click', function () {
-      profileModalAvatarInput.click();
-    });
+    profileModalAvatarEl.addEventListener('click', function () { profileModalAvatarInput.click(); });
 
     profileModalAvatarInput.addEventListener('change', function () {
       var file = profileModalAvatarInput.files && profileModalAvatarInput.files[0];
@@ -1458,14 +1488,10 @@
       profileErrorEl.textContent = '';
     });
 
-    document.getElementById('btn-cancel-profile').addEventListener('click', function () {
-      closeModal(modalProfile);
-    });
-    modalProfile.addEventListener('click', function (e) {
-      if (e.target === modalProfile) closeModal(modalProfile);
-    });
+    document.getElementById('btn-cancel-profile').addEventListener('click', function () { closeModal(modalProfile); });
+    modalProfile.addEventListener('click', function (e) { if (e.target === modalProfile) closeModal(modalProfile); });
 
-    document.getElementById('btn-save-profile').addEventListener('click', function () {
+    document.getElementById('btn-save-profile').addEventListener('click', async function () {
       var newUsername = normalizeUsername(profileInputUsername.value);
       var newName = profileInputName.value.trim();
       var newSurname = profileInputSurname.value.trim();
@@ -1474,13 +1500,24 @@
       if (err) { profileErrorEl.textContent = err; return; }
       if (!newName) { profileErrorEl.textContent = 'Введите имя.'; return; }
 
-      var oldUsername = state.user.username;
-      if (oldUsername && oldUsername !== newUsername) {
-        var idx = state.takenUsernames.indexOf(oldUsername);
-        if (idx !== -1) state.takenUsernames.splice(idx, 1);
-      }
-      if (state.takenUsernames.indexOf(newUsername) === -1) {
-        state.takenUsernames.push(newUsername);
+      document.getElementById('btn-save-profile').textContent = 'Сохранение...';
+
+      const { error } = await supabase.from('profiles').update({
+        username: newUsername,
+        name: newName,
+        surname: newSurname,
+        avatar_url: profileAvatarDraft
+      }).eq('id', state.user.id);
+
+      document.getElementById('btn-save-profile').textContent = 'Сохранить';
+
+      if (error) {
+        if (error.code === '23505') {
+          profileErrorEl.textContent = 'Этот юзернейм уже занят.';
+        } else {
+          profileErrorEl.textContent = 'Ошибка: ' + error.message;
+        }
+        return;
       }
 
       state.user.username = newUsername;
@@ -1492,9 +1529,12 @@
       closeModal(modalProfile);
       renderProfile();
       renderStories();
+      showToast('Профиль обновлен');
     });
 
-    // ============ Истории ============
+    // ==========================================
+    // ИСТОРИИ
+    // ==========================================
     var storyImageData = null;
     var storyImageInput = document.getElementById('story-image-input');
     var storyImageLabel = document.getElementById('story-image-label');
@@ -1508,12 +1548,8 @@
       });
     });
 
-    document.getElementById('btn-cancel-story').addEventListener('click', function () {
-      closeModal(modalStory);
-    });
-    modalStory.addEventListener('click', function (e) {
-      if (e.target === modalStory) closeModal(modalStory);
-    });
+    document.getElementById('btn-cancel-story').addEventListener('click', function () { closeModal(modalStory); });
+    modalStory.addEventListener('click', function (e) { if (e.target === modalStory) closeModal(modalStory); });
 
     document.getElementById('btn-publish-story').addEventListener('click', function () {
       var text = document.getElementById('story-text-input').value.trim();
@@ -1545,7 +1581,6 @@
 
     function renderStories() {
       storiesListEl.innerHTML = '';
-
       if (state.stories.length === 0) {
         storiesEmptyEl.style.display = 'block';
         return;
@@ -1559,10 +1594,8 @@
         if (story.image) {
           var img = document.createElement('img');
           img.src = story.image;
-          img.alt = '';
           card.appendChild(img);
         }
-
         if (story.text) {
           var txt = document.createElement('div');
           txt.className = 'story-text';
@@ -1581,7 +1614,6 @@
         applyAvatar(av, story.avatar, initials(story.author));
 
         var info = document.createElement('div');
-
         var author = document.createElement('div');
         author.className = 'story-author';
         author.textContent = story.author;
@@ -1608,16 +1640,10 @@
           });
           card.appendChild(del);
         }
-
         storiesListEl.appendChild(card);
       });
     }
 
-    // ============ Старт ============
-    renderChats();
-    renderStories();
-    renderProfile();
-    switchTab('chats');
   })();
 </script>
 </body>
