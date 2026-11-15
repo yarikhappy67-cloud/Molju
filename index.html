@@ -161,7 +161,7 @@
   }
   .avatar-lg.editable:active { transform: scale(0.97); }
 
-  /* Скрепка */
+  /* Скрепка (полукруг) */
   .avatar-clip {
     position: absolute;
     left: 0;
@@ -612,7 +612,7 @@
 
   .hidden-input { display: none; }
 
-  /* ---------- Тост ---------- */
+  /* ---------- Тост и Лоадер ---------- */
   .toast {
     position: absolute;
     left: 50%;
@@ -774,6 +774,7 @@
       <div class="modal-title">Новый чат</div>
       <label class="label" for="chat-phone-input">Номер телефона</label>
       <input type="tel" class="field" id="chat-phone-input" placeholder="+7 (999) 123-45-67" autocomplete="off">
+      <div class="hint">Ровно 11 цифр. Демо-номера: +7 999 123-45-67.</div>
       <div class="error" id="chat-phone-error"></div>
       <div class="modal-actions">
         <button class="btn btn-ghost" id="btn-cancel-chat">Отмена</button>
@@ -876,13 +877,19 @@
     'use strict';
 
     // =====================================================================
-    // ТВОИ ДАННЫЕ ИЗ SUPABASE (уже вставлены)
+    // ТВОИ ДАННЫЕ ИЗ SUPABASE
     // =====================================================================
     const SUPABASE_URL = 'https://dhmqbjfzkrmsbrwzenna.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
     // =====================================================================
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true
+      }
+    });
 
     // Состояние
     var state = {
@@ -894,7 +901,9 @@
     };
 
     var currentInviteLink = '';
-    var isOnboarded = false;
+    var onboardAvatarData = null;
+    var profileAvatarDraft = null;
+    var storyImageData = null;
 
     // Элементы
     var screens = {
@@ -906,8 +915,6 @@
 
     var chatListEl = document.getElementById('chat-list');
     var chatsEmptyEl = document.getElementById('chats-empty');
-    var chatsEmptyTitle = document.getElementById('chats-empty-title');
-    var chatsEmptyText = document.getElementById('chats-empty-text');
     var chatSearchInput = document.getElementById('chat-search');
 
     var storiesListEl = document.getElementById('stories-list');
@@ -1014,10 +1021,9 @@
     }
 
     // ==========================================
-    // АВТОРИЗАЦИЯ И SUPABASE
+    // АВТОРИЗАЦИЯ
     // ==========================================
     
-    // Кнопка входа
     document.getElementById('btn-yandex').addEventListener('click', async () => {
       document.getElementById('btn-yandex').innerHTML = '<span class="loader"></span>';
       
@@ -1034,13 +1040,11 @@
       }
     });
 
-    // Слушатель состояния авторизации (срабатывает при загрузке и после входа)
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         const user = session.user;
         state.user.id = user.id;
         
-        // Запрашиваем профиль из базы
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
@@ -1048,7 +1052,6 @@
           .single();
 
         if (profile && profile.username) {
-          // Профиль есть, загружаем данные
           state.user.username = profile.username;
           state.user.name = profile.name || '';
           state.user.surname = profile.surname || '';
@@ -1059,15 +1062,13 @@
           showScreen('main');
           switchTab('chats');
         } else {
-          // Профиля нет, отправляем на онбординг
           const meta = user.user_metadata || {};
-          
           document.getElementById('onboard-name').value = meta.first_name || '';
           document.getElementById('onboard-surname').value = meta.last_name || '';
           
           if (meta.avatar_url) {
              onboardAvatarData = meta.avatar_url;
-             applyAvatar(onboardAvatarEl, meta.avatar_url, '?');
+             applyAvatar(document.getElementById('onboard-avatar'), meta.avatar_url, '?');
           }
           
           showScreen('onboard');
@@ -1079,14 +1080,12 @@
       }
     });
 
-    // Проверка сессии при загрузке страницы
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         showScreen('login');
       }
     });
 
-    // Выход
     document.getElementById('btn-logout').addEventListener('click', async () => {
       await supabase.auth.signOut();
       showToast('Вы вышли из аккаунта');
@@ -1097,11 +1096,6 @@
     // ==========================================
     var onboardAvatarEl = document.getElementById('onboard-avatar');
     var onboardAvatarInput = document.getElementById('onboard-avatar-input');
-    var onboardUsername = document.getElementById('onboard-username');
-    var onboardName = document.getElementById('onboard-name');
-    var onboardSurname = document.getElementById('onboard-surname');
-    var onboardError = document.getElementById('onboard-error');
-    var onboardAvatarData = null;
 
     onboardAvatarEl.addEventListener('click', function () { onboardAvatarInput.click(); });
 
@@ -1114,39 +1108,41 @@
       });
     });
 
-    onboardUsername.addEventListener('input', function () {
-      onboardUsername.value = normalizeUsername(onboardUsername.value);
-      onboardError.textContent = '';
+    document.getElementById('onboard-username').addEventListener('input', function () {
+      this.value = normalizeUsername(this.value);
+      document.getElementById('onboard-error').textContent = '';
     });
 
     document.getElementById('btn-onboard-continue').addEventListener('click', async function () {
-      var username = normalizeUsername(onboardUsername.value);
-      var name = onboardName.value.trim();
-      var surname = onboardSurname.value.trim();
+      var username = document.getElementById('onboard-username').value.trim();
+      var name = document.getElementById('onboard-name').value.trim();
+      var surname = document.getElementById('onboard-surname').value.trim();
+      var errEl = document.getElementById('onboard-error');
 
       var err = validateUsername(username);
-      if (err) { onboardError.textContent = err; return; }
-      if (!name) { onboardError.textContent = 'Введите имя.'; return; }
+      if (err) { errEl.textContent = err; return; }
+      if (!name) { errEl.textContent = 'Введите имя.'; return; }
 
-      document.getElementById('btn-onboard-continue').textContent = 'Загрузка...';
+      this.textContent = 'Загрузка...';
+      this.disabled = true;
 
-      // Пытаемся сохранить профиль в Supabase
       const { error } = await supabase.from('profiles').insert({
         id: state.user.id,
         username: username,
         name: name,
         surname: surname,
         avatar_url: onboardAvatarData,
-        phone: state.user.phone || null // Номер из Яндекса или null
+        phone: state.user.phone || null
       });
 
-      document.getElementById('btn-onboard-continue').textContent = 'Продолжить';
+      this.textContent = 'Продолжить';
+      this.disabled = false;
 
       if (error) {
-        if (error.code === '23505') { // Unique violation
-          onboardError.textContent = 'Этот юзернейм уже занят.';
+        if (error.code === '23505') {
+          errEl.textContent = 'Этот юзернейм уже занят.';
         } else {
-          onboardError.textContent = 'Ошибка: ' + error.message;
+          errEl.textContent = 'Ошибка: ' + error.message;
         }
         return;
       }
@@ -1157,14 +1153,12 @@
       state.user.avatar = onboardAvatarData;
 
       renderProfile();
-      renderChats();
-      renderStories();
       showScreen('main');
       switchTab('chats');
     });
 
     // ==========================================
-    // ВКЛАДКИ И FAB
+    // ИНТЕРФЕЙС
     // ==========================================
     navButtons.forEach(function (btn) {
       btn.addEventListener('click', function () { switchTab(btn.getAttribute('data-tab')); });
@@ -1176,7 +1170,7 @@
       document.getElementById('tab-' + tab).classList.add('active');
       navButtons.forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
       fab.classList.toggle('hidden', tab === 'profile');
-      closeEmojiPanel();
+      emojiPanel.classList.remove('open');
     }
 
     fab.addEventListener('click', function () {
@@ -1221,8 +1215,8 @@
 
       if (list.length === 0) {
         chatsEmptyEl.style.display = 'block';
-        chatsEmptyTitle.textContent = 'Ничего не найдено';
-        chatsEmptyText.textContent = 'Попробуйте другой номер';
+        document.getElementById('chats-empty-title').textContent = 'Ничего не найдено';
+        document.getElementById('chats-empty-text').textContent = 'Попробуйте другой номер';
         return;
       }
       chatsEmptyEl.style.display = 'none';
@@ -1274,20 +1268,18 @@
     modalChat.addEventListener('click', function (e) { if (e.target === modalChat) closeModal(modalChat); });
 
     chatPhoneInput.addEventListener('input', function () {
-      var digits = chatPhoneInput.value.replace(/\D/g, '');
+      var digits = this.value.replace(/\D/g, '');
       if (digits.length) {
         if (digits.charAt(0) === '8') { digits = '7' + digits.slice(1); }
         else if (digits.charAt(0) !== '7') { digits = '7' + digits; }
       }
       digits = digits.slice(0, 11);
-      chatPhoneInput.dataset.digits = digits;
-      chatPhoneInput.value = digits ? formatPhone(digits) : '';
+      this.dataset.digits = digits;
+      this.value = digits ? formatPhone(digits) : '';
       chatPhoneError.textContent = '';
     });
 
-    document.getElementById('btn-create-chat').addEventListener('click', createChatFromPhone);
-
-    async function createChatFromPhone() {
+    document.getElementById('btn-create-chat').addEventListener('click', async function () {
       var digits = chatPhoneInput.dataset.digits || '';
       if (digits.length !== 11) {
         chatPhoneError.textContent = 'Введите номер полностью: +7 (999) 123-45-67';
@@ -1296,14 +1288,10 @@
       chatPhoneError.textContent = '';
       var phone = formatPhone(digits);
 
-      document.getElementById('btn-create-chat').textContent = 'Поиск...';
-
-      // Имитация задержки поиска
+      this.textContent = 'Поиск...';
       await new Promise(r => setTimeout(r, 600));
+      this.textContent = 'Найти';
 
-      document.getElementById('btn-create-chat').textContent = 'Найти';
-
-      // Проверка существующих
       for (var i = 0; i < state.chats.length; i++) {
         if (state.chats[i].digits === digits) {
           closeModal(modalChat);
@@ -1312,8 +1300,7 @@
         }
       }
 
-      // Симуляция "пользователь не найден"
-      if (digits !== '79991234567' && digits !== '79997654321') {
+      if (digits !== '79991234567') {
         currentInviteLink = 'https://yarikhappy67-cloud.github.io/Molju/?phone=' + digits;
         document.getElementById('notfound-phone').textContent = phone;
         document.getElementById('invite-link').textContent = currentInviteLink;
@@ -1322,18 +1309,12 @@
         return;
       }
 
-      // Создаем чат
-      var chat = {
-        id: 'c' + Date.now(),
-        phone: phone,
-        digits: digits,
-        messages: []
-      };
+      var chat = { id: 'c' + Date.now(), phone: phone, digits: digits, messages: [] };
       state.chats.unshift(chat);
       closeModal(modalChat);
       renderChats();
       openChat(chat.id);
-    }
+    });
 
     document.getElementById('btn-close-notfound').addEventListener('click', function () { closeModal(modalNotFound); });
     modalNotFound.addEventListener('click', function (e) { if (e.target === modalNotFound) closeModal(modalNotFound); });
@@ -1357,7 +1338,7 @@
       chatTitleEl.textContent = chat.phone;
       chatAvatarEl.querySelector('.avatar-letter').textContent = chat.digits.charAt(1) || '?';
       renderMessages();
-      closeEmojiPanel();
+      emojiPanel.classList.remove('open');
       showScreen('chat');
       setTimeout(function () { msgInput.focus(); }, 100);
     }
@@ -1405,7 +1386,7 @@
 
     document.getElementById('btn-back').addEventListener('click', function () {
       state.currentChatId = null;
-      closeEmojiPanel();
+      emojiPanel.classList.remove('open');
       renderChats();
       showScreen('main');
       switchTab(state.currentTab);
@@ -1421,24 +1402,20 @@
       b.type = 'button';
       b.className = 'emoji-item';
       b.textContent = emoji;
-      b.addEventListener('click', function () { insertAtCursor(msgInput, emoji); });
+      b.addEventListener('click', function () {
+        var start = msgInput.selectionStart || 0;
+        var end = msgInput.selectionEnd || 0;
+        msgInput.value = msgInput.value.slice(0, start) + emoji + msgInput.value.slice(end);
+        msgInput.setSelectionRange(start + emoji.length, start + emoji.length);
+        msgInput.focus();
+      });
       emojiPanel.appendChild(b);
     });
 
-    function insertAtCursor(input, text) {
-      var start = input.selectionStart || 0;
-      var end = input.selectionEnd || 0;
-      input.value = input.value.slice(0, start) + text + input.value.slice(end);
-      var pos = start + text.length;
-      input.setSelectionRange(pos, pos);
-      input.focus();
-    }
-
-    function closeEmojiPanel() { emojiPanel.classList.remove('open'); }
-
     document.getElementById('btn-emoji').addEventListener('click', function () {
       var isOpen = emojiPanel.classList.contains('open');
-      if (isOpen) { closeEmojiPanel(); } else { emojiPanel.classList.add('open'); msgInput.focus(); }
+      if (isOpen) { emojiPanel.classList.remove('open'); }
+      else { emojiPanel.classList.add('open'); msgInput.focus(); }
     });
 
     // ==========================================
@@ -1460,7 +1437,6 @@
     var profileInputName = document.getElementById('profile-input-name');
     var profileInputSurname = document.getElementById('profile-input-surname');
     var profileErrorEl = document.getElementById('profile-error');
-    var profileAvatarDraft = null;
 
     document.getElementById('btn-edit-profile').addEventListener('click', function () {
       profileAvatarDraft = state.user.avatar;
@@ -1484,7 +1460,7 @@
     });
 
     profileInputUsername.addEventListener('input', function () {
-      profileInputUsername.value = normalizeUsername(profileInputUsername.value);
+      this.value = normalizeUsername(this.value);
       profileErrorEl.textContent = '';
     });
 
@@ -1500,7 +1476,8 @@
       if (err) { profileErrorEl.textContent = err; return; }
       if (!newName) { profileErrorEl.textContent = 'Введите имя.'; return; }
 
-      document.getElementById('btn-save-profile').textContent = 'Сохранение...';
+      this.textContent = 'Сохранение...';
+      this.disabled = true;
 
       const { error } = await supabase.from('profiles').update({
         username: newUsername,
@@ -1509,14 +1486,12 @@
         avatar_url: profileAvatarDraft
       }).eq('id', state.user.id);
 
-      document.getElementById('btn-save-profile').textContent = 'Сохранить';
+      this.textContent = 'Сохранить';
+      this.disabled = false;
 
       if (error) {
-        if (error.code === '23505') {
-          profileErrorEl.textContent = 'Этот юзернейм уже занят.';
-        } else {
-          profileErrorEl.textContent = 'Ошибка: ' + error.message;
-        }
+        if (error.code === '23505') { profileErrorEl.textContent = 'Этот юзернейм уже занят.'; }
+        else { profileErrorEl.textContent = 'Ошибка: ' + error.message; }
         return;
       }
 
@@ -1535,7 +1510,6 @@
     // ==========================================
     // ИСТОРИИ
     // ==========================================
-    var storyImageData = null;
     var storyImageInput = document.getElementById('story-image-input');
     var storyImageLabel = document.getElementById('story-image-label');
 
