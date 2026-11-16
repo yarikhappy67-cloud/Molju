@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Molju — Chainsaw Edition</title>
+<title>Molju — Multi-Account</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,10 +11,10 @@
 
 <style>
     /* ========================================== */
-    /* 1. ПЕРЕМЕННЫЕ */
+    /* 1. ПЕРЕМЕННЫЕ И ТЕМЫ */
     /* ========================================== */
     :root {
-        --bg: #050505; --surf: #121212; --surf2: #1c1c1e; --glass: rgba(10, 10, 10, 0.85);
+        --bg: #050505; --surf: #121212; --surf2: #1c1c1e; --glass: rgba(12, 12, 12, 0.75);
         --brd: rgba(255, 255, 255, 0.08); --txt: #ffffff; --mut: #8e8e93;
         --acc: #ff3b30; --glow: rgba(255, 59, 48, 0.4);
         --grad: linear-gradient(180deg, #ff4d4d 0%, #cc0000 100%);
@@ -22,100 +22,84 @@
         --ver: #0088cc; --dan: #ff453a;
     }
     body.light-theme {
-        --bg: #f0f0f5; --surf: #ffffff; --surf2: #e5e5ea; --glass: rgba(255, 255, 255, 0.9);
+        --bg: #f0f0f5; --surf: #ffffff; --surf2: #e5e5ea; --glass: rgba(255, 255, 255, 0.8);
         --brd: rgba(0, 0, 0, 0.1); --txt: #000; --mut: #666; --msgO: #ffffff;
     }
 
     /* ========================================== */
-    /* 2. БАЗА И АНИМАЦИИ */
+    /* 2. БАЗА И ГЛОБАЛЬНЫЙ ФОН */
     /* ========================================== */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
-    body { height: 100vh; height: 100dvh; background: var(--bg); color: var(--txt); overflow: hidden; display: flex; justify-content: center; }
-    .app { position: relative; width: 100%; height: 100%; max-width: 480px; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+    body { height: 100vh; height: 100dvh; background-color: #000; color: var(--txt); overflow: hidden; display: flex; justify-content: center; }
+    
+    .app { position: relative; width: 100%; height: 100%; max-width: 480px; background-color: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+
+    .global-bg-media {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        object-fit: cover; z-index: 0; opacity: 0.35; pointer-events: none;
+    }
+
+    .app-content {
+        position: relative; z-index: 10; width: 100%; height: 100%;
+        display: flex; flex-direction: column;
+    }
 
     @keyframes fI { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes sU { from { transform: translateY(100%); } to { transform: translateY(0); } }
     @keyframes pI { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     @keyframes sp { 100% { transform: rotate(360deg); } }
-    @keyframes spinSaw { 100% { transform: rotate(360deg); } }
+    @keyframes spinSaw { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
     /* ========================================== */
-    /* 3. КНОПКИ С АНИМАЦИЕЙ БЕНЗОПИЛЫ */
+    /* 3. КНОПКИ (ПИЛА) */
     /* ========================================== */
     .btn-saw {
-        position: relative;
-        z-index: 1;
-        background: var(--surf2);
-        color: var(--txt);
-        padding: 16px;
-        border-radius: 16px;
-        font-weight: 700;
-        font-size: 16px;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        margin-bottom: 12px;
+        position: relative; z-index: 1; background: var(--surf2); color: var(--txt);
+        padding: 16px; border-radius: 16px; font-weight: 700; font-size: 16px;
+        width: 100%; display: flex; align-items: center; justify-content: center;
+        border: none; cursor: pointer; margin-bottom: 12px; overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;
     }
-
     .btn-saw::before {
-        content: '';
-        position: absolute;
-        inset: -3px; /* Толщина пилы */
-        border-radius: inherit;
-        background: repeating-conic-gradient(
-            var(--acc) 0deg 8deg,
-            transparent 8deg 16deg
-        );
-        animation: spinSaw 3s linear infinite;
-        z-index: -1;
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        padding: 3px;
+        content: ''; position: absolute; top: 50%; left: 50%; width: 250%; height: 250%;
+        background: repeating-conic-gradient(var(--acc) 0deg 6deg, transparent 6deg 12deg);
+        animation: spinSaw 3s linear infinite; z-index: -2;
     }
-
-    .btn-saw:active { transform: scale(0.96); opacity: 0.9; }
-
-    .btn-primary {
-        background: var(--grad);
-        color: #fff;
-        box-shadow: 0 6px 0 #8a0000;
+    .btn-saw::after {
+        content: ''; position: absolute; inset: 3px; background: inherit;
+        border-radius: 13px; z-index: -1;
     }
+    .btn-saw:active { transform: scale(0.96); }
+    .btn-primary { background: var(--grad); color: #fff; box-shadow: 0 6px 0 #8a0000; }
+    .btn-danger { background: rgba(255,69,58,0.1); color: var(--dan); border: 1px solid var(--dan); box-shadow: none; }
+    .btn-danger::after { background: var(--surf); }
 
     /* ========================================== */
-    /* 4. ИНПУТЫ И ЭЛЕМЕНТЫ */
+    /* 4. ЭЛЕМЕНТЫ И ЭКРАНЫ */
     /* ========================================== */
     .inp { width: 100%; padding: 16px; border-radius: 16px; background: var(--surf2); border: 2px solid var(--brd); color: var(--txt); font-size: 16px; outline: none; margin-bottom: 16px; }
     .inp:focus { border-color: var(--acc); }
-
     .ava { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; background: var(--grad); flex-shrink: 0; background-size: cover; background-position: center; border: 2px solid var(--surf2); }
     .avaS { width: 36px; height: 36px; font-size: 14px; }
     .avaL { width: 96px; height: 96px; font-size: 36px; }
     .ver { color: var(--ver); font-size: 18px; margin-left: 4px; }
     .ld { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: sp 1s linear infinite; }
 
-    /* ========================================== */
-    /* 5. ЭКРАНЫ */
-    /* ========================================== */
-    .scr { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
+    .scr { position: absolute; inset: 0; display: none; flex-direction: column; background: transparent; z-index: 10; }
     .scr.act { display: flex; animation: fI 0.3s; }
-
+    
     .hdr { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
     .hT { font-size: 22px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .iBtn { width: 40px; height: 40px; border-radius: 50%; background: var(--surf2); font-size: 20px; }
-
+    .iBtn { width: 40px; height: 40px; border-radius: 50%; background: var(--surf2); font-size: 20px; display: flex; align-items: center; justify-content: center; }
+    
     .cnt { flex: 1; overflow-y: auto; padding: 0 16px 100px; position: relative; }
     .tab { display: none; } .tab.act { display: block; animation: fI 0.3s; }
 
     /* ========================================== */
-    /* 6. ИСТОРИИ */
+    /* 5. ИСТОРИИ */
     /* ========================================== */
-    .sticky-stories { position: sticky; top: 0; background: var(--bg); z-index: 15; transition: all 0.3s; padding-top: 10px; }
-    .sticky-stories.shrink { padding-top: 5px; padding-bottom: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    .sticky-stories { position: sticky; top: 0; background: transparent; z-index: 15; transition: all 0.3s; padding-top: 10px; }
+    .sticky-stories.shrink { padding-top: 5px; padding-bottom: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); background: var(--glass); backdrop-filter: blur(10px); border-radius: 0 0 16px 16px;}
     .sRow { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; transition: all 0.3s; }
     .sRow::-webkit-scrollbar { display: none; }
     .sIt { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 68px; cursor: pointer; transition: all 0.3s; }
@@ -126,168 +110,208 @@
     .sticky-stories.shrink .sIt { width: 44px; }
 
     /* ========================================== */
-    /* 7. СПИСКИ */
+    /* 6. СПИСКИ И НАВИГАЦИЯ */
     /* ========================================== */
     .sBar { width: 100%; padding: 12px 16px; border-radius: 16px; background: var(--surf2); display: flex; align-items: center; gap: 10px; margin: 16px 0; border: 1px solid var(--brd); }
     .sBar input { background: none; border: none; color: var(--txt); width: 100%; outline: none; }
-    .lIt { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; cursor: pointer; margin-bottom: 4px; }
+    .lIt { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; cursor: pointer; margin-bottom: 4px; background: var(--surf); border: 1px solid var(--brd);}
     .lIt:active { background: var(--surf2); }
     .lInf { flex: 1; min-width: 0; }
     .lT { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
     .lS { font-size: 14px; color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ========================================== */
-    /* 8. НАВИГАЦИЯ */
-    /* ========================================== */
     .nav { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); z-index: 30; }
-    .nBtn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--mut); font-size: 11px; font-weight: 600; width: 70px; }
+    .nBtn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--mut); font-size: 11px; font-weight: 600; width: 70px; background: transparent !important; border: none; }
     .nBtn.act { color: var(--acc); }
     .nBtn i { font-size: 24px; }
 
     /* ========================================== */
-    /* 9. ЧАТ И ОБОИ (ФОТО/ВИДЕО) */
+    /* 7. ЧАТ */
     /* ========================================== */
     .cHdr { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
     .bBtn { font-size: 24px; padding: 8px; margin-left: -8px; color: var(--acc); }
     .cHN { font-size: 16px; font-weight: 700; }
     .cHS { font-size: 12px; color: var(--mut); }
 
-    .chat-bg-container { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-    .chat-bg-media { position: absolute; inset: 0; z-index: 1; opacity: 0.4; object-fit: cover; width: 100%; height: 100%; pointer-events: none; }
-    
     .msgs { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 2; }
     .msg { max-width: 85%; padding: 10px 14px; font-size: 15px; position: relative; word-break: break-word; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     .msgO { align-self: flex-start; background: var(--msgO); border-radius: 18px 18px 18px 4px; border: 1px solid var(--brd); }
     .msgM { align-self: flex-end; background: var(--msgM); color: #fff; border-radius: 18px 18px 4px 18px; }
     .mT { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 4px; }
-
+    
     .iBar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
     .iBar input { flex: 1; background: var(--surf2); border: 1px solid var(--brd); padding: 16px 20px; border-radius: 24px; color: var(--txt); outline: none; }
-    .sBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px var(--glow); }
+    .sBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .icon-btn { font-size: 24px; color: var(--mut); padding: 8px; }
 
     /* ========================================== */
-    /* 10. МОДАЛКИ */
+    /* 8. МОДАЛКИ */
     /* ========================================== */
     .mdl { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; align-items: flex-end; z-index: 300; }
     .mdl.act { display: flex; }
     .mB { width: 100%; background: var(--surf); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); animation: sU 0.3s; max-height: 90vh; overflow-y: auto; }
     .mTit { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
-    .setI { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--brd); cursor: pointer; }
-    .setT { flex: 1; font-size: 16px; margin-left: 12px; }
-
-    .adm-item { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--surf2); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--brd); }
-    .adm-row { display: flex; justify-content: space-between; align-items: center; }
-    .adm-btn { padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
-
+    
     #tst { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9999; pointer-events: none; }
     .tMsg { background: var(--surf2); color: var(--txt); padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; border: 1px solid var(--brd); animation: pI 0.2s; }
 
-    #scrAuth { align-items: center; justify-content: center; padding: 24px; }
+    #scrAuth { background: var(--bg); z-index: 100; justify-content: center; align-items: center; padding: 24px; }
     .auth-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; align-items: center; }
     .logo { font-size: 56px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; }
     .aSt { width: 100%; display: none; flex-direction: column; }
     .aSt.act { display: flex; animation: fI 0.3s; }
+
+    #scrAdmin { background: var(--bg); z-index: 200; }
+    #scrAdmin .hdr { background: #0088cc; border: none; }
+    #scrAdmin .hT { color: #fff; background: none; -webkit-text-fill-color: #fff; }
+    .admin-search-result { margin-top: 20px; display: flex; flex-direction: column; align-items: center; background: var(--surf2); padding: 20px; border-radius: 16px; }
+
+    /* ========================================== */
+    /* 9. ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ (НОВОЕ) */
+    /* ========================================== */
+    .switcher-popup {
+        position: absolute;
+        bottom: 80px; left: 16px; right: 16px;
+        background: var(--surf); border: 1px solid var(--brd);
+        border-radius: 20px; padding: 12px; z-index: 400;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+        display: none; flex-direction: column; gap: 8px;
+    }
+    .switcher-popup.act { display: flex; animation: pI 0.2s; }
+    .sw-title { font-size: 12px; color: var(--mut); font-weight: 600; margin-bottom: 4px; padding-left: 8px; }
+    .sw-item {
+        display: flex; align-items: center; gap: 12px; padding: 10px;
+        border-radius: 12px; cursor: pointer; border: 1px solid transparent;
+        transition: 0.2s;
+    }
+    .sw-item:active { background: var(--surf2); }
+    .sw-item.active {
+        background: var(--surf2);
+        border-color: var(--acc);
+    }
+    .sw-add {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 12px; border-radius: 12px; border: 1px dashed var(--mut);
+        color: var(--mut); font-weight: 600; font-size: 14px; cursor: pointer;
+        margin-top: 4px;
+    }
+    .sw-add:active { background: var(--surf2); }
 </style>
 </head>
 <body>
 <div id="err" style="display:none;position:fixed;top:0;left:0;right:0;background:red;color:#fff;padding:10px;z-index:99999;font-size:12px"></div>
 <div class="app">
-<div id="tst"></div>
 
-<!-- AUTH -->
-<div id="scrAuth" class="scr act">
-<div class="auth-box">
-<div class="logo">Molju</div>
-<div class="aSt act" id="stE"><input type="email" id="iEmail" class="inp" placeholder="Email"><button class="btn-saw btn-primary" id="bCheckEmail">Продолжить</button></div>
-<div class="aSt" id="stPass">
-    <p style="text-align:center;color:var(--mut);margin-bottom:20px">Введите ваш пароль</p>
-    <input type="password" id="iPass" class="inp" placeholder="Пароль">
-    <button class="btn-saw btn-primary" id="bLoginPass">Войти</button>
-</div>
-<div class="aSt" id="stO">
-    <p style="text-align:center;color:var(--mut);margin-bottom:20px">Код на <b id="dEmail"></b></p>
-    <input type="text" id="iOtp" class="inp" placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:5px">
-    <button class="btn-saw btn-primary" id="bVerify">Войти</button>
-</div>
-<div class="aSt" id="stP">
-    <p style="text-align:center;color:var(--mut);margin-bottom:20px">Создайте профиль</p>
-    <input type="text" id="iUser" class="inp" placeholder="@username">
-    <input type="text" id="iName" class="inp" placeholder="Имя">
-    <input type="password" id="iNewPass" class="inp" placeholder="Пароль">
-    <button class="btn-saw btn-primary" id="bSaveProfile">Создать аккаунт</button>
-</div>
-</div>
-</div>
+    <img id="globalBgImg" class="global-bg-media" style="display:none;">
+    <video id="globalBgVid" class="global-bg-media" style="display:none;" autoplay loop muted playsinline></video>
 
-<!-- MAIN -->
-<div id="scrMain" class="scr">
-<div class="hdr"><div class="hT" id="mTitle">Molju</div><button class="iBtn" onclick="openM('mdlSearch')"><i class="ph ph-magnifying-glass"></i></button></div>
-<div class="cnt tab act" id="tabChats" onscroll="handleScroll(this)">
-    <div class="sticky-stories" id="stickyStories"><div class="sRow" id="sCont"></div></div>
-    <div class="sBar"><i class="ph ph-magnifying-glass" style="color:var(--mut)"></i><input type="text" id="sInpChats" placeholder="Поиск..."></div>
-    <div class="cList" id="cList"></div>
-</div>
-<div class="cnt tab" id="tabSettings">
-<div class="setI" onclick="toggleTheme()"><div style="display:flex;align-items:center"><i class="ph ph-moon" style="font-size:22px"></i><div class="setT">Светлая тема</div></div><input type="checkbox" id="tTheme" style="width:20px;height:20px;accent-color:var(--acc)"></div>
-<div class="setI" onclick="openM('mdlWallpaper')"><div style="display:flex;align-items:center"><i class="ph ph-image" style="font-size:22px"></i><div class="setT">Обои чата</div></div></div>
-</div>
-<div class="cnt tab" id="tabProfile">
-<div style="display:flex;flex-direction:column;align-items:center;margin-top:40px">
-<div class="ava avaL" id="pAva"></div>
-<div style="font-size:24px;font-weight:800;margin-top:16px;display:flex;align-items:center" id="pName">Имя</div>
-<div style="color:var(--mut);margin-top:4px" id="pUser">@username</div>
-<div style="width:100%;margin-top:30px;display:flex;flex-direction:column;gap:12px">
-<button class="btn-saw" onclick="openEditProfile()">Изменить профиль</button>
-<button class="btn-saw" onclick="openSecurityModal()">Безопасность</button>
-<button class="btn-saw btn-primary" id="bAdminPanel" onclick="openAdminPanel()" style="display:none; background: #0088cc; box-shadow: 0 6px 0 #005f8f;">Панель Владельца</button>
-</div>
-<button class="btn-saw" style="margin-top:40px;color:var(--dan); border-color: var(--dan);" id="bLogout">Выйти</button>
-</div>
-</div>
-<div class="nav">
-<button class="nBtn act" onclick="switchTab('tabChats',this)"><i class="ph ph-chats"></i><span>Чаты</span></button>
-<button class="nBtn" onclick="switchTab('tabSettings',this)"><i class="ph ph-gear"></i><span>Настройки</span></button>
-<button class="nBtn" onclick="switchTab('tabProfile',this)"><i class="ph ph-user"></i><span>Профиль</span></button>
-</div>
-</div>
+    <div class="app-content">
+        <div id="tst"></div>
 
-<!-- CHAT -->
-<div id="scrChat" class="scr">
-<div class="cHdr"><button class="bBtn" id="bBack"><i class="ph ph-caret-left"></i></button><div class="ava avaS" id="cAva">?</div><div style="flex:1"><div class="cHN" id="cName">Имя</div><div class="cHS" id="cStatus">онлайн</div></div></div>
-<div class="chat-bg-container">
-    <img id="chatBgImg" class="chat-bg-media" style="display:none;">
-    <video id="chatBgVid" class="chat-bg-media" style="display:none;" autoplay loop muted playsinline></video>
-    <div class="msgs" id="mBox"></div>
-</div>
-<div class="iBar"><input type="text" id="mInp" placeholder="Сообщение..."><button class="sBtn" id="bSendMsg"><i class="ph ph-paper-plane-right"></i></button></div>
-</div>
+        <!-- AUTH -->
+        <div id="scrAuth" class="scr act">
+        <div class="auth-box">
+        <div class="logo">Molju</div>
+        <div class="aSt act" id="stE"><input type="email" id="iEmail" class="inp" placeholder="Email"><button class="btn-saw btn-primary" id="bCheckEmail">Продолжить</button></div>
+        <div class="aSt" id="stPass">
+            <p style="text-align:center;color:var(--mut);margin-bottom:20px">Введите ваш пароль</p>
+            <input type="password" id="iPass" class="inp" placeholder="Пароль">
+            <button class="btn-saw btn-primary" id="bLoginPass">Войти</button>
+        </div>
+        <div class="aSt" id="stO">
+            <p style="text-align:center;color:var(--mut);margin-bottom:20px">Код на <b id="dEmail"></b></p>
+            <input type="text" id="iOtp" class="inp" placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:5px">
+            <button class="btn-saw btn-primary" id="bVerify">Войти</button>
+        </div>
+        <div class="aSt" id="stP">
+            <p style="text-align:center;color:var(--mut);margin-bottom:20px">Создайте профиль</p>
+            <input type="text" id="iUser" class="inp" placeholder="@username">
+            <input type="text" id="iName" class="inp" placeholder="Имя">
+            <input type="password" id="iNewPass" class="inp" placeholder="Пароль">
+            <button class="btn-saw btn-primary" id="bSaveProfile">Создать аккаунт</button>
+        </div>
+        </div>
+        </div>
 
-<!-- MODALS -->
-<div id="mdlSearch" class="mdl" onclick="closeM('mdlSearch',event)"><div class="mB"><div class="mTit">Поиск</div><input type="text" id="sInpGlob" class="inp" placeholder="@username"><button class="btn-saw btn-primary" id="bDoSearch">Найти</button></div></div>
-<div id="mdlEditProf" class="mdl" onclick="closeM('mdlEditProf',event)"><div class="mB"><div class="mTit">Профиль</div><div style="display:flex;justify-content:center;margin-bottom:20px"><div class="ava avaL" id="eAvaPrev" onclick="document.getElementById('eAvaInp').click()" style="cursor:pointer"><i class="ph ph-camera"></i></div><input type="file" id="eAvaInp" style="display:none" accept="image/*"></div><input type="text" id="eUser" class="inp" placeholder="@username"><input type="text" id="eName" class="inp" placeholder="Имя"><button class="btn-saw btn-primary" id="bSaveEdit">Сохранить</button></div></div>
+        <!-- MAIN -->
+        <div id="scrMain" class="scr">
+        <div class="hdr"><div class="hT" id="mTitle">Molju</div><button class="iBtn" onclick="openM('mdlSearch')"><i class="ph ph-magnifying-glass"></i></button></div>
+        <div class="cnt tab act" id="tabChats" onscroll="handleScroll(this)">
+            <div class="sticky-stories" id="stickyStories"><div class="sRow" id="sCont"></div></div>
+            <div class="sBar"><i class="ph ph-magnifying-glass" style="color:var(--mut)"></i><input type="text" id="sInpChats" placeholder="Поиск..."></div>
+            <div class="cList" id="cList"></div>
+        </div>
+        <div class="cnt tab" id="tabSettings">
+        <div class="setI" onclick="toggleTheme()" style="padding:16px 0; display:flex; justify-content:space-between; cursor:pointer; border-bottom: 1px solid var(--brd);"><div style="display:flex;align-items:center"><i class="ph ph-moon" style="font-size:22px"></i><div style="margin-left:12px;">Светлая тема</div></div><input type="checkbox" id="tTheme" style="width:20px;height:20px;accent-color:var(--acc)"></div>
+        <div class="setI" onclick="openM('mdlWallpaper')" style="padding:16px 0; display:flex; justify-content:space-between; cursor:pointer; border-bottom: 1px solid var(--brd);"><div style="display:flex;align-items:center"><i class="ph ph-image" style="font-size:22px"></i><div style="margin-left:12px;">Обои (Глобальные)</div></div></div>
+        </div>
+        <div class="cnt tab" id="tabProfile">
+        <div style="display:flex;flex-direction:column;align-items:center;margin-top:40px">
+        <div class="ava avaL" id="pAva"></div>
+        <div style="font-size:24px;font-weight:800;margin-top:16px;display:flex;align-items:center" id="pName">Имя</div>
+        <div style="color:var(--mut);margin-top:4px" id="pUser">@username</div>
+        <div style="width:100%;margin-top:30px;display:flex;flex-direction:column;gap:12px">
+        <button class="btn-saw" onclick="openEditProfile()">Изменить профиль</button>
+        <button class="btn-saw" onclick="openSecurityModal()">Безопасность</button>
+        <button class="btn-saw btn-primary" id="bAdminPanel" onclick="showScr('scrAdmin')" style="display:none; background: #0088cc; box-shadow: 0 6px 0 #005f8f;">Панель Владельца</button>
+        </div>
+        <button class="btn-saw" style="margin-top:40px;color:var(--dan); border-color: var(--dan);" id="bLogout">Выйти</button>
+        </div>
+        </div>
+        <div class="nav">
+        <button class="nBtn act" onclick="switchTab('tabChats',this)"><i class="ph ph-chats"></i><span>Чаты</span></button>
+        <button class="nBtn" onclick="switchTab('tabSettings',this)"><i class="ph ph-gear"></i><span>Настройки</span></button>
+        <button class="nBtn" id="navProfileBtn" onclick="switchTab('tabProfile',this)"><i class="ph ph-user"></i><span>Профиль</span></button>
+        </div>
+        </div>
 
-<div id="mdlWallpaper" class="mdl" onclick="closeM('mdlWallpaper',event)">
-<div class="mB">
-<div class="mTit">Обои чата</div>
-<p style="color:var(--mut); margin-bottom:15px; font-size:14px;">Выберите фото или видео (до 10 сек)</p>
-<button class="btn-saw" style="margin-bottom:10px" onclick="document.getElementById('wallInp').click()">Загрузить медиа</button>
-<input type="file" id="wallInp" style="display:none" accept="image/*,video/*">
-<button class="btn-saw" style="margin-bottom:10px" onclick="resetWallpaper()">Сбросить</button>
-<div id="wallPreview" style="height:100px; background:var(--surf2); border-radius:12px; margin-top:10px; display:flex; align-items:center; justify-content:center; color:var(--mut);">Превью</div>
-</div>
-</div>
+        <!-- CHAT -->
+        <div id="scrChat" class="scr">
+        <div class="cHdr"><button class="bBtn" id="bBack"><i class="ph ph-caret-left"></i></button><div class="ava avaS" id="cAva">?</div><div style="flex:1"><div class="cHN" id="cName">Имя</div><div class="cHS" id="cStatus">онлайн</div></div><button class="icon-btn" onclick="clearChatHistory()"><i class="ph ph-trash"></i></button></div>
+        <div class="msgs" id="mBox"></div>
+        <div class="iBar">
+            <button class="icon-btn" onclick="document.getElementById('fileInp').click()"><i class="ph ph-paperclip"></i></button>
+            <input type="file" id="fileInp" style="display:none" accept="image/*,video/*" onchange="uploadFile(this)">
+            <button class="icon-btn" id="bMic" onclick="simulateVoice()"><i class="ph ph-microphone"></i></button>
+            <input type="text" id="mInp" placeholder="Сообщение...">
+            <button class="sBtn" id="bSendMsg"><i class="ph ph-paper-plane-right"></i></button>
+        </div>
+        </div>
 
-<div id="mdlAdmin" class="mdl" onclick="closeM('mdlAdmin',event)">
-<div class="mB" style="height: 80vh; display: flex; flex-direction: column;">
-<div class="mTit" style="color:var(--ver)">Панель Владельца</div>
-<button class="btn-saw btn-primary" style="margin-bottom:15px; background:#0088cc" onclick="broadcastMessage()">Рассылка</button>
-<div style="display:flex; gap:10px; margin-bottom:15px;">
-    <button class="btn-saw" style="padding:10px; flex:1;" onclick="loadAdminList('users')">Юзеры</button>
-    <button class="btn-saw" style="padding:10px; flex:1; border-color:var(--dan); color:var(--dan);" onclick="loadAdminList('banned')">Баны</button>
-</div>
-<div id="adminList" style="flex:1; overflow-y: auto;"></div>
-</div>
-</div>
+        <!-- ADMIN PANEL -->
+        <div id="scrAdmin" class="scr">
+            <div class="hdr">
+                <button class="bBtn" style="color:#fff" onclick="showScr('scrMain')"><i class="ph ph-caret-left"></i></button>
+                <div class="hT">Панель Владельца</div>
+            </div>
+            <div class="cnt" style="padding-top:20px;">
+                <button class="btn-saw btn-primary" style="background:#0088cc; box-shadow:0 6px 0 #005f8f;" onclick="broadcastMessage()">Сделать рассылку</button>
+                
+                <div class="sBar" style="margin-top:20px;">
+                    <i class="ph ph-magnifying-glass" style="color:var(--mut)"></i>
+                    <input type="text" id="adminSearch" placeholder="Поиск по @username">
+                    <button onclick="searchAdminUser()" style="color:var(--ver); font-weight:700;">Найти</button>
+                </div>
+
+                <div id="adminResult"></div>
+            </div>
+        </div>
+
+        <!-- MODALS -->
+        <div id="mdlSearch" class="mdl" onclick="closeM('mdlSearch',event)"><div class="mB"><div class="mTit">Поиск</div><input type="text" id="sInpGlob" class="inp" placeholder="@username"><button class="btn-saw btn-primary" id="bDoSearch">Найти</button></div></div>
+        <div id="mdlEditProf" class="mdl" onclick="closeM('mdlEditProf',event)"><div class="mB"><div class="mTit">Профиль</div><div style="display:flex;justify-content:center;margin-bottom:20px"><div class="ava avaL" id="eAvaPrev" onclick="document.getElementById('eAvaInp').click()" style="cursor:pointer"><i class="ph ph-camera"></i></div><input type="file" id="eAvaInp" style="display:none" accept="image/*"></div><input type="text" id="eUser" class="inp" placeholder="@username"><input type="text" id="eName" class="inp" placeholder="Имя"><button class="btn-saw btn-primary" id="bSaveEdit">Сохранить</button></div></div>
+        <div id="mdlWallpaper" class="mdl" onclick="closeM('mdlWallpaper',event)"><div class="mB"><div class="mTit">Глобальные обои</div><p style="color:var(--mut); margin-bottom:15px; font-size:14px;">Фото или видео (до 10 сек). Применяется ко всему приложению.</p><button class="btn-saw" style="margin-bottom:10px" onclick="document.getElementById('wallInp').click()">Загрузить</button><input type="file" id="wallInp" style="display:none" accept="image/*,video/*"><button class="btn-saw" onclick="resetWallpaper()">Сбросить</button></div></div>
+        <div id="mdlSecurity" class="mdl" onclick="closeM('mdlSecurity',event)"><div class="mB"><div class="mTit">Безопасность</div><p style="color:var(--mut); margin-bottom:20px;">Сессии: <b id="devCount">0</b></p><div id="devList" style="margin-bottom:20px;"></div><button class="btn-saw" style="color:var(--dan)" onclick="terminateAllSessions()">Завершить все</button><button class="btn-saw" onclick="setPasswordProfile()">Установить пароль</button></div></div>
+    </div>
+
+    <!-- ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ -->
+    <div class="switcher-popup" id="accountSwitcher">
+        <div class="sw-title">Аккаунты</div>
+        <div id="accountList"></div>
+        <div class="sw-add" onclick="addNewAccount()">
+            <i class="ph ph-plus"></i> Добавить аккаунт
+        </div>
+    </div>
 
 </div>
 
@@ -296,7 +320,7 @@ window.addEventListener('error', function(e) { document.getElementById('err').st
 
 document.addEventListener('DOMContentLoaded', () => {
     const supabase = window.supabase.createClient('https://dhmqbjfzkrmsbrwzenna.supabase.co', 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI', { auth: { detectSessionInUrl: true, persistSession: true } });
-    const S = { u: null, p: null, cId: null, email: '' };
+    const S = { u: null, p: null, cId: null, email: '', activeMsgToCtx: null, adminSearchResult: null };
 
     window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000); };
     window.showScr = (id) => { document.querySelectorAll('.scr').forEach(x => x.classList.remove('act')); document.getElementById(id).classList.add('act'); };
@@ -311,11 +335,111 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.handleScroll = (el) => {
         const sticky = document.getElementById('stickyStories');
-        if (el.scrollTop > 30) sticky.classList.add('shrink');
-        else sticky.classList.remove('shrink');
+        if (el.scrollTop > 30) sticky.classList.add('shrink'); else sticky.classList.remove('shrink');
     };
 
-    // AUTH
+    // ==========================================
+    // ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ
+    // ==========================================
+    let pressTimer;
+    const navProfileBtn = document.getElementById('navProfileBtn');
+    
+    navProfileBtn.addEventListener('touchstart', (e) => {
+        pressTimer = setTimeout(() => {
+            e.preventDefault();
+            openAccountSwitcher();
+        }, 500);
+    });
+    navProfileBtn.addEventListener('touchend', () => clearTimeout(pressTimer));
+    navProfileBtn.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+    // Для мыши (десктоп)
+    navProfileBtn.addEventListener('mousedown', (e) => {
+        pressTimer = setTimeout(() => {
+            e.preventDefault();
+            openAccountSwitcher();
+        }, 500);
+    });
+    navProfileBtn.addEventListener('mouseup', () => clearTimeout(pressTimer));
+    navProfileBtn.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
+    window.openAccountSwitcher = function() {
+        const popup = document.getElementById('accountSwitcher');
+        const list = document.getElementById('accountList');
+        list.innerHTML = '';
+
+        let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
+        
+        if (accounts.length === 0) {
+            popup.classList.add('act');
+            return;
+        }
+
+        accounts.forEach(acc => {
+            const isActive = S.u && acc.id === S.u.id;
+            const el = document.createElement('div');
+            el.className = `sw-item ${isActive ? 'active' : ''}`;
+            el.innerHTML = `
+                <div class="ava avaS" style="background-image:url('${acc.avatar_url || ''}')">${acc.avatar_url ? '' : acc.name[0]}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:700; font-size:14px; display:flex; align-items:center;">${acc.name} ${acc.is_verified ? '<i class="ph-fill ph-seal-check ver" style="font-size:14px;"></i>' : ''}</div>
+                    <div style="font-size:12px; color:var(--mut);">@${acc.username}</div>
+                </div>
+                ${isActive ? '<i class="ph-fill ph-check-circle" style="color:var(--acc); font-size:20px;"></i>' : ''}
+            `;
+            el.onclick = () => {
+                if (isActive) {
+                    popup.classList.remove('act');
+                } else {
+                    switchAccount(acc.email);
+                }
+            };
+            list.appendChild(el);
+        });
+        
+        popup.classList.add('act');
+    };
+
+    window.addNewAccount = function() {
+        document.getElementById('accountSwitcher').classList.remove('act');
+        localStorage.removeItem('molju_prefill_email');
+        logoutFunc();
+    };
+
+    window.switchAccount = function(email) {
+        document.getElementById('accountSwitcher').classList.remove('act');
+        localStorage.setItem('molju_prefill_email', email);
+        logoutFunc();
+    };
+
+    // Закрытие окошка при клике вне его
+    document.addEventListener('click', (e) => {
+        const popup = document.getElementById('accountSwitcher');
+        if (popup.classList.contains('act') && !popup.contains(e.target) && !navProfileBtn.contains(e.target)) {
+            popup.classList.remove('act');
+        }
+    });
+
+    // ==========================================
+    // ФУНКЦИЯ ВЫХОДА (ИСПРАВЛЕНА)
+    // ==========================================
+    function logoutFunc() {
+        supabase.auth.signOut().finally(() => {
+            localStorage.removeItem('molju_theme'); // Сбрасываем тему (опционально)
+            // Очищаем сессию Supabase в LocalStorage (чтобы точно выйти)
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key.startsWith('sb-')) localStorage.removeItem(key);
+            }
+            window.location.reload();
+        });
+    }
+
+    document.getElementById('bLogout').onclick = logoutFunc;
+
+    // ==========================================
+    // AUTH FLOW
+    // ==========================================
     document.getElementById('bCheckEmail').onclick = async function() {
         const email = document.getElementById('iEmail').value.trim(); if (!email) return toast('Введите Email');
         S.email = email; this.innerHTML = '<div class="ld"></div>';
@@ -341,6 +465,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error } = await supabase.auth.verifyOtp({ email: S.email, token: code, type: 'email' });
         if (error) toast(error.message);
     };
+
+    // Предзаполнение Email (если переключили аккаунт)
+    const prefill = localStorage.getItem('molju_prefill_email');
+    if (prefill) {
+        document.getElementById('iEmail').value = prefill;
+        localStorage.removeItem('molju_prefill_email');
+        toast('Введите пароль для ' + prefill);
+    }
+
     supabase.auth.onAuthStateChange(async (ev, ses) => { if (ev === 'SIGNED_IN' && ses) { S.u = ses.user; await checkProf(); } });
 
     async function checkProf() {
@@ -348,6 +481,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.username) {
             S.p = data;
             if (!data.password_hash) { showASt('stP'); return; }
+            
+            // Сохраняем аккаунт в список
+            let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
+            accounts = accounts.filter(a => a.id !== data.id);
+            accounts.unshift(data);
+            localStorage.setItem('molju_accounts', JSON.stringify(accounts));
+            
             document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
             document.getElementById('pUser').textContent = '@' + data.username;
             if (data.avatar_url) document.getElementById('pAva').style.backgroundImage = `url('${data.avatar_url}')`;
@@ -358,74 +498,94 @@ document.addEventListener('DOMContentLoaded', () => {
             showScr('scrMain'); loadChats(); loadStories();
         } else { showASt('stP'); }
     }
+    
     document.getElementById('bSaveProfile').onclick = async function() {
         const u = document.getElementById('iUser').value.trim(), n = document.getElementById('iName').value.trim(), pwd = document.getElementById('iNewPass').value;
         await supabase.from('profiles').update({ username: u, name: n, email: S.email, password_hash: hashPass(pwd) }).eq('id', S.u.id); 
         await checkProf();
     };
 
-    // ОБОИ (ФОТО/ВИДЕО)
+    // ГЛОБАЛЬНЫЕ ОБОИ
     window.applyWallpaper = function(url, type) {
-        const img = document.getElementById('chatBgImg'), vid = document.getElementById('chatBgVid');
-        img.style.display = 'none'; vid.style.display = 'none'; vid.pause();
-        if (!url || url === 'default') return;
+        const img = document.getElementById('globalBgImg'), vid = document.getElementById('globalBgVid');
+        if (!url || url === 'default') {
+            img.style.display = 'none'; vid.style.display = 'none'; vid.pause();
+            return;
+        }
         if (type === 'video') {
-            vid.src = url; vid.style.display = 'block'; vid.play();
+            img.style.display = 'none';
+            if (vid.src !== url) { vid.src = url; vid.play(); }
+            vid.style.display = 'block';
         } else {
+            vid.style.display = 'none'; vid.pause();
             img.src = url; img.style.display = 'block';
         }
     };
 
-    document.getElementById('wallInp').onchange = function(e) {
+    document.getElementById('wallInp').onchange = async function(e) {
         const f = e.target.files[0]; if (!f) return;
-        const isVid = f.type.startsWith('video');
-        
-        if (isVid) {
-            const vid = document.createElement('video');
-            vid.src = URL.createObjectURL(f);
-            vid.onloadedmetadata = async () => {
-                if (vid.duration > 10) {
-                    toast('Видео длиннее 10 сек. Будет обрезано.');
-                }
-                const r = new FileReader();
-                r.onload = async (ev) => {
-                    await supabase.from('profiles').update({ chat_wallpaper: ev.target.result, chat_wallpaper_type: 'video' }).eq('id', S.u.id);
-                    S.p.chat_wallpaper = ev.target.result; S.p.chat_wallpaper_type = 'video';
-                    applyWallpaper(ev.target.result, 'video');
-                    toast('Видео-обои установлены!');
-                };
-                r.readAsDataURL(f);
-            };
-        } else {
-            const r = new FileReader();
-            r.onload = async (ev) => {
-                await supabase.from('profiles').update({ chat_wallpaper: ev.target.result, chat_wallpaper_type: 'image' }).eq('id', S.u.id);
-                S.p.chat_wallpaper = ev.target.result; S.p.chat_wallpaper_type = 'image';
-                applyWallpaper(ev.target.result, 'image');
-                toast('Фото-обои установлены!');
-            };
-            r.readAsDataURL(f);
-        }
+        const r = new FileReader();
+        r.onload = async (ev) => {
+            const type = f.type.startsWith('video') ? 'video' : 'image';
+            await supabase.from('profiles').update({ chat_wallpaper: ev.target.result, chat_wallpaper_type: type }).eq('id', S.u.id);
+            S.p.chat_wallpaper = ev.target.result; S.p.chat_wallpaper_type = type;
+            applyWallpaper(ev.target.result, type); toast('Обои установлены!');
+        };
+        r.readAsDataURL(f);
     };
-
     window.resetWallpaper = async () => {
-        await supabase.from('profiles').update({ chat_wallpaper: 'default', chat_wallpaper_type: 'color' }).eq('id', S.u.id);
-        S.p.chat_wallpaper = 'default'; applyWallpaper('default', 'color'); toast('Обои сброшены');
+        await supabase.from('profiles').update({ chat_wallpaper: 'default' }).eq('id', S.u.id);
+        S.p.chat_wallpaper = 'default'; applyWallpaper('default'); toast('Сброшено');
     };
 
-    // ИСТОРИИ
-    async function loadStories() {
-        const c = document.getElementById('sCont'); 
-        c.innerHTML = `<div class="sIt"><div class="sCr" style="border: 2px dashed var(--mut);"><i class="ph ph-plus"></i></div><div class="sN">Моя</div></div>`;
-        const { data } = await supabase.from('stories').select('*, profiles(username, avatar_url)').order('created_at', { ascending: false });
-        if (!data) return;
-        const seen = new Set();
-        data.forEach(s => {
-            if (seen.has(s.user_id)) return;
-            seen.add(s.user_id);
-            c.innerHTML += `<div class="sIt"><div class="sCr" style="border: 2px solid var(--acc); background-image:url('${s.profiles?.avatar_url || ''}')"></div><div class="sN">${s.profiles?.username}</div></div>`;
-        });
-    }
+    // АДМИН ПАНЕЛЬ
+    window.searchAdminUser = async function() {
+        const q = document.getElementById('adminSearch').value.trim().replace('@','');
+        if (!q) return;
+        const res = document.getElementById('adminResult');
+        res.innerHTML = '<div class="ld" style="margin:20px auto;"></div>';
+        const { data: user } = await supabase.from('profiles').select('*').eq('username', q).maybeSingle();
+        if (!user) { res.innerHTML = '<div style="color:var(--mut); text-align:center;">Не найден</div>'; return; }
+        
+        S.adminSearchResult = user;
+        res.innerHTML = `
+            <div class="admin-search-result">
+                <div class="ava" style="width:80px; height:80px; font-size:30px; background-image:url('${user.avatar_url || ''}')"></div>
+                <div style="font-size:20px; font-weight:800; margin-top:15px; display:flex; align-items:center;">${user.name} ${user.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}</div>
+                <div style="color:var(--mut); margin-bottom:20px;">@${user.username}</div>
+                <div style="display:flex; gap:10px; width:100%;">
+                    <button class="btn-saw" style="flex:1; margin:0; padding:12px;" onclick="confirmVerifyUser()">${user.is_verified ? 'Снять галочку' : 'Выдать галочку'}</button>
+                    <button class="btn-saw" style="flex:1; margin:0; padding:12px; color:var(--dan); border-color:var(--dan);" onclick="confirmBanUser()">Забанить</button>
+                </div>
+            </div>
+        `;
+    };
+
+    window.confirmVerifyUser = async function() {
+        if (!S.adminSearchResult) return;
+        const isVer = S.adminSearchResult.is_verified;
+        if (!confirm(isVer ? 'Снять галочку?' : 'Выдать галочку?')) return;
+        await supabase.from('profiles').update({ is_verified: !isVer }).eq('id', S.adminSearchResult.id);
+        toast('Галочка изменена'); searchAdminUser();
+    };
+
+    window.confirmBanUser = async function() {
+        if (!S.adminSearchResult) return;
+        if (!confirm('Забанить? Пользователь будет удален.')) return;
+        await supabase.from('banned_emails').insert({ email: S.adminSearchResult.email });
+        await supabase.from('profiles').delete().eq('id', S.adminSearchResult.id);
+        toast('Забанен'); document.getElementById('adminResult').innerHTML = '<div style="color:var(--dan); text-align:center; font-weight:700;">Забанен</div>';
+    };
+
+    window.broadcastMessage = async () => {
+        const msg = prompt('Текст рассылки:');
+        if (!msg) return;
+        const { data: users } = await supabase.from('profiles').select('id');
+        for (let u of users) {
+            await supabase.from('messages').insert({ chat_id: 'broadcast_chat', sender_id: S.u.id, text: msg });
+        }
+        toast('Рассылка отправлена!');
+    };
 
     // ЧАТЫ
     async function loadChats() {
@@ -452,99 +612,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('bBack').onclick = () => { S.cId = null; showScr('scrMain'); loadChats(); };
-    document.getElementById('bSendMsg').onclick = async () => { const i = document.getElementById('mInp'), t = i.value.trim(); if (!t || !S.cId) return; i.value = ''; await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); openChat(S.cId, document.getElementById('cName').textContent); };
-
-    // ПАНЕЛЬ ВЛАДЕЛЬЦА (ПО ID!)
-    window.openAdminPanel = () => { openM('mdlAdmin'); loadAdminList('users'); };
-
-    window.loadAdminList = async (mode) => {
-        const list = document.getElementById('adminList'); 
-        list.innerHTML = '<div class="ld" style="margin:auto"></div>';
-        
-        if (mode === 'banned') {
-            const { data } = await supabase.from('banned_emails').select('*');
-            list.innerHTML = '';
-            if (!data || data.length === 0) return list.innerHTML = '<div style="color:var(--mut);text-align:center">Пусто</div>';
-            data.forEach(b => {
-                list.innerHTML += `<div class="adm-item"><div class="adm-row"><div>${b.email}</div><button class="adm-btn" onclick="unbanEmail('${b.email}')">Разбан</button></div></div>`;
-            });
-            return;
-        }
-
-        const { data } = await supabase.from('profiles').select('*');
-        list.innerHTML = '';
-        if (!data) return;
-        
-        data.forEach(user => {
-            if (user.id === S.u.id) return;
-            list.innerHTML += `
-            <div class="adm-item">
-                <div class="adm-row">
-                    <div style="font-weight:600">${user.name} ${user.is_verified ? '<i class="ph-fill ph-seal-check" style="color:var(--ver)"></i>' : ''}</div>
-                    <button class="adm-btn" onclick="toggleVerify('${user.id}', ${user.is_verified})">Галочка</button>
-                </div>
-                <div class="adm-row" style="margin-top:8px;">
-                    <button class="adm-btn" style="color:var(--dan); border-color:var(--dan)" onclick="softBan('${user.id}', '${user.email}')">Бан</button>
-                </div>
-            </div>`;
-        });
+    document.getElementById('bSendMsg').onclick = async () => { 
+        const i = document.getElementById('mInp'), t = i.value.trim(); if (!t || !S.cId) return; i.value = ''; 
+        await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); openChat(S.cId, document.getElementById('cName').textContent); 
     };
 
-    // ИСПОЛЬЗУЕМ ID (А НЕ USERNAME) ДЛЯ ВСЕХ ОПЕРАЦИЙ
-    window.toggleVerify = async (id, status) => { 
-        await supabase.from('profiles').update({ is_verified: !status }).eq('id', id); 
-        toast('Галочка изменена'); loadAdminList('users'); 
+    window.uploadFile = async function(inp) {
+        const f = inp.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = async (ev) => {
+            await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: '📷 Медиа', file_url: ev.target.result });
+            openChat(S.cId, document.getElementById('cName').textContent);
+        };
+        r.readAsDataURL(f);
     };
-    
-    window.softBan = async (id, email) => { 
-        if(!confirm('Забанить?')) return; 
-        await supabase.from('banned_emails').insert({ email }); 
-        await supabase.from('profiles').delete().eq('id', id); 
-        toast('Забанен'); loadAdminList('users'); 
-    };
-    
-    window.unbanEmail = async (email) => { 
-        await supabase.from('banned_emails').delete().eq('email', email); 
-        toast('Разбанен'); loadAdminList('banned'); 
-    };
+    window.simulateVoice = () => toast('🎤 Голосовое отправлено');
+    window.clearChatHistory = async () => { if(!confirm('Очистить?')) return; await supabase.from('messages').delete().eq('chat_id', S.cId); openChat(S.cId, 'Чат'); };
 
-    window.broadcastMessage = async () => {
-        const msg = prompt('Текст рассылки:');
-        if (!msg) return;
-        const { data: users } = await supabase.from('profiles').select('id');
-        for (let u of users) {
-            await supabase.from('messages').insert({ chat_id: 'broadcast_chat', sender_id: S.u.id, text: msg });
-        }
-        toast('Рассылка отправлена!');
-    };
-
-    // БЕЗОПАСНОСТЬ И ПРОЧЕЕ
-    window.openSecurityModal = async () => {
-        openM('mdlSecurity');
-        const { data } = await supabase.from('devices').select('*').eq('user_id', S.u.id);
-        document.getElementById('devCount').textContent = data ? data.length : 0;
-        const list = document.getElementById('devList'); list.innerHTML = '';
-        if (data) data.forEach(d => list.innerHTML += `<div style="padding: 10px; background: var(--surf2); margin-bottom: 8px; border-radius: 8px;">${d.device_name}</div>`);
-    };
-
-    window.openEditProfile = () => {
-        document.getElementById('eUser').value = S.p.username;
-        document.getElementById('eName').value = S.p.name;
-        openM('mdlEditProf');
-    };
-
-    document.getElementById('bSaveEdit').onclick = async () => {
-        const u = document.getElementById('eUser').value.trim();
-        const n = document.getElementById('eName').value.trim();
-        await supabase.from('profiles').update({ username: u, name: n }).eq('id', S.u.id);
-        toast('Профиль обновлен');
-        closeM('mdlEditProf');
-        checkProf();
-    };
-
-    document.getElementById('bLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
     supabase.auth.getSession().then(({ data: { session } }) => { if (!session) showScr('scrAuth'); });
 });
 </script>
 </body>
-</html>
+            </html>
