@@ -367,7 +367,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         S.loginProfile = p;
         S.authEmail = p.email;
-        localStorage.setItem('molju_auth_email', p.email);
+        try {
+            localStorage.setItem('molju_auth_email', p.email);
+        } catch(e) {}
         document.getElementById('display-login-email').textContent = p.email;
         showASt('stPass');
     };
@@ -394,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (error) throw error;
             
-            localStorage.setItem('molju_auth_email', S.authEmail);
+            try { localStorage.setItem('molju_auth_email', S.authEmail); } catch(e) {}
             document.getElementById('dEmail').textContent = S.authEmail;
             showASt('stO');
             toast('Код отправлен на почту!');
@@ -422,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (error) return toast('Ошибка: ' + error.message);
         
-        localStorage.setItem('molju_auth_email', S.authEmail);
+        try { localStorage.setItem('molju_auth_email', S.authEmail); } catch(e) {}
         document.getElementById('dEmail').textContent = S.authEmail;
         showASt('stO');
         toast('Код отправлен!');
@@ -455,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (error) return toast(error.message);
         
-        localStorage.setItem('molju_auth_email', email);
+        try { localStorage.setItem('molju_auth_email', email); } catch(e) {}
         document.getElementById('dEmail').textContent = email;
         showASt('stO');
     };
@@ -498,7 +500,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             toast('Успешный вход!');
-            // checkProf вызовется через onAuthStateChange
             
         } catch (err) {
             toast('Ошибка сети: ' + err.message);
@@ -547,13 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) {
                 console.error('checkProf error:', error);
-                
-                // Если ошибка RLS (permission denied)
-                if (error.code === '42501' || error.message.includes('permission denied') || error.message.includes('RLS')) {
-                    toast('Нет доступа к таблице profiles. Настройте RLS в Supabase (см. инструкцию).');
-                } else {
-                    toast('Ошибка загрузки профиля: ' + error.message);
-                }
+                toast('Ошибка загрузки: ' + error.message);
                 showScr('scrAuth');
                 return;
             }
@@ -567,12 +562,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Профиль есть — пускаем в приложение
             S.p = data;
-            localStorage.removeItem('molju_auth_email'); // email больше не нужен
+            try { localStorage.removeItem('molju_auth_email'); } catch(e) {}
 
-            let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
-            accounts = accounts.filter(a => a.id !== data.id);
-            accounts.unshift(data);
-            localStorage.setItem('molju_accounts', JSON.stringify(accounts));
+            // БЕЗОПАСНОЕ СОХРАНЕНИЕ В LOCALSTORAGE (только легкие данные)
+            try {
+                let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
+                
+                // Убираем тяжелые данные (обои), сохраняем только инфу для переключателя
+                const lightProfile = {
+                    id: data.id,
+                    name: data.name,
+                    username: data.username,
+                    email: data.email,
+                    avatar_url: (data.avatar_url || '').length > 200 ? '' : data.avatar_url // не сохраняем Base64 аватарку
+                };
+
+                accounts = accounts.filter(a => a.id !== data.id);
+                accounts.unshift(lightProfile);
+                if (accounts.length > 5) accounts = accounts.slice(0, 5); // Максимум 5 аккаунтов
+                
+                localStorage.setItem('molju_accounts', JSON.stringify(accounts));
+            } catch (storageError) {
+                console.warn('LocalStorage переполнен. Очищаем старые данные.', storageError);
+                try { localStorage.removeItem('molju_accounts'); } catch(e) {}
+                try {
+                    localStorage.setItem('molju_accounts', JSON.stringify([{
+                        id: data.id, name: data.name, username: data.username, email: data.email, avatar_url: ''
+                    }]));
+                } catch (e) {}
+            }
 
             document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
             document.getElementById('pUser').textContent = '@' + data.username;
@@ -585,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadChats();
         } catch (e) {
             console.error('checkProf catch:', e);
-            toast('Ошибка: ' + e.message);
+            toast('Критическая ошибка: ' + e.message);
             showScr('scrAuth');
         } finally {
             isCheckingProfile = false;
@@ -717,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function loadStories() {
-        // TODO: реализовать истории
+        // TODO
     }
 
     async function loadChats() {
@@ -759,7 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function logoutFunc() { 
         supabase.auth.signOut().finally(() => { 
-            localStorage.removeItem('molju_auth_email');
+            try { localStorage.removeItem('molju_auth_email'); } catch(e) {}
             for (let i = localStorage.length - 1; i >= 0; i--) { 
                 const k = localStorage.key(i); 
                 if (k.startsWith('sb-')) localStorage.removeItem(k); 
@@ -777,7 +795,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.openAccountSwitcher = function() {
         const popup = document.getElementById('accountSwitcher'); const list = document.getElementById('accountList'); list.innerHTML = '';
-        let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
+        let accounts = [];
+        try {
+            accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
+        } catch(e) {
+            localStorage.removeItem('molju_accounts');
+        }
+        
         if (accounts.length === 0) { popup.classList.add('act'); return; }
         accounts.forEach(acc => {
             const isActive = S.u && acc.id === S.u.id;
