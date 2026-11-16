@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Molju — Full App</title>
+<title>Molju — Storage App</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -177,7 +177,7 @@
     .story-footer { padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; z-index: 10; }
     .story-footer input { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 12px 20px; color: #fff; outline: none; }
 
-    /* МЕНЮ ДОБАВЛЕНИЯ ИСТОРИИ (КАК НА 2 СКРИНШОТЕ) */
+    /* МЕНЮ ДОБАВЛЕНИЯ ИСТОРИИ */
     #mdlAddStory .mB { background: #1c1c1e; padding-top: 16px; }
     .add-story-grid { display: flex; justify-content: space-around; margin-bottom: 20px; margin-top: 10px;}
     .add-story-item { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; width: 80px; }
@@ -262,7 +262,6 @@
             
             <div class="sticky-stories" id="stickyStories">
                 <div class="sRow" id="sCont">
-                    <!-- Моя история -->
                     <div class="sIt">
                         <div class="story-ring-container">
                             <div class="story-ring my-story" onclick="openMyStory()">
@@ -272,7 +271,6 @@
                         </div>
                         <div class="sN">Моя история</div>
                     </div>
-                    <!-- Остальные заполняются через JS -->
                 </div>
             </div>
 
@@ -330,8 +328,8 @@
                 </div>
             </div>
 
-            <input type="file" id="fileInpMedia" style="display:none" accept="image/*,video/*" onchange="uploadFile(this)">
-            <input type="file" id="fileInpDoc" style="display:none" onchange="uploadFile(this)">
+            <input type="file" id="fileInpMedia" style="display:none" accept="image/*,video/*" onchange="uploadFile(this, true)">
+            <input type="file" id="fileInpDoc" style="display:none" onchange="uploadFile(this, false)">
             
             <button class="icon-btn" id="bMic" onclick="simulateVoice()"><i class="ph ph-microphone"></i></button>
             <input type="text" id="mInp" placeholder="Сообщение...">
@@ -684,48 +682,67 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // ИСТОРИИ (ЗАГРУЗКА И ОТОБРАЖЕНИЕ)
+    // ФУНКЦИЯ ЗАГРУЗКИ В ОБЛАКО (STORAGE)
     // ==========================================
-    window.uploadStory = function(inp) {
+    async function uploadToStorage(file) {
+        const ext = file.name.split('.').pop() || 'bin';
+        const fileName = `${S.u.id}/${Date.now()}.${ext}`;
+        
+        const { data, error } = await supabase.storage
+            .from('media')
+            .upload(fileName, file, { cacheControl: '3600', upsert: false });
+            
+        if (error) throw error;
+        
+        const { data: urlData } = supabase.storage.from('media').getPublicUrl(fileName);
+        return urlData.publicUrl;
+    }
+
+    // ==========================================
+    // ИСТОРИИ
+    // ==========================================
+    window.uploadStory = async function(inp) {
         const f = inp.files[0]; if (!f) return;
         closeM('mdlAddStory');
         
-        if (f.size > 3000000) return toast('Файл слишком большой (макс 3МБ)');
+        // Увеличили лимит до 50 МБ благодаря Storage
+        if (f.size > 50000000) return toast('Файл слишком большой (макс 50МБ)');
         
         const type = f.type.startsWith('video') ? 'video' : 'image';
         
         if (type === 'video') {
             const video = document.createElement('video');
             video.preload = 'metadata';
-            video.onloadedmetadata = function() {
+            video.onloadedmetadata = async function() {
                 window.URL.revokeObjectURL(video.src);
                 if (video.duration > 60) {
                     return toast('Видео не должно превышать 1 минуту');
                 }
-                processStoryUpload(f, type, inp);
+                await processStoryUpload(f, type, inp);
             };
             video.src = URL.createObjectURL(f);
         } else {
-            processStoryUpload(f, type, inp);
+            await processStoryUpload(f, type, inp);
         }
     };
 
-    function processStoryUpload(file, type, inp) {
+    async function processStoryUpload(file, type, inp) {
         toast('Загрузка...');
-        const r = new FileReader();
-        r.onload = async (ev) => {
+        try {
+            const publicUrl = await uploadToStorage(file);
             const { error } = await supabase.from('stories').insert({
                 user_id: S.u.id,
-                media_url: ev.target.result,
+                media_url: publicUrl,
                 media_type: type
             });
             
             inp.value = '';
-            if (error) return toast('Ошибка загрузки: ' + error.message);
+            if (error) return toast('Ошибка БД: ' + error.message);
             toast('История опубликована!');
             loadStories();
-        };
-        r.readAsDataURL(file);
+        } catch (err) {
+            toast('Ошибка загрузки: ' + err.message);
+        }
     }
 
     window.openMyStory = async function() {
@@ -754,7 +771,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const uniqueUsers = [];
         const seen = new Set();
         
-        // Ищем свою историю
         S.myStory = null;
         const myStoryData = data.find(s => s.user_id === S.u.id);
         if (myStoryData) {
@@ -929,22 +945,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    window.uploadFile = async function(inp) {
+    // ОБНОВЛЕННАЯ ЗАГРУЗКА ФАЙЛОВ В ЧАТ (до 50 МБ)
+    window.uploadFile = async function(inp, isMedia) {
         const f = inp.files[0]; if (!f || !S.cId) return;
-        if (f.size > 2500000) return toast('Файл слишком большой (макс 2.5МБ)');
+        if (f.size > 50000000) return toast('Файл слишком большой (макс 50МБ)');
         
-        const r = new FileReader();
-        r.onload = async (ev) => { 
+        toast('Загрузка...');
+        try {
+            const publicUrl = await uploadToStorage(f);
+            const text = f.name;
+            
             await supabase.from('messages').insert({ 
                 chat_id: S.cId, 
                 sender_id: S.u.id, 
-                text: f.name,
-                file_url: ev.target.result 
+                text: text,
+                file_url: publicUrl 
             }); 
             inp.value = ''; 
             document.getElementById('attachMenu').classList.remove('act');
-        };
-        r.readAsDataURL(f);
+        } catch (err) {
+            toast('Ошибка: ' + err.message);
+        }
     };
 
     window.openChat = async function(id, name, avatarUrl = '') {
@@ -981,12 +1002,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let content = '';
         
         if (m.file_url) {
-            if (m.file_url.startsWith('data:image')) {
+            // Проверяем расширение по ссылке
+            const isImage = m.file_url.match(/\.(jpeg|jpg|gif|png|webp|svg)($|\?)/i);
+            const isVideo = m.file_url.match(/\.(mp4|webm|ogg|mov)($|\?)/i);
+
+            if (isImage) {
                 content = `<img src="${m.file_url}" style="max-width:100%; border-radius:8px; margin-bottom:4px;">`;
-            } else if (m.file_url.startsWith('data:video')) {
+            } else if (isVideo) {
                 content = `<video src="${m.file_url}" controls style="max-width:100%; border-radius:8px; margin-bottom:4px;"></video>`;
             } else {
-                content = `<a href="${m.file_url}" download="${m.text || 'file'}" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px; margin-bottom:4px;">
+                content = `<a href="${m.file_url}" target="_blank" download="${m.text || 'file'}" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px; margin-bottom:4px;">
                     <div style="width:40px; height:40px; border-radius:50%; background:var(--surf); display:flex; align-items:center; justify-content:center;">
                         <i class="ph ph-file" style="font-size:20px; color:var(--acc);"></i>
                     </div>
@@ -1061,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (lastMsg) {
                 if (lastMsg.file_url) {
-                    preview = lastMsg.file_url.startsWith('data:image') ? '📷 Фото' : lastMsg.file_url.startsWith('data:video') ? '🎥 Видео' : '📁 Файл';
+                    preview = lastMsg.file_url.match(/\.(jpeg|jpg|gif|png|webp|svg)($|\?)/i) ? '📷 Фото' : lastMsg.file_url.match(/\.(mp4|webm|ogg|mov)($|\?)/i) ? '🎥 Видео' : '📁 Файл';
                 } else {
                     preview = lastMsg.text;
                 }
@@ -1090,15 +1115,17 @@ document.addEventListener('DOMContentLoaded', () => {
         openM('mdlEditProf');
     };
 
-    document.getElementById('eAvaInp').onchange = function(e) {
+    document.getElementById('eAvaInp').onchange = async function(e) {
         const f = e.target.files[0]; if(!f) return;
-        const r = new FileReader();
-        r.onload = (ev) => {
-            document.getElementById('eAvaPrev').style.backgroundImage = `url('${ev.target.result}')`;
+        toast('Загрузка...');
+        try {
+            const url = await uploadToStorage(f);
+            document.getElementById('eAvaPrev').style.backgroundImage = `url('${url}')`;
             document.getElementById('eAvaPrev').innerHTML = '';
-            document.getElementById('eAvaPrev').dataset.newAva = ev.target.result;
-        };
-        r.readAsDataURL(f);
+            document.getElementById('eAvaPrev').dataset.newAva = url;
+        } catch (err) {
+            toast('Ошибка загрузки: ' + err.message);
+        }
     };
 
     document.getElementById('bSaveEdit').onclick = async function() {
@@ -1163,27 +1190,33 @@ document.addEventListener('DOMContentLoaded', () => {
         toast('Пароль обновлен!');
     };
 
+    // ОБОИ ТОЖЕ В ОБЛАКО
+    document.getElementById('wallInp').onchange = async function(e) {
+        const f = e.target.files[0]; if (!f) return;
+        toast('Загрузка...');
+        try {
+            const url = await uploadToStorage(f);
+            const type = f.type.startsWith('video') ? 'video' : 'image';
+            await supabase.from('profiles').update({ chat_wallpaper: url, chat_wallpaper_type: type }).eq('id', S.u.id);
+            S.p.chat_wallpaper = url; S.p.chat_wallpaper_type = type;
+            applyWallpaper(url, type); toast('Обои установлены!');
+            closeM('mdlWallpaper');
+        } catch (err) {
+            toast('Ошибка: ' + err.message);
+        }
+    };
+
     window.applyWallpaper = function(url, type) {
         const img = document.getElementById('globalBgImg'), vid = document.getElementById('globalBgVid');
         if (!url || url === 'default') { img.style.display = 'none'; vid.style.display = 'none'; vid.pause(); return; }
         if (type === 'video') { img.style.display = 'none'; if (vid.src !== url) { vid.src = url; vid.play(); } vid.style.display = 'block'; }
         else { vid.style.display = 'none'; vid.pause(); img.src = url; img.style.display = 'block'; }
     };
-
-    document.getElementById('wallInp').onchange = async function(e) {
-        const f = e.target.files[0]; if (!f) return;
-        const r = new FileReader();
-        r.onload = async (ev) => {
-            const type = f.type.startsWith('video') ? 'video' : 'image';
-            await supabase.from('profiles').update({ chat_wallpaper: ev.target.result, chat_wallpaper_type: type }).eq('id', S.u.id);
-            S.p.chat_wallpaper = ev.target.result; S.p.chat_wallpaper_type = type;
-            applyWallpaper(ev.target.result, type); toast('Обои установлены!');
-        };
-        r.readAsDataURL(f);
-    };
+    
     window.resetWallpaper = async () => {
         await supabase.from('profiles').update({ chat_wallpaper: 'default' }).eq('id', S.u.id);
         S.p.chat_wallpaper = 'default'; applyWallpaper('default'); toast('Сброшено');
+        closeM('mdlWallpaper');
     };
 
     window.searchAdminUser = async function() {
@@ -1262,4 +1295,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-    </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                     </html>
