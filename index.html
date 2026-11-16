@@ -287,10 +287,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const supabase = window.supabase.createClient('https://dhmqbjfzkrmsbrwzenna.supabase.co', 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI', { auth: { detectSessionInUrl: true, persistSession: true } });
     const S = { u: null, p: null, cId: null, authEmail: '', loginProfile: null, regEmail: '', activeMsgToCtx: null, adminSearchResult: null };
     
-    // Восстанавливаем email после перезагрузки, чтобы не было "Ошибки сети"
+    // Восстанавливаем email после перезагрузки
     S.authEmail = localStorage.getItem('molju_auth_email') || '';
 
-    window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000); };
+    // Флаг для защиты от двойного вызова checkProf
+    let isCheckingProfile = false;
+
+    window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 4000); };
     window.showScr = (id) => { document.querySelectorAll('.scr').forEach(x => x.classList.remove('act')); document.getElementById(id).classList.add('act'); };
     window.showASt = (id) => { document.querySelectorAll('.aSt').forEach(x => x.classList.remove('act')); document.getElementById(id).classList.add('act'); };
     window.switchTab = (id, el) => { document.querySelectorAll('.nBtn').forEach(b => b.classList.remove('act')); el.classList.add('act'); document.querySelectorAll('.tab').forEach(t => t.classList.remove('act')); document.getElementById(id).classList.add('act'); document.getElementById('mTitle').textContent = id === 'tabChats' ? 'Molju' : id === 'tabSettings' ? 'Настройки' : 'Профиль'; };
@@ -348,7 +351,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         this.innerHTML = 'Продолжить'; this.disabled = false;
         
-        if (error) return toast('Ошибка сети: ' + error.message);
+        if (error) {
+            console.error('login check error:', error);
+            return toast('Ошибка БД: ' + error.message);
+        }
         
         if (!p) {
             toast('Аккаунт не найден. Попробуйте зарегистрироваться.');
@@ -391,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('molju_auth_email', S.authEmail);
             document.getElementById('dEmail').textContent = S.authEmail;
             showASt('stO');
-            toast('Пароль верный! Введите код.');
+            toast('Код отправлен на почту!');
         } catch (e) {
             toast('Ошибка: ' + e.message);
         } finally {
@@ -432,9 +438,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
-        const { data: p } = await supabase.from('profiles').select('*').eq('email', email).maybeSingle();
+        const { data: p, error: regError } = await supabase.from('profiles').select('*').eq('email', email).maybeSingle();
         
         this.innerHTML = 'Зарегистрироваться'; this.disabled = false;
+        
+        if (regError) return toast('Ошибка БД: ' + regError.message);
         
         if (p) {
             return toast('Этот Email уже зарегистрирован. Войдите.');
@@ -453,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 6. ПРОВЕРКА КОДА (С АВТО-ПЕРЕОТПРАВКОЙ)
+    // 6. ПРОВЕРКА КОДА
     // ==========================================
     document.getElementById('bVerify').onclick = async function() {
         if (this.disabled) return;
@@ -478,21 +486,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             if (error) {
-                // Если токен сгорел, автоматически шлем новый
                 if (error.message.includes('expired') || error.message.includes('invalid')) {
                     toast('Код устарел. Отправляем новый...');
                     await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } });
                     toast('Новый код отправлен на почту!');
-                    document.getElementById('iOtp').value = ''; // Очищаем поле
+                    document.getElementById('iOtp').value = '';
                 } else {
                     toast('Ошибка: ' + error.message);
                 }
                 return;
             }
             
-            // Успех! Переход сделает onAuthStateChange
             toast('Успешный вход!');
-            localStorage.removeItem('molju_auth_email');
+            // checkProf вызовется через onAuthStateChange
             
         } catch (err) {
             toast('Ошибка сети: ' + err.message);
@@ -502,12 +508,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Кнопка "Отправить заново"
     document.getElementById('bResendOtp').onclick = async function() {
-        if (this.disabled || !S.authEmail) return;
+        if (this.disabled) return;
+        const email = S.authEmail || localStorage.getItem('molju_auth_email');
+        if (!email) return toast('Email не найден');
+        
         this.textContent = 'Отправка...'; this.disabled = true;
-        await supabase.auth.signInWithOtp({ email: S.authEmail, options: { shouldCreateUser: false } });
-        toast('Код отправлен заново!');
+        const { error } = await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } });
+        if (error) toast('Ошибка: ' + error.message);
+        else toast('Код отправлен заново!');
         this.textContent = 'Отправить код заново'; this.disabled = false;
     };
 
@@ -521,47 +530,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ==========================================
+    // 8. ЗАГРУЗКА ПРОФИЛЯ (ГЛАВНАЯ ФУНКЦИЯ)
+    // ==========================================
     async function checkProf() {
         if (!S.u) return;
+        if (isCheckingProfile) return;
+        isCheckingProfile = true;
 
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', S.u.id)
-            .maybeSingle();
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', S.u.id)
+                .maybeSingle();
 
-        if (error) {
-            console.error('checkProf error:', error);
-            toast('Ошибка загрузки профиля: ' + error.message);
+            if (error) {
+                console.error('checkProf error:', error);
+                
+                // Если ошибка RLS (permission denied)
+                if (error.code === '42501' || error.message.includes('permission denied') || error.message.includes('RLS')) {
+                    toast('Нет доступа к таблице profiles. Настройте RLS в Supabase (см. инструкцию).');
+                } else {
+                    toast('Ошибка загрузки профиля: ' + error.message);
+                }
+                showScr('scrAuth');
+                return;
+            }
+
+            // Если профиля нет или он недозаполнен
+            if (!data || !data.username || !data.password_hash) {
+                showScr('scrAuth');
+                showASt('stP');
+                return;
+            }
+
+            // Профиль есть — пускаем в приложение
+            S.p = data;
+            localStorage.removeItem('molju_auth_email'); // email больше не нужен
+
+            let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
+            accounts = accounts.filter(a => a.id !== data.id);
+            accounts.unshift(data);
+            localStorage.setItem('molju_accounts', JSON.stringify(accounts));
+
+            document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
+            document.getElementById('pUser').textContent = '@' + data.username;
+            if (data.avatar_url) document.getElementById('pAva').style.backgroundImage = `url('${data.avatar_url}')`;
+            document.getElementById('bAdminPanel').style.display = (data.username === 'monk') ? 'flex' : 'none';
+
+            applyWallpaper(data.chat_wallpaper, data.chat_wallpaper_type);
+
+            showScr('scrMain');
+            loadChats();
+        } catch (e) {
+            console.error('checkProf catch:', e);
+            toast('Ошибка: ' + e.message);
             showScr('scrAuth');
-            return;
+        } finally {
+            isCheckingProfile = false;
         }
-
-        if (!data || !data.username || !data.password_hash) {
-            showScr('scrAuth');
-            showASt('stP');
-            return;
-        }
-
-        S.p = data;
-
-        let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
-        accounts = accounts.filter(a => a.id !== data.id);
-        accounts.unshift(data);
-        localStorage.setItem('molju_accounts', JSON.stringify(accounts));
-
-        document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
-        document.getElementById('pUser').textContent = '@' + data.username;
-        if (data.avatar_url) document.getElementById('pAva').style.backgroundImage = `url('${data.avatar_url}')`;
-        document.getElementById('bAdminPanel').style.display = (data.username === 'monk') ? 'flex' : 'none';
-
-        applyWallpaper(data.chat_wallpaper, data.chat_wallpaper_type);
-
-        showScr('scrMain');
-        loadChats();
     }
-    
-    // СОЗДАНИЕ ПРОФИЛЯ (UPSERT)
+
+    // ==========================================
+    // 9. СОХРАНЕНИЕ ПРОФИЛЯ (ПРИ РЕГИСТРАЦИИ)
+    // ==========================================
     document.getElementById('bSaveProfile').onclick = async function() {
         if (this.disabled) return;
         const u = document.getElementById('iUser').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -571,12 +604,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!n) return toast('Введите имя');
         if (pwd.length < 6) return toast('Пароль от 6 символов');
         
-        const err = validateUsername(u, S.authEmail);
+        const email = S.authEmail || localStorage.getItem('molju_auth_email') || S.u.email;
+        const err = validateUsername(u, email);
         if (err) return toast(err);
         
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
-        const { data: existing } = await supabase.from('profiles').select('*').eq('username', u).maybeSingle();
+        const { data: existing, error: checkError } = await supabase.from('profiles').select('*').eq('username', u).maybeSingle();
+        if (checkError) {
+            this.innerHTML = 'Создать аккаунт'; this.disabled = false;
+            return toast('Ошибка БД: ' + checkError.message);
+        }
+        
         if (existing && existing.id !== S.u.id) {
             this.innerHTML = 'Создать аккаунт'; this.disabled = false;
             return toast('Этот юзернейм уже занят');
@@ -586,14 +625,14 @@ document.addEventListener('DOMContentLoaded', () => {
             id: S.u.id,
             username: u, 
             name: n, 
-            email: S.authEmail || localStorage.getItem('molju_auth_email'), 
+            email: email, 
             password_hash: hashPass(pwd),
             last_password_set: new Date()
         }, { onConflict: 'id' });
         
         this.innerHTML = 'Создать аккаунт'; this.disabled = false;
         
-        if (error) return toast('Ошибка: ' + error.message);
+        if (error) return toast('Ошибка БД: ' + error.message);
         
         await checkProf();
     };
@@ -612,7 +651,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPwd = prompt('Введите новый пароль:');
         if (!newPwd || newPwd.length < 6) return toast('Пароль от 6 символов');
         
-        await supabase.from('profiles').update({ password_hash: hashPass(newPwd), last_password_set: new Date() }).eq('id', S.u.id);
+        const { error } = await supabase.from('profiles').update({ password_hash: hashPass(newPwd), last_password_set: new Date() }).eq('id', S.u.id);
+        if (error) return toast('Ошибка: ' + error.message);
+        
         S.p.password_hash = hashPass(newPwd);
         S.p.last_password_set = new Date();
         toast('Пароль обновлен!');
