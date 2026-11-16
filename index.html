@@ -11,7 +11,7 @@
 
     <style>
         /* ========================================== */
-        /* 1. ТЕМЫ (Светлая сделана реально белой) */
+        /* 1. ТЕМЫ (Светлая = Белая) */
         /* ========================================== */
         :root {
             --bg-main: #080808; --bg-surface: #121212; --bg-surface-light: #1c1c1e;
@@ -23,19 +23,20 @@
             --msg-bot: #1e2a38; --msg-bot-border: #2d4057;
             --verified-blue: #0088cc; --danger: #ff453a;
         }
+        
         body.light-theme {
-            --bg-main: #ffffff; /* Реально белый */
+            --bg-main: #ffffff; /* Реально белый фон */
             --bg-surface: #f2f2f7; --bg-surface-light: #e5e5ea;
-            --bg-glass: rgba(255, 255, 255, 0.88); --border-color: rgba(0, 0, 0, 0.1);
+            --bg-glass: rgba(255, 255, 255, 0.9); --border-color: rgba(0, 0, 0, 0.1);
             --text-primary: #000000; --text-secondary: #666666; 
             --msg-other: #f2f2f7; --msg-bot: #e1f0ff; --msg-bot-border: #b3d4ff;
         }
 
         /* ========================================== */
-        /* 2. СБРОС И БАЗА */
+        /* 2. СБРОС И АНИМАЦИИ */
         /* ========================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body { height: 100vh; height: 100dvh; background-color: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; justify-content: center; transition: background 0.3s; }
+        body { height: 100vh; height: 100dvh; background-color: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; justify-content: center; transition: background 0.3s, color 0.3s; }
         .app-container { position: relative; width: 100%; height: 100%; max-width: 480px; background-color: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -64,7 +65,7 @@
         .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
 
         /* ========================================== */
-        /* 4. ЭКРАНЫ И НАВИГАЦИЯ */
+        /* 4. ЭКРАНЫ */
         /* ========================================== */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background-color: var(--bg-main); z-index: 10; }
         .screen.active { display: flex; animation: fadeIn 0.3s ease; }
@@ -81,7 +82,7 @@
         .nav-btn.active { color: var(--brand-red); } .nav-btn i { font-size: 24px; }
 
         /* ========================================== */
-        /* 5. СПИСКИ И ЧАТЫ */
+        /* 5. СПИСКИ, ЧАТЫ, ИСТОРИИ */
         /* ========================================== */
         .search-bar { width: 100%; padding: 12px 16px; border-radius: 16px; background-color: var(--bg-surface-light); display: flex; align-items: center; gap: 10px; margin: 16px 0; }
         .search-bar input { background: none; border: none; color: var(--text-primary); width: 100%; outline: none; font-size: 15px; }
@@ -105,9 +106,6 @@
         .chat-input-area input { flex: 1; background-color: var(--bg-surface-light); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: 24px; color: var(--text-primary); outline: none; }
         .send-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--brand-gradient); color: #fff; font-size: 24px; flex-shrink: 0; }
 
-        /* ========================================== */
-        /* 6. ИСТОРИИ (Z-INDEX ИСПРАВЛЕН) */
-        /* ========================================== */
         .stories-row { display: flex; gap: 16px; overflow-x: auto; padding: 16px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 16px; }
         .stories-row::-webkit-scrollbar { display: none; }
         .story-item { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 68px; cursor: pointer; }
@@ -132,31 +130,28 @@
         .story-reply-inp { flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 12px 16px; border-radius: 24px; backdrop-filter: blur(10px); outline: none; }
 
         /* ========================================== */
-        /* 7. МОДАЛКИ (Z-INDEX 300) */
+        /* 6. МОДАЛКИ И ПОДАРКИ */
         /* ========================================== */
         .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); display: none; align-items: flex-end; z-index: 300; }
         .modal-overlay.active { display: flex; }
         .modal-content { width: 100%; background-color: var(--bg-surface); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+        
         .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-color); cursor: pointer; }
         .setting-text { flex: 1; font-size: 16px; margin-left: 12px; }
         .setting-select { background: var(--bg-surface-light); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; outline: none; }
 
-        /* ========================================== */
-        /* 8. ПОДАРКИ И УВЕДОМЛЕНИЯ */
-        /* ========================================== */
         .gift-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
         .gift-item { background: var(--bg-surface-light); padding: 12px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 70px; border: 1px solid var(--border-color); }
         .gift-icon { font-size: 32px; }
         .gift-name { font-size: 11px; color: var(--text-secondary); text-align: center; }
 
-        #toast-container { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9999; pointer-events: none; }
-        .toast { background-color: var(--bg-surface-light); color: var(--text-primary); padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-color); animation: popIn 0.2s ease; }
-
-        /* Модалка подарка */
         #modal-gift { z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
         #modal-gift .modal-content { border-radius: 24px; text-align: center; max-width: 340px; padding: 32px 24px; }
         .gift-animation { font-size: 80px; animation: giftBounce 1s infinite; margin-bottom: 20px; }
+
+        #toast-container { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9999; pointer-events: none; }
+        .toast { background-color: var(--bg-surface-light); color: var(--text-primary); padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-color); animation: popIn 0.2s ease; }
     </style>
 </head>
 <body>
@@ -164,7 +159,6 @@
 <div class="app-container">
     <div id="toast-container"></div>
     
-    <!-- ЭКРАН АВТОРИЗАЦИИ -->
     <div id="screen-auth" class="screen active">
         <div class="auth-box" style="width: 100%; max-width: 340px; margin: auto; display: flex; flex-direction: column; align-items: center; padding: 24px;">
             <div class="logo" style="font-size: 56px; font-weight: 800; background: var(--brand-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px;">Molju</div>
@@ -186,7 +180,6 @@
         </div>
     </div>
 
-    <!-- ГЛАВНЫЙ ЭКРАН -->
     <div id="screen-main" class="screen">
         <header class="app-header">
             <div class="header-title" id="main-title">Molju</div>
@@ -202,14 +195,17 @@
                 <div class="chat-list" id="chat-list-container"></div>
             </div>
             
+            <!-- НАСТРОЙКИ (Исправлен переключатель) -->
             <div id="tab-settings" class="tab-pane">
-                <div class="setting-item" onclick="toggleTheme()">
-                    <div style="display: flex; align-items: center;"><i class="ph ph-moon" style="font-size: 22px;"></i><div class="setting-text">Светлая тема</div></div>
-                    <input type="checkbox" id="theme-toggle" style="width: 20px; height: 20px; accent-color: var(--brand-red);">
-                </div>
+                <label class="setting-item" style="cursor: pointer; margin-top: 16px;">
+                    <div style="display: flex; align-items: center;">
+                        <i class="ph ph-moon" style="font-size: 22px;"></i>
+                        <div class="setting-text">Светлая тема</div>
+                    </div>
+                    <input type="checkbox" id="theme-toggle" style="width: 20px; height: 20px; accent-color: var(--brand-red);" onchange="toggleTheme(this.checked)">
+                </label>
             </div>
 
-            <!-- ПРОФИЛЬ С ПОДАРКАМИ -->
             <div id="tab-profile" class="tab-pane">
                 <div style="display: flex; flex-direction: column; align-items: center; margin-top: 40px;">
                     <div class="avatar avatar-lg" id="profile-avatar"></div>
@@ -223,10 +219,7 @@
 
                     <div style="width: 100%; margin-top: 30px;">
                         <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Мои подарки</div>
-                        <div class="gift-grid" id="gifts-container">
-                            <!-- Подарки рендерятся тут -->
-                            <div style="color: var(--text-secondary); font-size: 14px; width: 100%; text-align: center;">Пока нет подарков. Заходите каждый день!</div>
-                        </div>
+                        <div class="gift-grid" id="gifts-container"></div>
                     </div>
 
                     <button class="btn btn-secondary" style="margin-top: 40px; color: var(--danger); background: rgba(255,69,58,0.1); border: none;" id="btn-logout">Выйти из аккаунта</button>
@@ -240,7 +233,6 @@
         </nav>
     </div>
 
-    <!-- ЭКРАН ЧАТА -->
     <div id="screen-chat" class="screen">
         <header class="chat-header">
             <button class="chat-back-btn" id="btn-back-chat"><i class="ph ph-caret-left"></i></button>
@@ -254,7 +246,6 @@
         </div>
     </div>
 
-    <!-- ИСТОРИИ -->
     <div id="story-viewer">
         <div class="story-progress"><div class="story-progress-bar" id="story-progress-bar"></div></div>
         <div class="story-header">
@@ -288,7 +279,7 @@
         </div>
     </div>
 
-    <!-- МОДАЛКИ -->
+    <!-- ОСТАЛЬНЫЕ МОДАЛКИ -->
     <div id="modal-search" class="modal-overlay" onclick="closeModal('modal-search', event)">
         <div class="modal-content">
             <div class="modal-title">Поиск</div>
@@ -367,19 +358,12 @@
         const SUPABASE_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { detectSessionInUrl: true, persistSession: true } });
 
-        // Список доступных подарков
         const GIFTS = [
-            { name: 'Мишка', icon: '🧸' },
-            { name: 'Роза', icon: '🌹' },
-            { name: 'Тортик', icon: '🎂' },
-            { name: 'Ракета', icon: '🚀' },
-            { name: 'Кубок', icon: '🏆' },
-            { name: 'Алмаз', icon: '💎' },
-            { name: 'Сердце', icon: '❤️' },
-            { name: 'Клевер', icon: '🍀' }
+            { name: 'Мишка', icon: '🧸' }, { name: 'Роза', icon: '🌹' }, { name: 'Тортик', icon: '🎂' }, { name: 'Ракета', icon: '🚀' },
+            { name: 'Кубок', icon: '🏆' }, { name: 'Алмаз', icon: '💎' }, { name: 'Сердце', icon: '❤️' }, { name: 'Клевер', icon: '🍀' }
         ];
 
-        const AppState = { user: null, profile: null, currentChatId: null, loginEmail: '', currentStoryFile: null, currentStoryType: 'image', activeStories: [], storyIndex: 0, storyTimer: null, currentViewingStory: null, isHolding: false, holdTimer: null };
+        const AppState = { user: null, profile: null, currentChatId: null, loginEmail: '', currentStoryFile: null, currentStoryType: 'image', activeStories: [], storyIndex: 0, storyTimer: null, currentViewingStory: null, isHolding: false, holdTimer: null, newAvatarBase64: null };
 
         window.showToast = (msg) => {
             const container = document.getElementById('toast-container');
@@ -398,12 +382,25 @@
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id, event) => { if (event && event.target !== document.getElementById(id)) return; document.getElementById(id).classList.remove('active'); };
         
-        window.toggleTheme = () => { 
-            document.body.classList.toggle('light-theme'); 
-            localStorage.setItem('molju_theme', document.body.classList.contains('light-theme') ? 'light' : 'dark'); 
-            document.getElementById('theme-toggle').checked = !document.body.classList.contains('light-theme'); 
+        // ИСПРАВЛЕННАЯ ЛОГИКА ТЕМЫ
+        window.toggleTheme = function(isLight) {
+            if (isLight) {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('molju_theme', 'light');
+            } else {
+                document.body.classList.remove('light-theme');
+                localStorage.setItem('molju_theme', 'dark');
+            }
         };
         
+        // Инициализация темы при загрузке
+        if (localStorage.getItem('molju_theme') === 'light') {
+            document.body.classList.add('light-theme');
+            document.getElementById('theme-toggle').checked = true;
+        } else {
+            document.getElementById('theme-toggle').checked = false;
+        }
+
         const getTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         // ================= АВТОРИЗАЦИЯ =================
@@ -441,8 +438,8 @@
                 showScreen('screen-main'); 
                 loadChats(); 
                 loadStories();
-                checkDailyGift(); // Проверка подарка при входе
-                loadGifts();      // Загрузка инвентаря
+                checkDailyGift();
+                loadGifts();
             } else { showAuthStep('step-profile'); }
         }
 
@@ -456,31 +453,22 @@
             if (error) showToast(error.code === '23505' ? 'Этот юзернейм уже занят' : error.message); else await checkUserProfile();
         });
 
-        // ================= СИСТЕМА ПОДАРКОВ =================
+        // ================= ПОДАРКИ =================
         async function checkDailyGift() {
             const lastClaim = AppState.profile.last_gift_claimed ? new Date(AppState.profile.last_gift_claimed).getTime() : 0;
             const now = new Date().getTime();
             const hoursPassed = (now - lastClaim) / 36e5;
 
             if (hoursPassed >= 24) {
-                // Выдаем подарок
                 const randomGift = GIFTS[Math.floor(Math.random() * GIFTS.length)];
-                
-                // Сохраняем в БД
-                await supabase.from('user_gifts').insert({
-                    user_id: AppState.user.id,
-                    gift_name: randomGift.name,
-                    gift_icon: randomGift.icon
-                });
+                await supabase.from('user_gifts').insert({ user_id: AppState.user.id, gift_name: randomGift.name, gift_icon: randomGift.icon });
                 await supabase.from('profiles').update({ last_gift_claimed: new Date() }).eq('id', AppState.user.id);
                 AppState.profile.last_gift_claimed = new Date();
 
-                // Показываем модалку
                 document.getElementById('gift-animation-icon').textContent = randomGift.icon;
                 document.getElementById('gift-name-text').textContent = randomGift.name;
                 openModal('modal-gift');
-                
-                loadGifts(); // Обновляем список
+                loadGifts();
             }
         }
 
@@ -547,7 +535,7 @@
 
         document.getElementById('btn-logout').addEventListener('click', async () => { await supabase.auth.signOut(); location.reload(); });
 
-        // ================= ЧАТЫ И ИСТОРИИ (БЕЗ ИЗМЕНЕНИЙ) =================
+        // ================= ЧАТЫ И ИСТОРИИ =================
         async function loadChats() {
             const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', AppState.user.id);
             const container = document.getElementById('chat-list-container'); container.innerHTML = '';
@@ -710,11 +698,8 @@
             }
         });
 
-        if (localStorage.getItem('molju_theme') === 'light') { document.body.classList.add('light-theme'); document.getElementById('theme-toggle').checked = false; }
-        else { document.getElementById('theme-toggle').checked = true; }
-
         supabase.auth.getSession().then(({ data: { session } }) => { if (!session) showScreen('screen-auth'); });
     });
 </script>
 </body>
-</html>
+                </html>
