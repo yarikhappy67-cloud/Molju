@@ -436,77 +436,97 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 6. ПРОВЕРКА КОДА (С ЗАЩИТОЙ ОТ СЕТЕВЫХ ОШИБОК)
+    // 6. ПРОВЕРКА КОДА — ЯВНО ЗОВЁМ checkProf()
     // ==========================================
     document.getElementById('bVerify').onclick = async function() {
         const code = document.getElementById('iOtp').value.trim();
         if (code.length < 6) return toast('Введите код полностью');
-        
-        this.innerHTML = '<div class="ld"></div>'; 
+
+        this.innerHTML = '<div class="ld"></div>';
         this.disabled = true;
-        
+
         try {
-            const { data, error } = await supabase.auth.verifyOtp({ 
-                email: S.authEmail, 
-                token: code, 
-                type: 'email' 
+            const { error } = await supabase.auth.verifyOtp({
+                email: S.authEmail,
+                token: code,
+                type: 'email'
             });
-            
+
             if (error) {
-                // Если произошла ошибка, проверяем: может, сессия всё-таки создалась? (баг сети)
-                const { data: sessionData } = await supabase.auth.getSession();
-                if (sessionData && sessionData.session) {
-                    toast('Успешный вход!');
-                    return;
-                }
                 toast('Ошибка: ' + error.message);
-            } else {
-                toast('Успешный вход!');
+                return;
             }
+
+            // Берём сессию явно — не полагаемся на onAuthStateChange
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                toast('Код верный, но сессия не создалась. Попробуйте ещё раз.');
+                return;
+            }
+
+            S.u = session.user;
+            toast('Успешный вход!');
+            await checkProf(); // ключевое — принудительный переход
         } catch (err) {
-            // При ошибке сети проверяем сессию
-            const { data: sessionData } = await supabase.auth.getSession();
-            if (sessionData && sessionData.session) {
-                toast('Успешный вход!');
-            } else {
-                toast('Ошибка сети. Проверьте интернет.');
-            }
+            toast('Ошибка сети: ' + err.message);
         } finally {
             this.innerHTML = 'Подтвердить';
             this.disabled = false;
         }
     };
 
-    supabase.auth.onAuthStateChange(async (ev, ses) => { 
-        if (ev === 'SIGNED_IN' && ses) { 
-            S.u = ses.user; 
-            await checkProf(); 
-        } 
+    // ==========================================
+    // 7. ОТСЛЕЖИВАНИЕ СОСТОЯНИЯ — включая INITIAL_SESSION
+    // ==========================================
+    supabase.auth.onAuthStateChange(async (ev, ses) => {
+        if ((ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION') && ses) {
+            S.u = ses.user;
+            await checkProf();
+        }
     });
 
     async function checkProf() {
-        const { data } = await supabase.from('profiles').select('*').eq('id', S.u.id).single();
-        if (data && data.username) {
-            S.p = data;
-            if (!data.password_hash) { showASt('stP'); return; }
-            
-            let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
-            accounts = accounts.filter(a => a.id !== data.id);
-            accounts.unshift(data);
-            localStorage.setItem('molju_accounts', JSON.stringify(accounts));
-            
-            document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
-            document.getElementById('pUser').textContent = '@' + data.username;
-            if (data.avatar_url) document.getElementById('pAva').style.backgroundImage = `url('${data.avatar_url}')`;
-            document.getElementById('bAdminPanel').style.display = (data.username === 'monk') ? 'flex' : 'none';
-            
-            applyWallpaper(data.chat_wallpaper, data.chat_wallpaper_type);
-            
-            showScr('scrMain'); loadChats(); loadStories();
-        } else { showASt('stP'); }
+        if (!S.u) return;
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', S.u.id)
+            .maybeSingle();
+
+        if (error) {
+            console.error('checkProf error:', error);
+            toast('Ошибка загрузки профиля: ' + error.message);
+            showScr('scrAuth');
+            return;
+        }
+
+        // Профиля нет или он недозаполнен → на экран создания
+        if (!data || !data.username || !data.password_hash) {
+            showScr('scrAuth');
+            showASt('stP');
+            return;
+        }
+
+        S.p = data;
+
+        let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
+        accounts = accounts.filter(a => a.id !== data.id);
+        accounts.unshift(data);
+        localStorage.setItem('molju_accounts', JSON.stringify(accounts));
+
+        document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
+        document.getElementById('pUser').textContent = '@' + data.username;
+        if (data.avatar_url) document.getElementById('pAva').style.backgroundImage = `url('${data.avatar_url}')`;
+        document.getElementById('bAdminPanel').style.display = (data.username === 'monk') ? 'flex' : 'none';
+
+        applyWallpaper(data.chat_wallpaper, data.chat_wallpaper_type);
+
+        showScr('scrMain');
+        loadChats();
     }
     
-    // СОЗДАНИЕ ПРОФИЛЯ
+    // СОЗДАНИЕ ПРОФИЛЯ — upsert вместо update
     document.getElementById('bSaveProfile').onclick = async function() {
         const u = document.getElementById('iUser').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
         const n = document.getElementById('iName').value.trim();
@@ -526,13 +546,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return toast('Этот юзернейм уже занят');
         }
         
-        const { error } = await supabase.from('profiles').update({ 
+        const { error } = await supabase.from('profiles').upsert({ 
+            id: S.u.id,
             username: u, 
             name: n, 
             email: S.authEmail, 
             password_hash: hashPass(pwd),
             last_password_set: new Date()
-        }).eq('id', S.u.id);
+        }, { onConflict: 'id' });
         
         this.innerHTML = 'Создать аккаунт'; this.disabled = false;
         
@@ -618,6 +639,11 @@ document.addEventListener('DOMContentLoaded', () => {
         toast('Рассылка отправлена!');
     };
 
+    // Заглушка, чтобы не падало с ReferenceError
+    function loadStories() {
+        // TODO: реализовать истории
+    }
+
     async function loadChats() {
         const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', S.u.id);
         const c = document.getElementById('cList'); c.innerHTML = '';
@@ -675,7 +701,15 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addNewAccount = function() { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
     window.switchAccount = function(email) { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
 
-    supabase.auth.getSession().then(({ data: { session } }) => { if (!session) showScr('scrAuth'); });
+    // НАЧАЛЬНАЯ ПРОВЕРКА СЕССИИ — если сессия есть, сразу идём в приложение
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            showScr('scrAuth');
+        } else {
+            S.u = session.user;
+            checkProf();
+        }
+    });
 });
 </script>
 </body>
