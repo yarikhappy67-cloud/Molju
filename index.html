@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Molju — Smart Auth</title>
+<title>Molju — Auth Fixed</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +36,6 @@
     @keyframes sp { 100% { transform: rotate(360deg); } }
     @keyframes spinSaw { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
-    /* КНОПКИ */
     .btn-saw {
         position: relative; z-index: 1; background: var(--surf2); color: var(--txt);
         padding: 16px; border-radius: 16px; font-weight: 700; font-size: 16px;
@@ -58,7 +57,7 @@
     .avaL { width: 96px; height: 96px; font-size: 36px; }
     .ver { color: var(--ver); font-size: 18px; margin-left: 4px; }
     .ld { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: sp 1s linear infinite; }
-    .link-btn { background: none; border: none; color: var(--mut); font-size: 13px; font-weight: 500; margin-top: 10px; cursor: pointer; text-decoration: underline; opacity: 0.8; }
+    .link-btn { background: none; border: none; color: var(--acc); font-size: 13px; font-weight: 500; margin-top: 10px; cursor: pointer; text-decoration: underline; opacity: 0.9; }
     .link-btn:active { opacity: 1; }
 
     .scr { position: absolute; inset: 0; display: none; flex-direction: column; background: transparent; z-index: 10; }
@@ -180,7 +179,8 @@
             <p style="text-align:center;color:var(--mut);margin-bottom:20px">Введите пароль для <b id="display-login-email" style="color:var(--txt)"></b></p>
             <input type="password" id="iPass" class="inp" placeholder="Пароль">
             <button class="btn-saw btn-primary" id="bLoginPass">Войти</button>
-            <button class="link-btn" id="bForgotPass" style="color:var(--acc)">Забыли пароль?</button>
+            <button class="link-btn" id="bForgotPass">Забыли пароль?</button>
+            <button class="link-btn" style="color:var(--mut)" onclick="showASt('stLoginEmail')">Назад</button>
         </div>
 
         <!-- Ввод кода -->
@@ -297,13 +297,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const hashPass = (p) => btoa(p + 'molju_secret_salt');
 
+    // ==========================================
+    // 1. ЗАЩИТА ЮЗЕРНЕЙМОВ
+    // ==========================================
+    const OWNER_EMAIL = 'yarikhappy67@gmail.com'; 
+    const RESERVED_USERNAMES = ['admin', 'molju', 'support', 'help', 'moderator', 'bot', 'molju_code', 'system'];
+
+    function validateUsername(u, email) {
+        if (!u) return 'Введите юзернейм';
+        if (u.length < 3) return 'Минимум 3 символа';
+        if (!/^[a-z0-9_]+$/.test(u)) return 'Только латиница, цифры и _';
+        
+        if (RESERVED_USERNAMES.includes(u.toLowerCase())) {
+            return 'Этот юзернейм зарезервирован';
+        }
+        if (u.toLowerCase() === 'monk' && email.toLowerCase() !== OWNER_EMAIL) {
+            return 'Этот юзернейм зарезервирован';
+        }
+        return null;
+    }
+
     window.handleScroll = (el) => {
         const sticky = document.getElementById('stickyStories');
         if (el.scrollTop > 30) sticky.classList.add('shrink'); else sticky.classList.remove('shrink');
     };
 
     // ==========================================
-    // 1. ВХОД (УМНЫЙ ПОИСК)
+    // 2. ВХОД
     // ==========================================
     document.getElementById('bLoginCheck').onclick = async function() {
         const input = document.getElementById('iLoginIdentifier').value.trim();
@@ -311,20 +331,27 @@ document.addEventListener('DOMContentLoaded', () => {
         
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
-        // Определяем, что ввели: почту или ник
-        let query = supabase.from('profiles').select('*');
-        if (input.includes('@') && !input.startsWith('@')) {
-            query = query.eq('email', input);
-        } else {
-            query = query.eq('username', input.replace('@', ''));
-        }
+        let p = null, error = null;
         
-        const { data: p, error } = await query.maybeSingle();
+        if (input.includes('@') && input.includes('.')) {
+            const res = await supabase.from('profiles').select('*').eq('email', input).maybeSingle();
+            p = res.data; error = res.error;
+        } else {
+            const res = await supabase.from('profiles').select('*').eq('username', input.replace('@','')).maybeSingle();
+            p = res.data; error = res.error;
+        }
         
         this.innerHTML = 'Продолжить'; this.disabled = false;
         
-        if (error || !p) {
-            return toast('Аккаунт с такими данными не найден');
+        if (error) return toast('Ошибка сети: ' + error.message);
+        
+        if (!p) {
+            toast('Аккаунт не найден. Попробуйте зарегистрироваться.');
+            if (input.includes('@') && input.includes('.')) {
+                document.getElementById('iRegEmail').value = input;
+            }
+            showASt('stRegEmail');
+            return;
         }
         
         S.loginProfile = p;
@@ -334,37 +361,47 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 2. ВХОД ПО ПАРОЛЮ
+    // 3. ВХОД ПО ПАРОЛЮ
     // ==========================================
     document.getElementById('bLoginPass').onclick = async function() {
         const pwd = document.getElementById('iPass').value;
         if (!pwd) return toast('Введите пароль');
         
+        if (S.loginProfile.password_hash !== hashPass(pwd)) {
+            return toast('Неверный пароль');
+        }
+        
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
-        const { error } = await supabase.auth.signInWithPassword({ email: S.authEmail, password: pwd });
-        
-        this.innerHTML = 'Войти'; this.disabled = false;
-        
-        if (error) {
-            // Если пароль не совпадает, предлагаем восстановить
-            return toast('Неверный пароль. Попробуйте "Забыли пароль?"');
+        try {
+            const { error } = await supabase.auth.signInWithOtp({ email: S.authEmail });
+            
+            if (error) {
+                toast('Ошибка: ' + error.message);
+            } else {
+                document.getElementById('dEmail').textContent = S.authEmail;
+                showASt('stO');
+                toast('Пароль верный! Введите код из письма.');
+            }
+        } catch (e) {
+            toast('Ошибка сети: ' + e.message);
+        } finally {
+            this.innerHTML = 'Войти'; this.disabled = false;
         }
-        // Успешный вход произойдет автоматически через onAuthStateChange
     };
 
     // ==========================================
-    // 3. ВОССТАНОВЛЕНИЕ ПАРОЛЯ (ЧЕРЕЗ OTP)
+    // 4. ВОССТАНОВЛЕНИЕ ПАРОЛЯ
     // ==========================================
     document.getElementById('bForgotPass').onclick = async () => {
         if (!S.authEmail) return;
         
         const btn = document.getElementById('bForgotPass');
-        btn.innerHTML = '<div class="ld"></div>'; btn.disabled = true;
+        btn.textContent = 'Отправка...'; btn.disabled = true;
         
         const { error } = await supabase.auth.signInWithOtp({ email: S.authEmail });
         
-        btn.innerHTML = 'Забыли пароль?'; btn.disabled = false;
+        btn.textContent = 'Забыли пароль?'; btn.disabled = false;
         
         if (error) return toast(error.message);
         
@@ -374,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 4. РЕГИСТРАЦИЯ
+    // 5. РЕГИСТРАЦИЯ
     // ==========================================
     document.getElementById('bRegCheck').onclick = async function() {
         const email = document.getElementById('iRegEmail').value.trim();
@@ -382,7 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
-        // Проверяем, есть ли уже такой Email
         const { data: p } = await supabase.from('profiles').select('*').eq('email', email).maybeSingle();
         
         this.innerHTML = 'Зарегистрироваться'; this.disabled = false;
@@ -400,11 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 5. ПРОВЕРКА OTP КОДА (ПРОСТАЯ, БЕЗ ЗАВИСАНИЙ)
+    // 6. ПРОВЕРКА КОДА (С ЗАЩИТОЙ ОТ СЕТЕВЫХ ОШИБОК)
     // ==========================================
     document.getElementById('bVerify').onclick = async function() {
         const code = document.getElementById('iOtp').value.trim();
-        if (code.length < 6) return toast('Введите код');
+        if (code.length < 6) return toast('Введите код полностью');
         
         this.innerHTML = '<div class="ld"></div>'; 
         this.disabled = true;
@@ -417,12 +453,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             if (error) {
+                // Если произошла ошибка, проверяем: может, сессия всё-таки создалась? (баг сети)
+                const { data: sessionData } = await supabase.auth.getSession();
+                if (sessionData && sessionData.session) {
+                    toast('Успешный вход!');
+                    return;
+                }
                 toast('Ошибка: ' + error.message);
             } else {
                 toast('Успешный вход!');
             }
         } catch (err) {
-            toast('Ошибка сети: ' + err.message);
+            // При ошибке сети проверяем сессию
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData && sessionData.session) {
+                toast('Успешный вход!');
+            } else {
+                toast('Ошибка сети. Проверьте интернет.');
+            }
         } finally {
             this.innerHTML = 'Подтвердить';
             this.disabled = false;
@@ -458,16 +506,42 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { showASt('stP'); }
     }
     
+    // СОЗДАНИЕ ПРОФИЛЯ
     document.getElementById('bSaveProfile').onclick = async function() {
-        const u = document.getElementById('iUser').value.trim(), n = document.getElementById('iName').value.trim(), pwd = document.getElementById('iNewPass').value;
-        if (!u || !n || pwd.length < 6) return toast('Заполните поля (пароль от 6 симв.)');
-        await supabase.from('profiles').update({ username: u, name: n, email: S.authEmail, password_hash: hashPass(pwd) }).eq('id', S.u.id); 
+        const u = document.getElementById('iUser').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+        const n = document.getElementById('iName').value.trim();
+        const pwd = document.getElementById('iNewPass').value;
+        
+        if (!n) return toast('Введите имя');
+        if (pwd.length < 6) return toast('Пароль должен быть от 6 символов');
+        
+        const err = validateUsername(u, S.authEmail);
+        if (err) return toast(err);
+        
+        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
+        
+        const { data: existing } = await supabase.from('profiles').select('*').eq('username', u).maybeSingle();
+        if (existing && existing.id !== S.u.id) {
+            this.innerHTML = 'Создать аккаунт'; this.disabled = false;
+            return toast('Этот юзернейм уже занят');
+        }
+        
+        const { error } = await supabase.from('profiles').update({ 
+            username: u, 
+            name: n, 
+            email: S.authEmail, 
+            password_hash: hashPass(pwd),
+            last_password_set: new Date()
+        }).eq('id', S.u.id);
+        
+        this.innerHTML = 'Создать аккаунт'; this.disabled = false;
+        
+        if (error) return toast('Ошибка: ' + error.message);
+        
         await checkProf();
     };
 
-    // ==========================================
-    // 6. 24-ЧАСОВАЯ ЗАЩИТА ПАРОЛЯ
-    // ==========================================
+    // 24-ЧАСОВАЯ ЗАЩИТА ПАРОЛЯ
     window.setPasswordProfile = async function() {
         if (!S.p) return;
         
@@ -487,16 +561,102 @@ document.addEventListener('DOMContentLoaded', () => {
         toast('Пароль обновлен!');
     };
 
-    // ОСТАЛЬНЫЕ ФУНКЦИИ
-    window.toggleStories = function() { /* ... */ };
-    window.handleScroll = function(el) { const s = document.getElementById('stickyStories'); if (el.scrollTop > 30) s.classList.add('shrink'); else s.classList.remove('shrink'); };
+    // ОСТАЛЬНЫЕ ФУНКЦИИ (ОБОИ, АДМИНКА, ЧАТЫ)
+    window.applyWallpaper = function(url, type) {
+        const img = document.getElementById('globalBgImg'), vid = document.getElementById('globalBgVid');
+        if (!url || url === 'default') { img.style.display = 'none'; vid.style.display = 'none'; vid.pause(); return; }
+        if (type === 'video') { img.style.display = 'none'; if (vid.src !== url) { vid.src = url; vid.play(); } vid.style.display = 'block'; }
+        else { vid.style.display = 'none'; vid.pause(); img.src = url; img.style.display = 'block'; }
+    };
+
+    document.getElementById('wallInp').onchange = async function(e) {
+        const f = e.target.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = async (ev) => {
+            const type = f.type.startsWith('video') ? 'video' : 'image';
+            await supabase.from('profiles').update({ chat_wallpaper: ev.target.result, chat_wallpaper_type: type }).eq('id', S.u.id);
+            S.p.chat_wallpaper = ev.target.result; S.p.chat_wallpaper_type = type;
+            applyWallpaper(ev.target.result, type); toast('Обои установлены!');
+        };
+        r.readAsDataURL(f);
+    };
+    window.resetWallpaper = async () => {
+        await supabase.from('profiles').update({ chat_wallpaper: 'default' }).eq('id', S.u.id);
+        S.p.chat_wallpaper = 'default'; applyWallpaper('default'); toast('Сброшено');
+    };
+
+    window.searchAdminUser = async function() {
+        const q = document.getElementById('adminSearch').value.trim().replace('@','');
+        if (!q) return;
+        const res = document.getElementById('adminResult'); res.innerHTML = '<div class="ld" style="margin:20px auto;"></div>';
+        const { data: user } = await supabase.from('profiles').select('*').eq('username', q).maybeSingle();
+        if (!user) { res.innerHTML = '<div style="color:var(--mut); text-align:center;">Не найден</div>'; return; }
+        S.adminSearchResult = user;
+        res.innerHTML = `<div class="admin-search-result"><div class="ava" style="width:80px; height:80px; font-size:30px; background-image:url('${user.avatar_url || ''}')"></div><div style="font-size:20px; font-weight:800; margin-top:15px; display:flex; align-items:center;">${user.name} ${user.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}</div><div style="color:var(--mut); margin-bottom:20px;">@${user.username}</div><div style="display:flex; gap:10px; width:100%;"><button class="btn-saw" style="flex:1; margin:0; padding:12px;" onclick="confirmVerifyUser()">${user.is_verified ? 'Снять галочку' : 'Выдать галочку'}</button><button class="btn-saw" style="flex:1; margin:0; padding:12px; color:var(--dan); border-color:var(--dan);" onclick="confirmBanUser()">Забанить</button></div></div>`;
+    };
+
+    window.confirmVerifyUser = async function() {
+        if (!S.adminSearchResult) return;
+        const isVer = S.adminSearchResult.is_verified;
+        if (!confirm(isVer ? 'Снять галочку?' : 'Выдать галочку?')) return;
+        await supabase.from('profiles').update({ is_verified: !isVer }).eq('id', S.adminSearchResult.id);
+        toast('Галочка изменена'); searchAdminUser();
+    };
+
+    window.confirmBanUser = async function() {
+        if (!S.adminSearchResult) return;
+        if (!confirm('Забанить? Пользователь будет удален.')) return;
+        await supabase.from('banned_emails').insert({ email: S.adminSearchResult.email });
+        await supabase.from('profiles').delete().eq('id', S.adminSearchResult.id);
+        toast('Забанен'); document.getElementById('adminResult').innerHTML = '<div style="color:var(--dan); text-align:center; font-weight:700;">Забанен</div>';
+    };
+
+    window.broadcastMessage = async () => {
+        const msg = prompt('Текст рассылки:'); if (!msg) return;
+        const { data: users } = await supabase.from('profiles').select('id');
+        for (let u of users) { await supabase.from('messages').insert({ chat_id: 'broadcast_chat', sender_id: S.u.id, text: msg }); }
+        toast('Рассылка отправлена!');
+    };
+
+    async function loadChats() {
+        const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', S.u.id);
+        const c = document.getElementById('cList'); c.innerHTML = '';
+        if (!data) return;
+        data.forEach(item => {
+            const el = document.createElement('div'); el.className = 'lIt';
+            el.innerHTML = `<div class="ava">${item.chats.name[0]}</div><div class="lInf"><div class="lT">${item.chats.name}</div></div>`;
+            el.onclick = () => openChat(item.chats.id, item.chats.name); c.appendChild(el);
+        });
+    }
+
+    window.openChat = async function(id, name) {
+        S.cId = id; document.getElementById('cName').textContent = name; showScr('scrChat');
+        const c = document.getElementById('mBox'); c.innerHTML = '';
+        const { data } = await supabase.from('messages').select('*').eq('chat_id', id).order('created_at', { ascending: true });
+        if (data) data.forEach(m => { const isM = m.sender_id === S.u.id; c.innerHTML += `<div class="msg ${isM ? 'msgM' : 'msgO'}"><span>${m.text}</span></div>`; });
+        c.scrollTop = c.scrollHeight;
+    };
+
+    document.getElementById('bBack').onclick = () => { S.cId = null; showScr('scrMain'); loadChats(); };
+    document.getElementById('bSendMsg').onclick = async () => { const i = document.getElementById('mInp'), t = i.value.trim(); if (!t || !S.cId) return; i.value = ''; await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); openChat(S.cId, document.getElementById('cName').textContent); };
+
+    window.uploadFile = async function(inp) {
+        const f = inp.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = async (ev) => { await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: '📷 Медиа', file_url: ev.target.result }); openChat(S.cId, document.getElementById('cName').textContent); };
+        r.readAsDataURL(f);
+    };
+    window.simulateVoice = () => toast('🎤 Голосовое отправлено');
+    window.clearChatHistory = async () => { if(!confirm('Очистить?')) return; await supabase.from('messages').delete().eq('chat_id', S.cId); openChat(S.cId, 'Чат'); };
     
+    function logoutFunc() { supabase.auth.signOut().finally(() => { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k.startsWith('sb-')) localStorage.removeItem(k); } window.location.reload(); }); }
+    document.getElementById('bLogout').onclick = logoutFunc;
+
     // ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ
     let pressTimer;
     const navProfileBtn = document.getElementById('navProfileBtn');
     navProfileBtn.addEventListener('touchstart', (e) => { pressTimer = setTimeout(() => { e.preventDefault(); openAccountSwitcher(); }, 500); });
     navProfileBtn.addEventListener('touchend', () => clearTimeout(pressTimer));
-    navProfileBtn.addEventListener('touchmove', () => clearTimeout(pressTimer));
     
     window.openAccountSwitcher = function() {
         const popup = document.getElementById('accountSwitcher'); const list = document.getElementById('accountList'); list.innerHTML = '';
@@ -505,30 +665,16 @@ document.addEventListener('DOMContentLoaded', () => {
         accounts.forEach(acc => {
             const isActive = S.u && acc.id === S.u.id;
             const el = document.createElement('div'); el.className = `sw-item ${isActive ? 'active' : ''}`;
-            el.innerHTML = `<div class="ava avaS" style="background-image:url('${acc.avatar_url || ''}')">${acc.avatar_url ? '' : acc.name[0]}</div><div style="flex:1;"><div style="font-weight:700; font-size:14px; display:flex; align-items:center;">${acc.name} ${acc.is_verified ? '<i class="ph-fill ph-seal-check ver" style="font-size:14px;"></i>' : ''}</div><div style="font-size:12px; color:var(--mut);">@${acc.username}</div></div>${isActive ? '<i class="ph-fill ph-check-circle" style="color:var(--acc); font-size:20px;"></i>' : ''}`;
+            el.innerHTML = `<div class="ava avaS" style="background-image:url('${acc.avatar_url || ''}')">${acc.avatar_url ? '' : acc.name[0]}</div><div style="flex:1;"><div style="font-weight:700; font-size:14px;">${acc.name}</div><div style="font-size:12px; color:var(--mut);">@${acc.username}</div></div>`;
             el.onclick = () => { if (isActive) popup.classList.remove('act'); else switchAccount(acc.email); };
             list.appendChild(el);
         });
         popup.classList.add('act');
     };
 
-    window.addNewAccount = function() { document.getElementById('accountSwitcher').classList.remove('act'); localStorage.removeItem('molju_prefill_email'); logoutFunc(); };
-    window.switchAccount = function(email) { document.getElementById('accountSwitcher').classList.remove('act'); localStorage.setItem('molju_prefill_email', email); logoutFunc(); };
-    
-    document.addEventListener('click', (e) => { const p = document.getElementById('accountSwitcher'); if (p.classList.contains('act') && !p.contains(e.target) && !navProfileBtn.contains(e.target)) p.classList.remove('act'); });
+    window.addNewAccount = function() { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
+    window.switchAccount = function(email) { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
 
-    function logoutFunc() { supabase.auth.signOut().finally(() => { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k.startsWith('sb-')) localStorage.removeItem(k); } window.location.reload(); }); }
-    document.getElementById('bLogout').onclick = logoutFunc;
-
-    // Инициализация предзаполнения
-    const prefill = localStorage.getItem('molju_prefill_email');
-    if (prefill) {
-        document.getElementById('iLoginIdentifier').value = prefill;
-        localStorage.removeItem('molju_prefill_email');
-        showASt('stLoginEmail');
-    }
-
-    // ... (вставь сюда остальные функции: applyWallpaper, searchAdminUser, broadcastMessage, loadChats, openChat, uploadFile)
     supabase.auth.getSession().then(({ data: { session } }) => { if (!session) showScr('scrAuth'); });
 });
 </script>
