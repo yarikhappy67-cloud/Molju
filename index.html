@@ -1,126 +1,157 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Molju — God Mode</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Molju — Ultimate Pro</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
 <style>
-:root {
-    --bg: #050505; --surf: #121212; --surf2: #1c1c1e; --glass: rgba(10, 10, 10, 0.85);
-    --brd: rgba(255, 255, 255, 0.08); --txt: #ffffff; --mut: #8e8e93;
-    --acc: #ff3b30; --glow: rgba(255, 59, 48, 0.4);
-    --grad: linear-gradient(180deg, #ff4d4d 0%, #cc0000 100%);
-    --grad-press: linear-gradient(180deg, #cc0000 0%, #990000 100%);
-    --msgM: linear-gradient(180deg, #ff3b30, #cc0000); --msgO: #1c1c1e;
-    --ver: #0088cc; --dan: #ff453a; --bot: #15202b;
-}
-body.light {
-    --bg: #f0f0f5; --surf: #ffffff; --surf2: #e5e5ea; --glass: rgba(255, 255, 255, 0.9);
-    --brd: rgba(0, 0, 0, 0.1); --txt: #000; --mut: #666; --msgO: #ffffff; --bot: #e1f0ff;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
-body { height: 100vh; background: var(--bg); color: var(--txt); overflow: hidden; display: flex; justify-content: center; transition: 0.3s; }
-.app { position: relative; width: 100%; height: 100%; max-width: 480px; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+    /* ========================================== */
+    /* 1. ПЕРЕМЕННЫЕ И ТЕМЫ */
+    /* ========================================== */
+    :root {
+        --bg: #050505; --surf: #121212; --surf2: #1c1c1e; --glass: rgba(10, 10, 10, 0.85);
+        --brd: rgba(255, 255, 255, 0.08); --txt: #ffffff; --mut: #8e8e93;
+        --acc: #ff3b30; --glow: rgba(255, 59, 48, 0.4);
+        --grad: linear-gradient(180deg, #ff4d4d 0%, #cc0000 100%);
+        --msgM: linear-gradient(180deg, #ff3b30, #cc0000); --msgO: #1c1c1e;
+        --ver: #0088cc; --dan: #ff453a;
+    }
+    body.light-theme {
+        --bg: #f0f0f5; --surf: #ffffff; --surf2: #e5e5ea; --glass: rgba(255, 255, 255, 0.9);
+        --brd: rgba(0, 0, 0, 0.1); --txt: #000; --mut: #666; --msgO: #ffffff;
+    }
 
-@keyframes fI { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sU { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes pI { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-@keyframes sp { 100% { transform: rotate(360deg); } }
-@keyframes pr { from { width: 0%; } to { width: 100%; } }
-@keyframes gB { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-@keyframes glowAnim { 0% { box-shadow: 0 0 5px var(--ver); } 50% { box-shadow: 0 0 20px var(--ver), 0 0 10px var(--ver) inset; } 100% { box-shadow: 0 0 5px var(--ver); } }
-@keyframes btnPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
+    /* ========================================== */
+    /* 2. СБРОС И БАЗА */
+    /* ========================================== */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+    body { height: 100vh; height: 100dvh; background: var(--bg); color: var(--txt); overflow: hidden; display: flex; justify-content: center; transition: 0.3s; }
+    .app { position: relative; width: 100%; height: 100%; max-width: 480px; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
 
-button { border: none; background: none; color: inherit; font-family: inherit; cursor: pointer; outline: none; display: flex; align-items: center; justify-content: center; }
-.btn { padding: 16px; border-radius: 16px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.1s ease; }
-.btn-p { background: var(--grad); color: #fff; box-shadow: 0 6px 0 #8a0000, 0 10px 20px var(--glow); border: 1px solid rgba(255,255,255,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.5); animation: btnPulse 2s infinite; }
-.btn-p:active { transform: translateY(6px); box-shadow: 0 0px 0 #8a0000, 0 2px 5px var(--glow); background: var(--grad-press); animation: none; }
-.btn-s { background: var(--surf2); color: var(--txt); box-shadow: 0 4px 0 var(--bg), 0 6px 15px rgba(0,0,0,0.5); border: 1px solid var(--brd); }
-.btn-s:active { transform: translateY(4px); box-shadow: 0 0px 0 var(--bg); }
+    /* ========================================== */
+    /* 3. АНИМАЦИИ */
+    /* ========================================== */
+    @keyframes fI { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes sU { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes pI { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes sp { 100% { transform: rotate(360deg); } }
+    @keyframes btnPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
 
-.inp { width: 100%; padding: 16px; border-radius: 16px; background: var(--surf2); border: 2px solid var(--brd); color: var(--txt); font-size: 16px; outline: none; margin-bottom: 16px; transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-.inp:focus { border-color: var(--acc); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 0 3px var(--glow); }
+    /* ========================================== */
+    /* 4. КОМПОНЕНТЫ */
+    /* ========================================== */
+    button { border: none; background: none; color: inherit; font-family: inherit; cursor: pointer; outline: none; display: flex; align-items: center; justify-content: center; }
+    .btn { padding: 16px; border-radius: 16px; font-weight: 700; font-size: 16px; width: 100%; transition: 0.1s; }
+    .btn-p { background: var(--grad); color: #fff; box-shadow: 0 6px 0 #8a0000; animation: btnPulse 2s infinite; }
+    .btn-p:active { transform: translateY(6px); box-shadow: none; animation: none; }
+    .btn-s { background: var(--surf2); color: var(--txt); box-shadow: 0 4px 0 var(--bg); border: 1px solid var(--brd); }
+    .btn-s:active { transform: translateY(4px); box-shadow: none; }
 
-.ava { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; background: var(--grad); flex-shrink: 0; background-size: cover; background-position: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid var(--surf2); }
-.avaS { width: 36px; height: 36px; font-size: 14px; }
-.avaL { width: 96px; height: 96px; font-size: 36px; }
-.ver { color: var(--ver); font-size: 18px; margin-left: 4px; }
-.ld { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: sp 1s linear infinite; }
+    .inp { width: 100%; padding: 16px; border-radius: 16px; background: var(--surf2); border: 2px solid var(--brd); color: var(--txt); font-size: 16px; outline: none; margin-bottom: 16px; }
+    .inp:focus { border-color: var(--acc); }
+    
+    .ava { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; background: var(--grad); flex-shrink: 0; background-size: cover; background-position: center; border: 2px solid var(--surf2); }
+    .avaS { width: 36px; height: 36px; font-size: 14px; }
+    .avaL { width: 96px; height: 96px; font-size: 36px; }
+    .ver { color: var(--ver); font-size: 18px; margin-left: 4px; }
+    .ld { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: sp 1s linear infinite; }
 
-.scr { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
-.scr.act { display: flex; animation: fI 0.3s; }
+    /* ========================================== */
+    /* 5. ЭКРАНЫ */
+    /* ========================================== */
+    .scr { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
+    .scr.act { display: flex; animation: fI 0.3s; }
 
-.hdr { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
-.hT { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.iBtn { width: 40px; height: 40px; border-radius: 50%; background: var(--surf2); font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.1s; }
-.iBtn:active { transform: translateY(2px); box-shadow: none; }
+    .hdr { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
+    .hT { font-size: 22px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .iBtn { width: 40px; height: 40px; border-radius: 50%; background: var(--surf2); font-size: 20px; }
 
-.cnt { flex: 1; overflow-y: auto; padding: 0 16px 100px; }
-.tab { display: none; } .tab.act { display: block; animation: fI 0.3s; }
-.sBar { width: 100%; padding: 12px 16px; border-radius: 16px; background: var(--surf2); display: flex; align-items: center; gap: 10px; margin: 16px 0; border: 1px solid var(--brd); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-.sBar input { background: none; border: none; color: var(--txt); width: 100%; outline: none; font-size: 15px; }
+    .cnt { flex: 1; overflow-y: auto; padding: 0 16px 100px; position: relative; }
+    .tab { display: none; } .tab.act { display: block; animation: fI 0.3s; }
 
-/* ИСПРАВЛЕННЫЕ ИСТОРИИ */
-.sRow { display: flex; gap: 16px; overflow-x: auto; padding: 16px 0; border-bottom: 1px solid var(--brd); margin-bottom: 16px; transition: max-height 0.3s ease; }
-.sRow.collapsed { max-height: 60px; overflow: hidden; }
-.sIt { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 68px; cursor: pointer; }
-.sCr { width: 64px; height: 64px; border-radius: 50%; background: var(--surf2); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid transparent; background-size: cover; background-position: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-.sCr.ad { border: 2px dashed var(--mut); color: var(--mut); }
-.sCr.ha { border: 2px solid var(--acc); box-shadow: 0 0 10px var(--glow); }
-.sN { font-size: 12px; color: var(--txt); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; display: flex; justify-content: center; }
-.collapse-btn { width: 100%; text-align: center; font-size: 12px; color: var(--mut); margin-top: -10px; margin-bottom: 10px; cursor: pointer; font-weight: 600; }
+    /* ========================================== */
+    /* 6. ИСТОРИИ */
+    /* ========================================== */
+    .sticky-stories { position: sticky; top: 0; background: var(--bg); z-index: 15; transition: all 0.3s; padding-top: 10px; }
+    .sticky-stories.shrink { padding-top: 5px; padding-bottom: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    .sRow { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; transition: all 0.3s; }
+    .sRow::-webkit-scrollbar { display: none; }
+    .sIt { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 68px; cursor: pointer; transition: all 0.3s; }
+    .sCr { width: 64px; height: 64px; border-radius: 50%; background: var(--surf2); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid transparent; background-size: cover; background-position: center; transition: all 0.3s; }
+    .sN { font-size: 11px; color: var(--txt); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; transition: all 0.3s; }
+    
+    .sticky-stories.shrink .sCr { width: 40px; height: 40px; font-size: 16px; }
+    .sticky-stories.shrink .sN { display: none; }
+    .sticky-stories.shrink .sIt { width: 44px; }
 
-.lIt { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; cursor: pointer; margin-bottom: 4px; transition: 0.2s; position: relative; }
-.lIt:active { background: var(--surf2); transform: scale(0.98); }
-.lInf { flex: 1; min-width: 0; }
-.lT { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
-.lS { font-size: 14px; color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* ========================================== */
+    /* 7. СПИСКИ */
+    /* ========================================== */
+    .sBar { width: 100%; padding: 12px 16px; border-radius: 16px; background: var(--surf2); display: flex; align-items: center; gap: 10px; margin: 16px 0; border: 1px solid var(--brd); }
+    .sBar input { background: none; border: none; color: var(--txt); width: 100%; outline: none; }
+    .lIt { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; cursor: pointer; margin-bottom: 4px; }
+    .lIt:active { background: var(--surf2); }
+    .lInf { flex: 1; min-width: 0; }
+    .lT { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
+    .lS { font-size: 14px; color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.nav { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); z-index: 30; }
-.nBtn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--mut); font-size: 11px; font-weight: 600; width: 70px; transition: 0.2s; }
-.nBtn.act { color: var(--acc); transform: translateY(-2px); text-shadow: 0 2px 10px var(--glow); }
-.nBtn i { font-size: 24px; }
+    /* ========================================== */
+    /* 8. НАВИГАЦИЯ */
+    /* ========================================== */
+    .nav { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); z-index: 30; }
+    .nBtn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--mut); font-size: 11px; font-weight: 600; width: 70px; }
+    .nBtn.act { color: var(--acc); }
+    .nBtn i { font-size: 24px; }
 
-.cHdr { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
-.bBtn { font-size: 24px; padding: 8px; margin-left: -8px; color: var(--acc); }
-.cHN { font-size: 16px; font-weight: 700; display: flex; align-items: center; }
-.cHS { font-size: 12px; color: var(--mut); }
-.msgs { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
-.msg { max-width: 85%; padding: 12px 16px; font-size: 15px; position: relative; word-break: break-word; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
-.msgO { align-self: flex-start; background: var(--msgO); border-radius: 18px 18px 18px 4px; border: 1px solid var(--brd); }
-.msgM { align-self: flex-end; background: var(--msgM); color: #fff; border-radius: 18px 18px 4px 18px; box-shadow: 0 4px 15px var(--glow); }
-.mT { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 6px; font-weight: 600; }
-.iBar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
-.iBar input { flex: 1; background: var(--surf2); border: 1px solid var(--brd); padding: 16px 20px; border-radius: 24px; color: var(--txt); outline: none; font-size: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-.sBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px var(--glow); transition: 0.1s; }
-.sBtn:active { transform: scale(0.95); box-shadow: 0 2px 5px var(--glow); }
+    /* ========================================== */
+    /* 9. ЧАТ И ОБОИ */
+    /* ========================================== */
+    .cHdr { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
+    .bBtn { font-size: 24px; padding: 8px; margin-left: -8px; color: var(--acc); }
+    .cHN { font-size: 16px; font-weight: 700; }
+    .cHS { font-size: 12px; color: var(--mut); }
 
-.mdl { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; align-items: flex-end; z-index: 300; }
-.mdl.act { display: flex; }
-.mB { width: 100%; background: var(--surf); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); animation: sU 0.3s cubic-bezier(0.16, 1, 0.3, 1); border-top: 1px solid var(--brd); max-height: 90vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
-.mTit { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
-.setI { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--brd); cursor: pointer; }
-.setT { flex: 1; font-size: 16px; font-weight: 500; margin-left: 12px; }
+    /* Контейнер для обоев (фото/видео) */
+    .chat-bg-container { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .chat-bg-media { position: absolute; inset: 0; z-index: 1; opacity: 0.4; object-fit: cover; width: 100%; height: 100%; pointer-events: none; }
+    
+    .msgs { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 2; }
+    .msg { max-width: 85%; padding: 10px 14px; font-size: 15px; position: relative; word-break: break-word; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .msgO { align-self: flex-start; background: var(--msgO); border-radius: 18px 18px 18px 4px; border: 1px solid var(--brd); }
+    .msgM { align-self: flex-end; background: var(--msgM); color: #fff; border-radius: 18px 18px 4px 18px; }
+    .mT { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 4px; }
 
-#tst { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9999; pointer-events: none; }
-.tMsg { background: var(--surf2); color: var(--txt); padding: 14px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; border: 1px solid var(--brd); animation: pI 0.2s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .iBar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
+    .iBar input { flex: 1; background: var(--surf2); border: 1px solid var(--brd); padding: 16px 20px; border-radius: 24px; color: var(--txt); outline: none; }
+    .sBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px var(--glow); }
 
-#scrAuth { align-items: center; justify-content: center; padding: 24px; }
-.auth-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; align-items: center; }
-.logo { font-size: 56px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; text-shadow: 0 10px 30px var(--glow); }
-.aSt { width: 100%; display: none; flex-direction: column; }
-.aSt.act { display: flex; animation: fI 0.3s; }
-.link-btn { background: none; border: none; color: var(--acc); font-size: 13px; font-weight: 500; margin-top: 10px; cursor: pointer; text-decoration: underline; opacity: 0.8; }
+    /* ========================================== */
+    /* 10. МОДАЛКИ */
+    /* ========================================== */
+    .mdl { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; align-items: flex-end; z-index: 300; }
+    .mdl.act { display: flex; }
+    .mB { width: 100%; background: var(--surf); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); animation: sU 0.3s; max-height: 90vh; overflow-y: auto; }
+    .mTit { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+    .setI { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--brd); cursor: pointer; }
+    .setT { flex: 1; font-size: 16px; margin-left: 12px; }
 
-.adm-item { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--surf2); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--brd); }
-.adm-row { display: flex; justify-content: space-between; align-items: center; }
-.adm-btn { padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
-.verify-anim { animation: glowAnim 2s infinite; }
+    .adm-item { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--surf2); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--brd); }
+    .adm-row { display: flex; justify-content: space-between; align-items: center; }
+    .adm-btn { padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
 
-.ctxMenu { position: absolute; background: var(--surf2); border: 1px solid var(--brd); border-radius: 16px; padding: 8px; z-index: 250; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.6); min-width: 180px; }
-.ctxMenu.act { display: flex; animation: pI 0.15s; }
-.ctxI { padding: 12px; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 12px; border-radius: 10px; color: var(--txt); cursor: pointer; }
-.ctxI:active { background: var(--surf); }
+    #tst { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9999; pointer-events: none; }
+    .tMsg { background: var(--surf2); color: var(--txt); padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; border: 1px solid var(--brd); animation: pI 0.2s; }
+
+    #scrAuth { align-items: center; justify-content: center; padding: 24px; }
+    .auth-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; align-items: center; }
+    .logo { font-size: 56px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; }
+    .aSt { width: 100%; display: none; flex-direction: column; }
+    .aSt.act { display: flex; animation: fI 0.3s; }
 </style>
 </head>
 <body>
@@ -134,21 +165,20 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 <div class="logo">Molju</div>
 <div class="aSt act" id="stE"><input type="email" id="iEmail" class="inp" placeholder="Email"><button class="btn btn-p" id="bCheckEmail">Продолжить</button></div>
 <div class="aSt" id="stPass">
-    <p style="text-align:center;color:var(--mut);margin-bottom:20px;font-weight:500">Введите ваш пароль</p>
+    <p style="text-align:center;color:var(--mut);margin-bottom:20px">Введите ваш пароль</p>
     <input type="password" id="iPass" class="inp" placeholder="Пароль">
     <button class="btn btn-p" id="bLoginPass">Войти</button>
-    <button class="link-btn" id="bForgotPass">Забыли пароль? Войти по Email</button>
 </div>
 <div class="aSt" id="stO">
-    <p style="text-align:center;color:var(--mut);margin-bottom:20px;font-weight:500">Код на <b id="dEmail"></b></p>
+    <p style="text-align:center;color:var(--mut);margin-bottom:20px">Код на <b id="dEmail"></b></p>
     <input type="text" id="iOtp" class="inp" placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:5px">
     <button class="btn btn-p" id="bVerify">Войти</button>
 </div>
 <div class="aSt" id="stP">
-    <p style="text-align:center;color:var(--mut);margin-bottom:20px;font-weight:500">Создайте профиль</p>
+    <p style="text-align:center;color:var(--mut);margin-bottom:20px">Создайте профиль</p>
     <input type="text" id="iUser" class="inp" placeholder="@username">
     <input type="text" id="iName" class="inp" placeholder="Имя">
-    <input type="password" id="iNewPass" class="inp" placeholder="Придумайте пароль">
+    <input type="password" id="iNewPass" class="inp" placeholder="Пароль">
     <button class="btn btn-p" id="bSaveProfile">Создать аккаунт</button>
 </div>
 </div>
@@ -157,29 +187,26 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 <!-- MAIN -->
 <div id="scrMain" class="scr">
 <div class="hdr"><div class="hT" id="mTitle">Molju</div><button class="iBtn" onclick="openM('mdlSearch')"><i class="ph ph-magnifying-glass"></i></button></div>
-<div class="cnt tab act" id="tabChats">
-    <!-- ИСТОРИИ -->
-    <div class="sRow" id="sCont"></div>
-    <div class="collapse-btn" onclick="toggleStories()"><i class="ph ph-caret-up"></i> Свернуть истории</div>
-
+<div class="cnt tab act" id="tabChats" onscroll="handleScroll(this)">
+    <div class="sticky-stories" id="stickyStories"><div class="sRow" id="sCont"></div></div>
     <div class="sBar"><i class="ph ph-magnifying-glass" style="color:var(--mut)"></i><input type="text" id="sInpChats" placeholder="Поиск..."></div>
     <div class="cList" id="cList"></div>
 </div>
 <div class="cnt tab" id="tabSettings">
 <div class="setI" onclick="toggleTheme()"><div style="display:flex;align-items:center"><i class="ph ph-moon" style="font-size:22px"></i><div class="setT">Светлая тема</div></div><input type="checkbox" id="tTheme" style="width:20px;height:20px;accent-color:var(--acc)"></div>
+<div class="setI" onclick="openM('mdlWallpaper')"><div style="display:flex;align-items:center"><i class="ph ph-image" style="font-size:22px"></i><div class="setT">Обои чата</div></div></div>
 </div>
 <div class="cnt tab" id="tabProfile">
 <div style="display:flex;flex-direction:column;align-items:center;margin-top:40px">
 <div class="ava avaL" id="pAva"></div>
 <div style="font-size:24px;font-weight:800;margin-top:16px;display:flex;align-items:center" id="pName">Имя</div>
-<div style="color:var(--mut);margin-top:4px;font-weight:500" id="pUser">@username</div>
+<div style="color:var(--mut);margin-top:4px" id="pUser">@username</div>
 <div style="width:100%;margin-top:30px;display:flex;flex-direction:column;gap:12px">
-<button class="btn btn-s" onclick="openEditProfile()"><i class="ph ph-pencil-simple" style="margin-right:8px"></i> Изменить профиль</button>
-<button class="btn btn-s" onclick="openM('mdlPrivacy')"><i class="ph ph-shield-check" style="margin-right:8px"></i> Конфиденциальность</button>
-<button class="btn btn-s" onclick="openSecurityModal()"><i class="ph ph-lock-key" style="margin-right:8px"></i> Безопасность</button>
-<button class="btn btn-p" id="bAdminPanel" onclick="openAdminPanel()" style="display:none; margin-top:10px; background: #0088cc; box-shadow: 0 6px 0 #005f8f, 0 10px 20px rgba(0,136,204,0.4);">Панель Владельца</button>
+<button class="btn btn-s" onclick="openEditProfile()">Изменить профиль</button>
+<button class="btn btn-s" onclick="openSecurityModal()">Безопасность</button>
+<button class="btn btn-p" id="bAdminPanel" onclick="openAdminPanel()" style="display:none; margin-top:10px; background: #0088cc;">Панель Владельца</button>
 </div>
-<button class="btn btn-s" style="margin-top:40px;color:var(--dan);background:rgba(255,69,58,0.1);border:none" id="bLogout">Выйти</button>
+<button class="btn btn-s" style="margin-top:40px;color:var(--dan);" id="bLogout">Выйти</button>
 </div>
 </div>
 <div class="nav">
@@ -192,46 +219,43 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 <!-- CHAT -->
 <div id="scrChat" class="scr">
 <div class="cHdr"><button class="bBtn" id="bBack"><i class="ph ph-caret-left"></i></button><div class="ava avaS" id="cAva">?</div><div style="flex:1"><div class="cHN" id="cName">Имя</div><div class="cHS" id="cStatus">онлайн</div></div></div>
-<div class="msgs" id="mBox"></div>
-<div class="iBar"><input type="text" id="mInp" placeholder="Сообщение..."><button class="sBtn" id="bSendMsg"><i class="ph ph-paper-plane-right"></i></button></div>
+<div class="chat-bg-container">
+    <!-- Медиа-обои -->
+    <img id="chatBgImg" class="chat-bg-media" style="display:none;">
+    <video id="chatBgVid" class="chat-bg-media" style="display:none;" autoplay loop muted playsinline></video>
+    
+    <div class="msgs" id="mBox"></div>
 </div>
-
-<!-- CONTEXT MENU -->
-<div class="ctxMenu" id="ctxChat">
-<div class="ctxI" onclick="pinChat()"><i class="ph ph-push-pin"></i> Закрепить</div>
-<div class="ctxI" onclick="muteChat()"><i class="ph ph-bell-slash"></i> Без звука</div>
-<div class="ctxI" onclick="clearChat()" style="color:var(--dan)"><i class="ph ph-trash"></i> Очистить историю</div>
+<div class="iBar"><input type="text" id="mInp" placeholder="Сообщение..."><button class="sBtn" id="bSendMsg"><i class="ph ph-paper-plane-right"></i></button></div>
 </div>
 
 <!-- MODALS -->
 <div id="mdlSearch" class="mdl" onclick="closeM('mdlSearch',event)"><div class="mB"><div class="mTit">Поиск</div><input type="text" id="sInpGlob" class="inp" placeholder="@username"><button class="btn btn-p" id="bDoSearch">Найти</button></div></div>
 <div id="mdlEditProf" class="mdl" onclick="closeM('mdlEditProf',event)"><div class="mB"><div class="mTit">Профиль</div><div style="display:flex;justify-content:center;margin-bottom:20px"><div class="ava avaL" id="eAvaPrev" onclick="document.getElementById('eAvaInp').click()" style="cursor:pointer"><i class="ph ph-camera"></i></div><input type="file" id="eAvaInp" style="display:none" accept="image/*"></div><input type="text" id="eUser" class="inp" placeholder="@username"><input type="text" id="eName" class="inp" placeholder="Имя"><button class="btn btn-p" id="bSaveEdit">Сохранить</button></div></div>
-<div id="mdlPrivacy" class="mdl" onclick="closeM('mdlPrivacy',event)"><div class="mB"><div class="mTit">Конфиденциальность</div><div class="setI"><div class="setT">Кто видит «Онлайн»</div><select id="privOnline" class="sel" onchange="savePrivacy()"><option value="all">Все</option><option value="contacts">Контакты</option><option value="none">Никто</option></select></div><div class="setI"><div class="setT">Кто может писать</div><select id="privMsg" class="sel" onchange="savePrivacy()"><option value="all">Все</option><option value="contacts">Контакты</option></select></div></div></div>
 
-<!-- БЕЗОПАСНОСТЬ -->
-<div id="mdlSecurity" class="mdl" onclick="closeM('mdlSecurity',event)">
+<div id="mdlWallpaper" class="mdl" onclick="closeM('mdlWallpaper',event)">
 <div class="mB">
-<div class="mTit">Безопасность</div>
-<p style="color:var(--mut); font-size:14px; margin-bottom:20px;">Активные устройства (сессии): <b id="devCount">0</b></p>
-<div id="devList" style="margin-bottom:20px;"></div>
-<button class="btn btn-s" style="margin-bottom:16px; border-color:var(--dan); color:var(--dan);" onclick="terminateAllSessions()">Завершить все сессии</button>
-<button class="btn btn-p" id="bSetPassBtn" onclick="setPasswordProfile()">Установить пароль</button>
+<div class="mTit">Обои чата</div>
+<p style="color:var(--mut); margin-bottom:15px; font-size:14px;">Выберите фото или видео (до 10 сек)</p>
+<button class="btn btn-s" style="margin-bottom:10px" onclick="document.getElementById('wallInp').click()">Загрузить медиа</button>
+<input type="file" id="wallInp" style="display:none" accept="image/*,video/*">
+<button class="btn btn-s" style="margin-bottom:10px" onclick="resetWallpaper()">Сбросить</button>
+<div id="wallPreview" style="height:100px; background:var(--surf2); border-radius:12px; margin-top:10px; display:flex; align-items:center; justify-content:center; color:var(--mut);">Превью</div>
 </div>
 </div>
 
-<!-- ПАНЕЛЬ ВЛАДЕЛЬЦА -->
 <div id="mdlAdmin" class="mdl" onclick="closeM('mdlAdmin',event)">
 <div class="mB" style="height: 80vh; display: flex; flex-direction: column;">
 <div class="mTit" style="color:var(--ver)">Панель Владельца</div>
+<button class="btn btn-p" style="margin-bottom:15px; background:#0088cc" onclick="broadcastMessage()">Рассылка</button>
 <div style="display:flex; gap:10px; margin-bottom:15px;">
-    <button class="btn btn-s" style="padding:10px; flex:1;" onclick="loadAdminList('users')">Пользователи</button>
-    <button class="btn btn-s" style="padding:10px; flex:1; border-color:var(--dan); color:var(--dan);" onclick="loadAdminList('banned')">Черный список</button>
+    <button class="btn btn-s" style="padding:10px; flex:1;" onclick="loadAdminList('users')">Юзеры</button>
+    <button class="btn btn-s" style="padding:10px; flex:1; border-color:var(--dan); color:var(--dan);" onclick="loadAdminList('banned')">Баны</button>
 </div>
 <div id="adminList" style="flex:1; overflow-y: auto;"></div>
 </div>
 </div>
 
-<div id="mdlGift" class="mdl"><div class="mB"><div class="gAnim" id="gAnimIcon">🎁</div><div style="font-size:24px;font-weight:800;margin-bottom:10px;color:var(--acc)">Подарок!</div><p style="color:var(--mut);margin-bottom:20px;font-weight:500">Вы получаете:<br><b id="gNameTxt" style="color:var(--txt)"></b></p><button class="btn btn-p" onclick="closeM('mdlGift')">Забрать</button></div></div>
 </div>
 
 <script>
@@ -239,7 +263,7 @@ window.addEventListener('error', function(e) { document.getElementById('err').st
 
 document.addEventListener('DOMContentLoaded', () => {
     const supabase = window.supabase.createClient('https://dhmqbjfzkrmsbrwzenna.supabase.co', 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI', { auth: { detectSessionInUrl: true, persistSession: true } });
-    const S = { u: null, p: null, cId: null, email: '', activeChatIdToCtx: null, isStoriesCollapsed: false };
+    const S = { u: null, p: null, cId: null, email: '' };
 
     window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000); };
     window.showScr = (id) => { document.querySelectorAll('.scr').forEach(x => x.classList.remove('act')); document.getElementById(id).classList.add('act'); };
@@ -247,232 +271,247 @@ document.addEventListener('DOMContentLoaded', () => {
     window.switchTab = (id, el) => { document.querySelectorAll('.nBtn').forEach(b => b.classList.remove('act')); el.classList.add('act'); document.querySelectorAll('.tab').forEach(t => t.classList.remove('act')); document.getElementById(id).classList.add('act'); document.getElementById('mTitle').textContent = id === 'tabChats' ? 'Molju' : id === 'tabSettings' ? 'Настройки' : 'Профиль'; };
     window.openM = (id) => document.getElementById(id).classList.add('act');
     window.closeM = (id, e) => { if (e && e.target !== document.getElementById(id)) return; document.getElementById(id).classList.remove('act'); };
-    window.toggleTheme = function() { document.body.classList.toggle('light'); localStorage.setItem('molju_theme', document.body.classList.contains('light') ? 'light' : 'dark'); document.getElementById('tTheme').checked = !document.body.classList.contains('light'); };
-    if (localStorage.getItem('molju_theme') === 'light') { document.body.classList.add('light'); document.getElementById('tTheme').checked = true; }
+    window.toggleTheme = function() { document.body.classList.toggle('light-theme'); localStorage.setItem('molju_theme', document.body.classList.contains('light-theme') ? 'light' : 'dark'); document.getElementById('tTheme').checked = !document.body.classList.contains('light-theme'); };
+    if (localStorage.getItem('molju_theme') === 'light') { document.body.classList.add('light-theme'); document.getElementById('tTheme').checked = true; }
 
     const hashPass = (p) => btoa(p + 'molju_secret_salt');
 
-    // ИСТОРИИ (СВЕРНУТЬ/РАЗВЕРНУТЬ)
-    window.toggleStories = function() {
-        S.isStoriesCollapsed = !S.isStoriesCollapsed;
-        const row = document.getElementById('sCont');
-        const btn = document.querySelector('.collapse-btn');
-        if (S.isStoriesCollapsed) {
-            row.classList.add('collapsed');
-            btn.innerHTML = '<i class="ph ph-caret-down"></i> Развернуть истории';
-        } else {
-            row.classList.remove('collapsed');
-            btn.innerHTML = '<i class="ph ph-caret-up"></i> Свернуть истории';
-        }
+    window.handleScroll = (el) => {
+        const sticky = document.getElementById('stickyStories');
+        if (el.scrollTop > 30) sticky.classList.add('shrink');
+        else sticky.classList.remove('shrink');
     };
 
     // AUTH
     document.getElementById('bCheckEmail').onclick = async function() {
         const email = document.getElementById('iEmail').value.trim(); if (!email) return toast('Введите Email');
-        S.email = email; this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        
+        S.email = email; this.innerHTML = '<div class="ld"></div>';
         const { data: ban } = await supabase.from('banned_emails').select('*').eq('email', email).maybeSingle();
-        if (ban) { this.innerHTML = 'Продолжить'; this.disabled = false; return toast('Вы забанены. Обратитесь к владельцу.'); }
-
+        if (ban) { this.innerHTML = 'Продолжить'; return toast('Вы забанены.'); }
         const { data: p } = await supabase.from('profiles').select('*').eq('email', email).maybeSingle();
-        this.innerHTML = 'Продолжить'; this.disabled = false;
+        this.innerHTML = 'Продолжить';
         if (p && p.password_hash) { showASt('stPass'); }
         else {
-            const { error } = await supabase.auth.signInWithOtp({ email });
-            if (error) return toast(error.message);
+            await supabase.auth.signInWithOtp({ email });
             document.getElementById('dEmail').textContent = email; showASt('stO');
         }
     };
-
     document.getElementById('bLoginPass').onclick = async function() {
-        const pwd = document.getElementById('iPass').value; if (!pwd) return toast('Введите пароль');
-        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
+        const pwd = document.getElementById('iPass').value;
         const { data: p } = await supabase.from('profiles').select('*').eq('email', S.email).single();
-        this.innerHTML = 'Войти'; this.disabled = false;
         if (p.password_hash !== hashPass(pwd)) return toast('Неверный пароль');
         await supabase.auth.signInWithOtp({ email: S.email });
         S.u = { id: p.id }; await checkProf();
     };
-
-    document.getElementById('bForgotPass').onclick = async () => {
-        const { error } = await supabase.auth.signInWithOtp({ email: S.email });
-        if (error) return toast(error.message);
-        document.getElementById('dEmail').textContent = S.email; showASt('stO');
-    };
-
     document.getElementById('bVerify').onclick = async function() {
-        const code = document.getElementById('iOtp').value.trim(); if (code.length < 6) return toast('Введите код');
-        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        const { error } = await supabase.auth.verifyOtp({ email: S.email, token: code, type: 'email' }); this.innerHTML = 'Войти'; this.disabled = false;
+        const code = document.getElementById('iOtp').value.trim();
+        const { error } = await supabase.auth.verifyOtp({ email: S.email, token: code, type: 'email' });
         if (error) toast(error.message);
     };
-
-    supabase.auth.onAuthStateChange(async (ev, ses) => {
-        if (ev === 'SIGNED_IN' && ses) { S.u = ses.user; await checkProf(); }
-        else if (ev === 'SIGNED_OUT') { S.u = null; showScr('scrAuth'); showASt('stE'); }
-    });
+    supabase.auth.onAuthStateChange(async (ev, ses) => { if (ev === 'SIGNED_IN' && ses) { S.u = ses.user; await checkProf(); } });
 
     async function checkProf() {
         const { data } = await supabase.from('profiles').select('*').eq('id', S.u.id).single();
         if (data && data.username) {
             S.p = data;
             if (!data.password_hash) { showASt('stP'); return; }
-            
-            const existing = await supabase.from('devices').select('*').eq('user_id', S.u.id).eq('device_name', navigator.userAgent);
-            if (!existing.data || existing.data.length === 0) await supabase.from('devices').insert({ user_id: S.u.id, device_name: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop PC' });
-            
             document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
             document.getElementById('pUser').textContent = '@' + data.username;
             if (data.avatar_url) document.getElementById('pAva').style.backgroundImage = `url('${data.avatar_url}')`;
-            
             document.getElementById('bAdminPanel').style.display = (data.username === 'monk') ? 'flex' : 'none';
+            
+            applyWallpaper(data.chat_wallpaper, data.chat_wallpaper_type);
             
             showScr('scrMain'); loadChats(); loadStories();
         } else { showASt('stP'); }
     }
-
     document.getElementById('bSaveProfile').onclick = async function() {
-        const u = document.getElementById('iUser').value.trim().replace(/[^a-z0-9_]/g, ''), n = document.getElementById('iName').value.trim(), pwd = document.getElementById('iNewPass').value;
-        if (u.length < 3 || !n || pwd.length < 6) return toast('Заполните поля (пароль от 6 символов)');
-        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        
-        const { error } = await supabase.from('profiles').update({ username: u, name: n, email: S.email, password_hash: hashPass(pwd), last_password_set: new Date() }).eq('id', S.u.id); 
-        if (error) await supabase.from('profiles').insert({ id: S.u.id, username: u, name: n, email: S.email, password_hash: hashPass(pwd), last_password_set: new Date() });
-        this.innerHTML = 'Создать'; this.disabled = false; await checkProf();
+        const u = document.getElementById('iUser').value.trim(), n = document.getElementById('iName').value.trim(), pwd = document.getElementById('iNewPass').value;
+        await supabase.from('profiles').update({ username: u, name: n, email: S.email, password_hash: hashPass(pwd) }).eq('id', S.u.id); 
+        await checkProf();
     };
 
-    // ПАНЕЛЬ ВЛАДЕЛЬЦА
-    window.openAdminPanel = async function() { openM('mdlAdmin'); loadAdminList('users'); };
-
-    window.loadAdminList = async function(mode) {
-        const list = document.getElementById('adminList'); list.innerHTML = '<div style="text-align:center"><div class="ld" style="margin:auto"></div></div>';
-        
-        if (mode === 'banned') {
-            const { data } = await supabase.from('banned_emails').select('*');
-            list.innerHTML = '';
-            if (!data || data.length === 0) return list.innerHTML = '<div style="color:var(--mut);text-align:center">Пусто</div>';
-            data.forEach(b => {
-                list.innerHTML += `<div class="adm-item"><div class="adm-row"><div style="font-weight:600; color:var(--dan)">${b.email}</div><button class="adm-btn" style="border-color:var(--ver); color:var(--ver)" onclick="unbanEmail('${b.email}')">Восстановить</button></div></div>`;
-            });
-            return;
+    // ОБОИ (ФОТО/ВИДЕО)
+    window.applyWallpaper = function(url, type) {
+        const img = document.getElementById('chatBgImg'), vid = document.getElementById('chatBgVid');
+        img.style.display = 'none'; vid.style.display = 'none'; vid.pause();
+        if (!url || url === 'default') return;
+        if (type === 'video') {
+            vid.src = url; vid.style.display = 'block'; vid.play();
+        } else {
+            img.src = url; img.style.display = 'block';
         }
+    };
 
-        const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-        list.innerHTML = '';
+    document.getElementById('wallInp').onchange = function(e) {
+        const f = e.target.files[0]; if (!f) return;
+        const isVid = f.type.startsWith('video');
+        
+        if (isVid) {
+            const vid = document.createElement('video');
+            vid.src = URL.createObjectURL(f);
+            vid.onloadedmetadata = async () => {
+                if (vid.duration > 10) {
+                    toast('Видео длиннее 10 сек. Будет обрезано.');
+                }
+                const r = new FileReader();
+                r.onload = async (ev) => {
+                    await supabase.from('profiles').update({ chat_wallpaper: ev.target.result, chat_wallpaper_type: 'video' }).eq('id', S.u.id);
+                    S.p.chat_wallpaper = ev.target.result; S.p.chat_wallpaper_type = 'video';
+                    applyWallpaper(ev.target.result, 'video');
+                    toast('Видео-обои установлены!');
+                };
+                r.readAsDataURL(f);
+            };
+        } else {
+            const r = new FileReader();
+            r.onload = async (ev) => {
+                await supabase.from('profiles').update({ chat_wallpaper: ev.target.result, chat_wallpaper_type: 'image' }).eq('id', S.u.id);
+                S.p.chat_wallpaper = ev.target.result; S.p.chat_wallpaper_type = 'image';
+                applyWallpaper(ev.target.result, 'image');
+                toast('Фото-обои установлены!');
+            };
+            r.readAsDataURL(f);
+        }
+    };
+
+    window.resetWallpaper = async () => {
+        await supabase.from('profiles').update({ chat_wallpaper: 'default', chat_wallpaper_type: 'color' }).eq('id', S.u.id);
+        S.p.chat_wallpaper = 'default'; applyWallpaper('default', 'color'); toast('Обои сброшены');
+    };
+
+    // ИСТОРИИ
+    async function loadStories() {
+        const c = document.getElementById('sCont'); 
+        c.innerHTML = `<div class="sIt"><div class="sCr" style="border: 2px dashed var(--mut);"><i class="ph ph-plus"></i></div><div class="sN">Моя</div></div>`;
+        const { data } = await supabase.from('stories').select('*, profiles(username, avatar_url)').order('created_at', { ascending: false });
         if (!data) return;
-        
-        data.forEach(user => {
-            if (user.id === S.u.id) return;
-            const isVer = user.is_verified ? 'color:var(--ver)' : 'color:var(--mut)';
-            const isAdm = user.is_admin ? 'background:var(--ver); color:#fff' : 'background:var(--surf); color:var(--txt)';
-            const isVBan = user.is_verified ? 'background:var(--ver); color:#fff' : 'border:1px solid var(--ver); color:var(--ver)';
-            
-            list.innerHTML += `
-            <div class="adm-item">
-                <div class="adm-row">
-                    <div>
-                        <div style="font-weight:600; display:flex; align-items:center;">${user.name} <i class="ph-fill ph-seal-check" style="margin-left:4px; ${isVer}"></i></div>
-                        <div style="font-size:12px; color:var(--mut)">@${user.username}</div>
-                    </div>
-                    <button class="adm-btn ${!user.is_verified ? 'verify-anim' : ''}" style="${isVBan}" onclick="toggleVerify('${user.id}', ${user.is_verified})">Галочка</button>
-                </div>
-                <div class="adm-row" style="margin-top:8px;">
-                    <button class="adm-btn" style="${isAdm}; border:1px solid var(--ver);" onclick="toggleAdmin('${user.id}', ${user.is_admin})">Админ</button>
-                    <button class="adm-btn" style="border:1px solid var(--dan); color:var(--dan)" onclick="softBanUser('${user.id}', '${user.email}')">Софт-Бан</button>
-                </div>
-            </div>`;
-        });
-    };
-
-    window.toggleVerify = async function(userId, currentStatus) { await supabase.from('profiles').update({ is_verified: !currentStatus }).eq('id', userId); toast('Галочка изменена'); loadAdminList('users'); };
-    window.toggleAdmin = async function(userId, currentStatus) { await supabase.from('profiles').update({ is_admin: !currentStatus }).eq('id', userId); toast('Админка изменена'); loadAdminList('users'); };
-
-    window.softBanUser = async function(userId, email) {
-        if (!confirm('Софт-бан: удалить данные, но почту можно будет восстановить?')) return;
-        await supabase.from('banned_emails').insert({ email: email });
-        await supabase.from('profiles').delete().eq('id', userId);
-        toast('Пользователь забанен (Софт)'); loadAdminList('users');
-    };
-
-    window.unbanEmail = async function(email) { await supabase.from('banned_emails').delete().eq('email', email); toast('Email восстановлен'); loadAdminList('banned'); };
-
-    // БЕЗОПАСНОСТЬ
-    window.openSecurityModal = async function() {
-        openM('mdlSecurity');
-        const { data } = await supabase.from('devices').select('*').eq('user_id', S.u.id);
-        const list = document.getElementById('devList'); list.innerHTML = '';
-        document.getElementById('devCount').textContent = data ? data.length : 0;
-        if (data) data.forEach(d => list.innerHTML += `<div class="device-item" style="padding:12px; background:var(--surf2); margin-bottom:8px; border-radius:12px;"><div style="font-weight:600">${d.device_name}</div></div>`);
-    };
-    window.terminateAllSessions = async function() { if (!confirm('Завершить?')) return; await supabase.from('devices').delete().eq('user_id', S.u.id); await supabase.auth.signOut(); location.reload(); };
-    window.setPasswordProfile = async function() { const newPwd = prompt('Введите пароль:'); if (!newPwd || newPwd.length < 6) return toast('Мин. 6 символов'); await supabase.from('profiles').update({ password_hash: hashPass(newPwd) }).eq('id', S.u.id); toast('Пароль обновлен'); };
-
-    // ЧАТЫ
-    async function loadChats() {
-        const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name, is_pinned, is_muted)').eq('user_id', S.u.id);
-        const c = document.getElementById('cList'); c.innerHTML = '';
-        if (!data) return;
-        
-        // Сортировка: сначала закрепленные
-        data.sort((a, b) => (b.chats.is_pinned ? 1 : 0) - (a.chats.is_pinned ? 1 : 0));
-        
-        const bot = document.createElement('div'); bot.className = 'lIt';
-        bot.innerHTML = `<div class="ava" style="background:var(--bot);color:var(--ver)"><i class="ph-fill ph-robot"></i></div><div class="lInf"><div class="lT">Molju Code <i class="ph-fill ph-seal-check ver"></i></div></div>`;
-        bot.onclick = () => { document.getElementById('cName').innerHTML = 'Molju Code <i class="ph-fill ph-seal-check ver"></i>'; showScr('scrChat'); };
-        c.appendChild(bot);
-
-        data.forEach(item => {
-            const ch = item.chats; if (!ch) return;
-            const el = document.createElement('div'); el.className = 'lIt';
-            let pinIcon = ch.is_pinned ? '<i class="ph-fill ph-push-pin" style="margin-left:6px; font-size:14px; color:var(--acc)"></i>' : '';
-            let muteIcon = ch.is_muted ? '<i class="ph ph-bell-slash" style="margin-left:6px; font-size:14px; color:var(--mut)"></i>' : '';
-            
-            el.innerHTML = `<div class="ava">${ch.name[0].toUpperCase()}</div><div class="lInf"><div class="lT">${ch.name} ${pinIcon} ${muteIcon}</div></div>`;
-            el.onclick = () => openChat(ch.id, ch.name);
-            
-            // Долгое нажатие на чат для меню
-            let pressTimer;
-            el.addEventListener('touchstart', () => { pressTimer = setTimeout(() => { S.activeChatIdToCtx = ch.id; const m = document.getElementById('ctxChat'); m.classList.add('act'); }, 500); });
-            el.addEventListener('touchend', () => clearTimeout(pressTimer));
-            
-            c.appendChild(el);
+        const seen = new Set();
+        data.forEach(s => {
+            if (seen.has(s.user_id)) return;
+            seen.add(s.user_id);
+            c.innerHTML += `<div class="sIt"><div class="sCr" style="border: 2px solid var(--acc); background-image:url('${s.profiles?.avatar_url || ''}')"></div><div class="sN">${s.profiles?.username}</div></div>`;
         });
     }
 
-    window.pinChat = async () => { if (!S.activeChatIdToCtx) return; const { data } = await supabase.from('chats').select('is_pinned').eq('id', S.activeChatIdToCtx).single(); await supabase.from('chats').update({ is_pinned: !data.is_pinned }).eq('id', S.activeChatIdToCtx); document.getElementById('ctxChat').classList.remove('act'); loadChats(); };
-    window.muteChat = async () => { if (!S.activeChatIdToCtx) return; const { data } = await supabase.from('chats').select('is_muted').eq('id', S.activeChatIdToCtx).single(); await supabase.from('chats').update({ is_muted: !data.is_muted }).eq('id', S.activeChatIdToCtx); document.getElementById('ctxChat').classList.remove('act'); loadChats(); };
-    window.clearChat = async () => { if (!S.activeChatIdToCtx) return; if (!confirm('Очистить историю?')) return; await supabase.from('messages').delete().eq('chat_id', S.activeChatIdToCtx); document.getElementById('ctxChat').classList.remove('act'); toast('История очищена'); };
+    // ЧАТЫ
+    async function loadChats() {
+        const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', S.u.id);
+        const c = document.getElementById('cList'); c.innerHTML = '';
+        if (!data) return;
+        data.forEach(item => {
+            const el = document.createElement('div'); el.className = 'lIt';
+            el.innerHTML = `<div class="ava">${item.chats.name[0]}</div><div class="lInf"><div class="lT">${item.chats.name}</div></div>`;
+            el.onclick = () => openChat(item.chats.id, item.chats.name);
+            c.appendChild(el);
+        });
+    }
 
     window.openChat = async function(id, name) {
         S.cId = id; document.getElementById('cName').textContent = name; showScr('scrChat');
         const c = document.getElementById('mBox'); c.innerHTML = '';
         const { data } = await supabase.from('messages').select('*').eq('chat_id', id).order('created_at', { ascending: true });
-        if (data) data.forEach(m => { c.innerHTML += `<div class="msg ${m.sender_id === S.u.id ? 'msgM' : 'msgO'}"><span>${m.text}</span></div>`; });
+        if (data) data.forEach(m => {
+            const isM = m.sender_id === S.u.id;
+            c.innerHTML += `<div class="msg ${isM ? 'msgM' : 'msgO'}"><span>${m.text}</span></div>`;
+        });
         c.scrollTop = c.scrollHeight;
     };
 
     document.getElementById('bBack').onclick = () => { S.cId = null; showScr('scrMain'); loadChats(); };
     document.getElementById('bSendMsg').onclick = async () => { const i = document.getElementById('mInp'), t = i.value.trim(); if (!t || !S.cId) return; i.value = ''; await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); openChat(S.cId, document.getElementById('cName').textContent); };
 
-    // ИСТОРИИ (КРУЖОЧКИ)
-    async function loadStories() {
-        const c = document.getElementById('sCont'); c.innerHTML = `<div class="sIt" onclick="toast('Добавление в разработке')"><div class="sCr ad" style="border:2px dashed var(--mut)"><i class="ph ph-plus" style="font-size:24px"></i></div><div class="sN">Добавить</div></div>`;
-        const { data } = await supabase.from('stories').select('*, profiles(username)').order('created_at', { ascending: false });
+    // ПАНЕЛЬ ВЛАДЕЛЬЦА (ПО ID!)
+    window.openAdminPanel = () => { openM('mdlAdmin'); loadAdminList('users'); };
+
+    window.loadAdminList = async (mode) => {
+        const list = document.getElementById('adminList'); 
+        list.innerHTML = '<div class="ld" style="margin:auto"></div>';
+        
+        if (mode === 'banned') {
+            const { data } = await supabase.from('banned_emails').select('*');
+            list.innerHTML = '';
+            if (!data || data.length === 0) return list.innerHTML = '<div style="color:var(--mut);text-align:center">Пусто</div>';
+            data.forEach(b => {
+                list.innerHTML += `<div class="adm-item"><div class="adm-row"><div>${b.email}</div><button class="adm-btn" onclick="unbanEmail('${b.email}')">Разбан</button></div></div>`;
+            });
+            return;
+        }
+
+        const { data } = await supabase.from('profiles').select('*');
+        list.innerHTML = '';
         if (!data) return;
         
-        // Оставляем только по 1 истории на пользователя
-        const seen = new Set();
-        data.forEach(s => {
-            if (seen.has(s.user_id)) return;
-            seen.add(s.user_id);
-            c.innerHTML += `<div class="sIt"><div class="sCr ha" style="background-image:url('${s.profiles?.avatar_url || ''}')"></div><div class="sN">${s.profiles?.username}</div></div>`;
+        data.forEach(user => {
+            if (user.id === S.u.id) return;
+            list.innerHTML += `
+            <div class="adm-item">
+                <div class="adm-row">
+                    <div style="font-weight:600">${user.name} ${user.is_verified ? '<i class="ph-fill ph-seal-check" style="color:var(--ver)"></i>' : ''}</div>
+                    <button class="adm-btn" onclick="toggleVerify('${user.id}', ${user.is_verified})">Галочка</button>
+                </div>
+                <div class="adm-row" style="margin-top:8px;">
+                    <button class="adm-btn" style="color:var(--dan); border-color:var(--dan)" onclick="softBan('${user.id}', '${user.email}')">Бан</button>
+                </div>
+            </div>`;
         });
-    }
+    };
+
+    // ИСПОЛЬЗУЕМ ID (А НЕ USERNAME) ДЛЯ ВСЕХ ОПЕРАЦИЙ
+    window.toggleVerify = async (id, status) => { 
+        await supabase.from('profiles').update({ is_verified: !status }).eq('id', id); 
+        toast('Галочка изменена'); loadAdminList('users'); 
+    };
+    
+    window.softBan = async (id, email) => { 
+        if(!confirm('Забанить?')) return; 
+        await supabase.from('banned_emails').insert({ email }); 
+        await supabase.from('profiles').delete().eq('id', id); 
+        toast('Забанен'); loadAdminList('users'); 
+    };
+    
+    window.unbanEmail = async (email) => { 
+        await supabase.from('banned_emails').delete().eq('email', email); 
+        toast('Разбанен'); loadAdminList('banned'); 
+    };
+
+    window.broadcastMessage = async () => {
+        const msg = prompt('Текст рассылки:');
+        if (!msg) return;
+        const { data: users } = await supabase.from('profiles').select('id');
+        for (let u of users) {
+            await supabase.from('messages').insert({ chat_id: 'broadcast_chat', sender_id: S.u.id, text: msg });
+        }
+        toast('Рассылка отправлена!');
+    };
+
+    // БЕЗОПАСНОСТЬ И ПРОЧЕЕ
+    window.openSecurityModal = async () => {
+        openM('mdlSecurity');
+        const { data } = await supabase.from('devices').select('*').eq('user_id', S.u.id);
+        document.getElementById('devCount').textContent = data ? data.length : 0;
+        const list = document.getElementById('devList'); list.innerHTML = '';
+        if (data) data.forEach(d => list.innerHTML += `<div style="padding: 10px; background: var(--surf2); margin-bottom: 8px; border-radius: 8px;">${d.device_name}</div>`);
+    };
+
+    window.openEditProfile = () => {
+        document.getElementById('eUser').value = S.p.username;
+        document.getElementById('eName').value = S.p.name;
+        openM('mdlEditProf');
+    };
+
+    document.getElementById('bSaveEdit').onclick = async () => {
+        const u = document.getElementById('eUser').value.trim();
+        const n = document.getElementById('eName').value.trim();
+        await supabase.from('profiles').update({ username: u, name: n }).eq('id', S.u.id);
+        toast('Профиль обновлен');
+        closeM('mdlEditProf');
+        checkProf();
+    };
 
     document.getElementById('bLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
-
-    supabase.auth.getSession().then(({ data: { session } }) => { if (!session) { showScr('scrAuth'); showASt('stE'); } });
+    supabase.auth.getSession().then(({ data: { session } }) => { if (!session) showScr('scrAuth'); });
 });
 </script>
 </body>
-</html>
+    </html>
