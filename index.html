@@ -11,71 +11,50 @@
 
     <style>
         /* ========================================== */
-        /* 1. ТЕМЫ */
+        /* 1. ТЕМЫ (Светлая сделана реально белой) */
         /* ========================================== */
         :root {
-            /* Тёмная тема (по умолчанию) */
-            --bg-main: #080808; 
-            --bg-surface: #121212; 
-            --bg-surface-light: #1c1c1e;
-            --bg-glass: rgba(18, 18, 18, 0.88); 
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-primary: #ffffff; 
-            --text-secondary: #8e8e93; 
-            --brand-red: #ff3b30; 
-            --brand-red-glow: rgba(255, 59, 48, 0.4);
+            --bg-main: #080808; --bg-surface: #121212; --bg-surface-light: #1c1c1e;
+            --bg-glass: rgba(18, 18, 18, 0.88); --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff; --text-secondary: #8e8e93; 
+            --brand-red: #ff3b30; --brand-red-glow: rgba(255, 59, 48, 0.4);
             --brand-gradient: linear-gradient(135deg, #ff3b30 0%, #b30000 100%);
-            --msg-mine: linear-gradient(135deg, #ff3b30, #cc0000); 
-            --msg-other: #262628;
-            --msg-bot: #1e2a38; 
-            --msg-bot-border: #2d4057;
-            --verified-blue: #0088cc; 
-            --danger: #ff453a;
+            --msg-mine: linear-gradient(135deg, #ff3b30, #cc0000); --msg-other: #262628;
+            --msg-bot: #1e2a38; --msg-bot-border: #2d4057;
+            --verified-blue: #0088cc; --danger: #ff453a;
         }
-
-        /* Светлая тема (Сделал фон РЕАЛЬНО БЕЛЫМ) */
         body.light-theme {
-            --bg-main: #ffffff; 
-            --bg-surface: #f2f2f7; 
-            --bg-surface-light: #e5e5ea;
-            --bg-glass: rgba(255, 255, 255, 0.88); 
-            --border-color: rgba(0, 0, 0, 0.1);
-            --text-primary: #000000; 
-            --text-secondary: #666666; 
-            --msg-other: #f2f2f7;
-            --msg-bot: #e1f0ff; 
-            --msg-bot-border: #b3d4ff;
+            --bg-main: #ffffff; /* Реально белый */
+            --bg-surface: #f2f2f7; --bg-surface-light: #e5e5ea;
+            --bg-glass: rgba(255, 255, 255, 0.88); --border-color: rgba(0, 0, 0, 0.1);
+            --text-primary: #000000; --text-secondary: #666666; 
+            --msg-other: #f2f2f7; --msg-bot: #e1f0ff; --msg-bot-border: #b3d4ff;
         }
 
         /* ========================================== */
         /* 2. СБРОС И БАЗА */
         /* ========================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body { height: 100vh; height: 100dvh; background-color: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; justify-content: center; transition: background 0.3s, color 0.3s; }
-        
+        body { height: 100vh; height: 100dvh; background-color: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; justify-content: center; transition: background 0.3s; }
         .app-container { position: relative; width: 100%; height: 100%; max-width: 480px; background-color: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
-
-        /* ========================================== */
-        /* 3. АНИМАЦИИ */
-        /* ========================================== */
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes storyProgress { from { width: 0%; } to { width: 100%; } }
+        @keyframes giftBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
         /* ========================================== */
-        /* 4. КОМПОНЕНТЫ */
+        /* 3. КОМПОНЕНТЫ */
         /* ========================================== */
         button { border: none; background: none; color: inherit; font-family: inherit; cursor: pointer; outline: none; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         button:active { transform: scale(0.95); opacity: 0.8; }
-        
         .btn { padding: 16px 24px; border-radius: 16px; font-weight: 600; font-size: 16px; width: 100%; }
         .btn-primary { background: var(--brand-gradient); color: #fff; box-shadow: 0 4px 15px var(--brand-red-glow); }
         .btn-secondary { background: var(--bg-surface-light); color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-danger { background: rgba(255, 69, 58, 0.1); color: var(--danger); border: 1px solid rgba(255, 69, 58, 0.3); }
         
-        .input-field { width: 100%; padding: 16px; border-radius: 16px; background-color: var(--bg-surface-light); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 16px; outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+        .input-field { width: 100%; padding: 16px; border-radius: 16px; background-color: var(--bg-surface-light); border: 1.5px solid var(--border-color); color: var(--text-primary); font-size: 16px; outline: none; margin-bottom: 16px; }
         .input-field:focus { border-color: var(--brand-red); }
         
         .avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: #fff; background: var(--brand-gradient); flex-shrink: 0; background-size: cover; background-position: center; }
@@ -85,7 +64,7 @@
         .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
 
         /* ========================================== */
-        /* 5. ЭКРАНЫ И ШАПКА */
+        /* 4. ЭКРАНЫ И НАВИГАЦИЯ */
         /* ========================================== */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background-color: var(--bg-main); z-index: 10; }
         .screen.active { display: flex; animation: fadeIn 0.3s ease; }
@@ -95,19 +74,14 @@
         .icon-btn { width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-surface-light); font-size: 20px; }
         
         .main-content { flex: 1; overflow-y: auto; padding: 0 16px 100px 16px; }
-        .tab-pane { display: none; } 
-        .tab-pane.active { display: block; animation: fadeIn 0.3s; }
-
-        /* ========================================== */
-        /* 6. НАВИГАЦИЯ */
-        /* ========================================== */
+        .tab-pane { display: none; } .tab-pane.active { display: block; animation: fadeIn 0.3s; }
+        
         .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background-color: var(--bg-glass); backdrop-filter: blur(20px); border-top: 1px solid var(--border-color); z-index: 30; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 11px; width: 70px; }
-        .nav-btn.active { color: var(--brand-red); } 
-        .nav-btn i { font-size: 24px; }
+        .nav-btn.active { color: var(--brand-red); } .nav-btn i { font-size: 24px; }
 
         /* ========================================== */
-        /* 7. СПИСКИ ЧАТОВ */
+        /* 5. СПИСКИ И ЧАТЫ */
         /* ========================================== */
         .search-bar { width: 100%; padding: 12px 16px; border-radius: 16px; background-color: var(--bg-surface-light); display: flex; align-items: center; gap: 10px; margin: 16px 0; }
         .search-bar input { background: none; border: none; color: var(--text-primary); width: 100%; outline: none; font-size: 15px; }
@@ -117,27 +91,22 @@
         .list-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
         .list-subtitle { font-size: 14px; color: var(--text-secondary); }
 
-        /* ========================================== */
-        /* 8. ЭКРАН ЧАТА */
-        /* ========================================== */
         .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background-color: var(--bg-glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); z-index: 20; }
         .chat-back-btn { font-size: 24px; padding: 8px; margin-left: -8px; }
         .chat-header-name { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
         .chat-header-status { font-size: 12px; color: var(--text-secondary); }
-        
         .messages-area { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
         .message { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 15px; position: relative; word-break: break-word; display: flex; flex-direction: column; }
         .message.incoming { align-self: flex-start; background: var(--msg-other); border-bottom-left-radius: 4px; }
         .message.outgoing { align-self: flex-end; background: var(--msg-mine); color: #fff; border-bottom-right-radius: 4px; }
         .message.bot { align-self: flex-start; background: var(--msg-bot); border: 1px solid var(--msg-bot-border); border-bottom-left-radius: 4px; color: var(--text-primary); }
         .message-time { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 4px; }
-        
         .chat-input-area { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background-color: var(--bg-glass); backdrop-filter: blur(20px); border-top: 1px solid var(--border-color); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
         .chat-input-area input { flex: 1; background-color: var(--bg-surface-light); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: 24px; color: var(--text-primary); outline: none; }
         .send-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--brand-gradient); color: #fff; font-size: 24px; flex-shrink: 0; }
 
         /* ========================================== */
-        /* 9. ИСТОРИИ (ИСПРАВЛЕН Z-INDEX) */
+        /* 6. ИСТОРИИ (Z-INDEX ИСПРАВЛЕН) */
         /* ========================================== */
         .stories-row { display: flex; gap: 16px; overflow-x: auto; padding: 16px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 16px; }
         .stories-row::-webkit-scrollbar { display: none; }
@@ -163,22 +132,31 @@
         .story-reply-inp { flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 12px 16px; border-radius: 24px; backdrop-filter: blur(10px); outline: none; }
 
         /* ========================================== */
-        /* 10. МОДАЛКИ (Z-INDEX ИСПРАВЛЕН НА 300) */
+        /* 7. МОДАЛКИ (Z-INDEX 300) */
         /* ========================================== */
         .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); display: none; align-items: flex-end; z-index: 300; }
         .modal-overlay.active { display: flex; }
         .modal-content { width: 100%; background-color: var(--bg-surface); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-        
         .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-color); cursor: pointer; }
         .setting-text { flex: 1; font-size: 16px; margin-left: 12px; }
         .setting-select { background: var(--bg-surface-light); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; outline: none; }
 
         /* ========================================== */
-        /* 11. УВЕДОМЛЕНИЯ (Z-INDEX 9999) */
+        /* 8. ПОДАРКИ И УВЕДОМЛЕНИЯ */
         /* ========================================== */
+        .gift-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
+        .gift-item { background: var(--bg-surface-light); padding: 12px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 70px; border: 1px solid var(--border-color); }
+        .gift-icon { font-size: 32px; }
+        .gift-name { font-size: 11px; color: var(--text-secondary); text-align: center; }
+
         #toast-container { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9999; pointer-events: none; }
         .toast { background-color: var(--bg-surface-light); color: var(--text-primary); padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-color); animation: popIn 0.2s ease; }
+
+        /* Модалка подарка */
+        #modal-gift { z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+        #modal-gift .modal-content { border-radius: 24px; text-align: center; max-width: 340px; padding: 32px 24px; }
+        .gift-animation { font-size: 80px; animation: giftBounce 1s infinite; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -186,7 +164,7 @@
 <div class="app-container">
     <div id="toast-container"></div>
     
-    <!-- ЭКРАН 1: АВТОРИЗАЦИЯ -->
+    <!-- ЭКРАН АВТОРИЗАЦИИ -->
     <div id="screen-auth" class="screen active">
         <div class="auth-box" style="width: 100%; max-width: 340px; margin: auto; display: flex; flex-direction: column; align-items: center; padding: 24px;">
             <div class="logo" style="font-size: 56px; font-weight: 800; background: var(--brand-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px;">Molju</div>
@@ -208,7 +186,7 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 2: ГЛАВНЫЙ -->
+    <!-- ГЛАВНЫЙ ЭКРАН -->
     <div id="screen-main" class="screen">
         <header class="app-header">
             <div class="header-title" id="main-title">Molju</div>
@@ -223,21 +201,34 @@
                 </div>
                 <div class="chat-list" id="chat-list-container"></div>
             </div>
+            
             <div id="tab-settings" class="tab-pane">
                 <div class="setting-item" onclick="toggleTheme()">
                     <div style="display: flex; align-items: center;"><i class="ph ph-moon" style="font-size: 22px;"></i><div class="setting-text">Светлая тема</div></div>
                     <input type="checkbox" id="theme-toggle" style="width: 20px; height: 20px; accent-color: var(--brand-red);">
                 </div>
             </div>
+
+            <!-- ПРОФИЛЬ С ПОДАРКАМИ -->
             <div id="tab-profile" class="tab-pane">
                 <div style="display: flex; flex-direction: column; align-items: center; margin-top: 40px;">
                     <div class="avatar avatar-lg" id="profile-avatar"></div>
                     <div style="font-size: 24px; font-weight: 700; margin-top: 16px; display: flex; align-items: center;" id="profile-name">Имя</div>
                     <div style="color: var(--text-secondary); margin-top: 4px;" id="profile-username">@username</div>
+                    
                     <div style="width: 100%; margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
                         <button class="btn btn-secondary" onclick="openEditProfile()"><i class="ph ph-pencil-simple" style="margin-right: 8px;"></i> Изменить профиль</button>
                         <button class="btn btn-secondary" onclick="openModal('modal-privacy')"><i class="ph ph-shield-check" style="margin-right: 8px;"></i> Конфиденциальность</button>
                     </div>
+
+                    <div style="width: 100%; margin-top: 30px;">
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Мои подарки</div>
+                        <div class="gift-grid" id="gifts-container">
+                            <!-- Подарки рендерятся тут -->
+                            <div style="color: var(--text-secondary); font-size: 14px; width: 100%; text-align: center;">Пока нет подарков. Заходите каждый день!</div>
+                        </div>
+                    </div>
+
                     <button class="btn btn-secondary" style="margin-top: 40px; color: var(--danger); background: rgba(255,69,58,0.1); border: none;" id="btn-logout">Выйти из аккаунта</button>
                 </div>
             </div>
@@ -249,7 +240,7 @@
         </nav>
     </div>
 
-    <!-- ЭКРАН 3: ЧАТ -->
+    <!-- ЭКРАН ЧАТА -->
     <div id="screen-chat" class="screen">
         <header class="chat-header">
             <button class="chat-back-btn" id="btn-back-chat"><i class="ph ph-caret-left"></i></button>
@@ -287,6 +278,16 @@
         </div>
     </div>
 
+    <!-- МОДАЛКА ПОДАРКА -->
+    <div id="modal-gift" class="modal-overlay">
+        <div class="modal-content">
+            <div class="gift-animation" id="gift-animation-icon">🎁</div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">Ежедневный подарок!</div>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Вы зашли сегодня и получаете:<br><b id="gift-name-text" style="color: var(--text-primary);">Подарок</b></p>
+            <button class="btn btn-primary" onclick="closeModal('modal-gift')">Забрать</button>
+        </div>
+    </div>
+
     <!-- МОДАЛКИ -->
     <div id="modal-search" class="modal-overlay" onclick="closeModal('modal-search', event)">
         <div class="modal-content">
@@ -309,36 +310,21 @@
         </div>
     </div>
 
-    <!-- РАСШИРЕННАЯ КОНФИДЕНЦИАЛЬНОСТЬ -->
     <div id="modal-privacy" class="modal-overlay" onclick="closeModal('modal-privacy', event)">
         <div class="modal-content">
             <div class="modal-title">Конфиденциальность</div>
-            
             <div class="setting-item">
                 <div class="setting-text">Кто видит статус «Онлайн»</div>
                 <select id="privacy-online" class="setting-select" onchange="savePrivacy()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Контакты</option>
-                    <option value="none">Никто</option>
+                    <option value="all">Все</option><option value="contacts">Контакты</option><option value="none">Никто</option>
                 </select>
             </div>
-            
             <div class="setting-item">
                 <div class="setting-text">Кто может писать</div>
                 <select id="privacy-msg" class="setting-select" onchange="savePrivacy()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Контакты</option>
+                    <option value="all">Все</option><option value="contacts">Контакты</option>
                 </select>
             </div>
-
-            <div class="setting-item">
-                <div class="setting-text">Кто видит истории</div>
-                <select id="privacy-stories" class="setting-select" onchange="savePrivacy()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Контакты</option>
-                </select>
-            </div>
-
             <div class="setting-item">
                 <div class="setting-text">Галочки прочтения (✓✓)</div>
                 <input type="checkbox" id="privacy-receipts" style="width: 20px; height: 20px; accent-color: var(--brand-red);" onchange="savePrivacy()">
@@ -349,12 +335,8 @@
     <div id="modal-story-options" class="modal-overlay" onclick="closeModal('modal-story-options', event)">
         <div class="modal-content">
             <div class="modal-title">Управление историей</div>
-            <div class="setting-item" onclick="deleteCurrentStory()" style="color: var(--danger);">
-                <div class="setting-text"><i class="ph ph-trash"></i> Удалить историю</div>
-            </div>
-            <div class="setting-item" onclick="changeCurrentStoryVisibility()">
-                <div class="setting-text"><i class="ph ph-eye"></i> Изменить видимость</div>
-            </div>
+            <div class="setting-item" onclick="deleteCurrentStory()" style="color: var(--danger);"><div class="setting-text"><i class="ph ph-trash"></i> Удалить историю</div></div>
+            <div class="setting-item" onclick="changeCurrentStoryVisibility()"><div class="setting-text"><i class="ph ph-eye"></i> Изменить видимость</div></div>
         </div>
     </div>
 
@@ -365,8 +347,7 @@
             <input type="file" id="story-file-input" style="display: none;" accept="image/*,video/*">
             <input type="text" id="story-text-input" class="input-field" placeholder="Текст (необязательно)">
             <select id="story-visibility" class="input-field">
-                <option value="all">Кто увидит: Все</option>
-                <option value="contacts">Только контакты</option>
+                <option value="all">Кто увидит: Все</option><option value="contacts">Только контакты</option>
                 <option value="global" id="opt-global" style="display:none;">Для всех (Глобально)</option>
             </select>
             <button class="btn btn-primary" id="btn-publish-story">Опубликовать</button>
@@ -385,6 +366,18 @@
         const SUPABASE_URL = 'https://dhmqbjfzkrmsbrwzenna.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { detectSessionInUrl: true, persistSession: true } });
+
+        // Список доступных подарков
+        const GIFTS = [
+            { name: 'Мишка', icon: '🧸' },
+            { name: 'Роза', icon: '🌹' },
+            { name: 'Тортик', icon: '🎂' },
+            { name: 'Ракета', icon: '🚀' },
+            { name: 'Кубок', icon: '🏆' },
+            { name: 'Алмаз', icon: '💎' },
+            { name: 'Сердце', icon: '❤️' },
+            { name: 'Клевер', icon: '🍀' }
+        ];
 
         const AppState = { user: null, profile: null, currentChatId: null, loginEmail: '', currentStoryFile: null, currentStoryType: 'image', activeStories: [], storyIndex: 0, storyTimer: null, currentViewingStory: null, isHolding: false, holdTimer: null };
 
@@ -413,7 +406,7 @@
         
         const getTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        // АВТОРИЗАЦИЯ
+        // ================= АВТОРИЗАЦИЯ =================
         document.getElementById('btn-send-code').addEventListener('click', async function() {
             const email = document.getElementById('input-email').value.trim(); if (!email) return showToast('Введите Email');
             AppState.loginEmail = email; this.innerHTML = '<div class="spinner"></div>'; this.disabled = true;
@@ -440,17 +433,16 @@
                 document.getElementById('profile-username').textContent = '@' + data.username;
                 if (data.avatar_url) document.getElementById('profile-avatar').style.backgroundImage = `url('${data.avatar_url}')`;
                 
-                // Настройки конфиденциальности
                 document.getElementById('privacy-online').value = data.who_can_online || 'all';
                 document.getElementById('privacy-msg').value = data.who_can_msg || 'all';
-                document.getElementById('privacy-stories').value = data.who_can_stories || 'all';
                 document.getElementById('privacy-receipts').checked = data.read_receipts !== false;
-
-                // Если есть галочка, показываем глобальные истории
                 if (data.is_verified) { document.getElementById('opt-global').style.display = 'block'; }
-                else { document.getElementById('opt-global').style.display = 'none'; }
 
-                showScreen('screen-main'); loadChats(); loadStories();
+                showScreen('screen-main'); 
+                loadChats(); 
+                loadStories();
+                checkDailyGift(); // Проверка подарка при входе
+                loadGifts();      // Загрузка инвентаря
             } else { showAuthStep('step-profile'); }
         }
 
@@ -464,7 +456,53 @@
             if (error) showToast(error.code === '23505' ? 'Этот юзернейм уже занят' : error.message); else await checkUserProfile();
         });
 
-        // ПРОФИЛЬ
+        // ================= СИСТЕМА ПОДАРКОВ =================
+        async function checkDailyGift() {
+            const lastClaim = AppState.profile.last_gift_claimed ? new Date(AppState.profile.last_gift_claimed).getTime() : 0;
+            const now = new Date().getTime();
+            const hoursPassed = (now - lastClaim) / 36e5;
+
+            if (hoursPassed >= 24) {
+                // Выдаем подарок
+                const randomGift = GIFTS[Math.floor(Math.random() * GIFTS.length)];
+                
+                // Сохраняем в БД
+                await supabase.from('user_gifts').insert({
+                    user_id: AppState.user.id,
+                    gift_name: randomGift.name,
+                    gift_icon: randomGift.icon
+                });
+                await supabase.from('profiles').update({ last_gift_claimed: new Date() }).eq('id', AppState.user.id);
+                AppState.profile.last_gift_claimed = new Date();
+
+                // Показываем модалку
+                document.getElementById('gift-animation-icon').textContent = randomGift.icon;
+                document.getElementById('gift-name-text').textContent = randomGift.name;
+                openModal('modal-gift');
+                
+                loadGifts(); // Обновляем список
+            }
+        }
+
+        async function loadGifts() {
+            const { data } = await supabase.from('user_gifts').select('*').eq('user_id', AppState.user.id).order('created_at', { ascending: false });
+            const container = document.getElementById('gifts-container');
+            container.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 14px; width: 100%; text-align: center;">Пока нет подарков. Заходите каждый день!</div>';
+                return;
+            }
+
+            data.forEach(gift => {
+                const el = document.createElement('div');
+                el.className = 'gift-item';
+                el.innerHTML = `<div class="gift-icon">${gift.gift_icon}</div><div class="gift-name">${gift.gift_name}</div>`;
+                container.appendChild(el);
+            });
+        }
+
+        // ================= ПРОФИЛЬ =================
         window.openEditProfile = function() {
             document.getElementById('edit-username-input').value = AppState.profile.username;
             document.getElementById('edit-name-input').value = AppState.profile.name;
@@ -499,20 +537,17 @@
             }
         });
 
-        // ПРИВАТНОСТЬ
         window.savePrivacy = async function() {
             const online = document.getElementById('privacy-online').value;
             const msg = document.getElementById('privacy-msg').value;
-            const stories = document.getElementById('privacy-stories').value;
             const receipts = document.getElementById('privacy-receipts').checked;
-
-            await supabase.from('profiles').update({ who_can_online: online, who_can_msg: msg, who_can_stories: stories, read_receipts: receipts }).eq('id', AppState.user.id);
-            showToast('Настройки конфиденциальности сохранены');
+            await supabase.from('profiles').update({ who_can_online: online, who_can_msg: msg, read_receipts: receipts }).eq('id', AppState.user.id);
+            showToast('Настройки сохранены');
         };
 
         document.getElementById('btn-logout').addEventListener('click', async () => { await supabase.auth.signOut(); location.reload(); });
 
-        // ЧАТЫ
+        // ================= ЧАТЫ И ИСТОРИИ (БЕЗ ИЗМЕНЕНИЙ) =================
         async function loadChats() {
             const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', AppState.user.id);
             const container = document.getElementById('chat-list-container'); container.innerHTML = '';
@@ -548,7 +583,6 @@
         });
         document.getElementById('input-message').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('btn-send-message').click(); });
 
-        // ПОИСК
         document.getElementById('btn-do-search').addEventListener('click', async function() {
             const query = document.getElementById('search-input').value.trim(); if (!query) return;
             this.innerHTML = '<div class="spinner"></div>'; this.disabled = true;
@@ -564,7 +598,6 @@
             }
         });
 
-        // ИСТОРИИ
         async function loadStories() {
             const container = document.getElementById('stories-container');
             container.innerHTML = `<div class="story-item" onclick="openModal('modal-add-story')"><div class="story-circle add"><i class="ph ph-plus"></i></div><div class="story-name">Добавить</div></div>`;
@@ -586,17 +619,14 @@
             }
         }
         window.openStoryViewer = function(stories, index) { AppState.activeStories = stories; AppState.storyIndex = index; document.getElementById('story-viewer').classList.add('active'); renderStory(); };
-
         function renderStory() {
             const story = AppState.activeStories[AppState.storyIndex]; if (!story) return closeStory();
             AppState.currentViewingStory = story;
             document.getElementById('story-name').innerHTML = `${story.profiles?.username} ${story.profiles?.is_verified ? '<i class="ph-fill ph-seal-check verified-badge" style="color:#fff;"></i>' : ''}`;
             document.getElementById('story-avatar').style.backgroundImage = `url('${story.profiles?.avatar_url || ''}')`;
-            
             const isMine = story.user_id === AppState.user.id;
             document.getElementById('story-options-btn').style.display = isMine ? 'block' : 'none';
             document.getElementById('story-bottom-bar').style.display = isMine ? 'none' : 'flex';
-
             const img = document.getElementById('story-img'), vid = document.getElementById('story-video');
             img.style.display = 'none'; vid.style.display = 'none'; vid.pause();
             if (story.media_url) {
@@ -605,12 +635,10 @@
             }
             document.getElementById('story-text-display').textContent = story.text || '';
             document.getElementById('story-text-display').style.display = story.text ? 'block' : 'none';
-            
             const bar = document.getElementById('story-progress-bar');
             bar.style.animation = 'none'; bar.offsetHeight; bar.style.animation = 'storyProgress 10s linear forwards';
             clearTimeout(AppState.storyTimer); AppState.storyTimer = setTimeout(() => nextStory(), 10000);
         }
-
         window.openStoryOptions = function() { openModal('modal-story-options'); };
         window.deleteCurrentStory = async function() {
             if (!AppState.currentViewingStory) return;
@@ -626,17 +654,14 @@
                 closeModal('modal-story-options'); showToast('Видимость обновлена');
             }
         };
-
         window.closeStory = function() { document.getElementById('story-viewer').classList.remove('active'); document.getElementById('story-video').pause(); clearTimeout(AppState.storyTimer); loadStories(); };
         window.nextStory = function(e) { if (e) e.stopPropagation(); AppState.storyIndex++; if (AppState.storyIndex >= AppState.activeStories.length) closeStory(); else renderStory(); };
         window.prevStory = function(e) { if (e) e.stopPropagation(); if (AppState.storyIndex > 0) { AppState.storyIndex--; renderStory(); } };
-
         window.sendStoryReply = async function() {
             const inp = document.getElementById('story-reply-input'); const text = inp.value.trim(); if (!text) return; inp.value = '';
             const story = AppState.currentViewingStory;
             const { data: author } = await supabase.from('profiles').select('who_can_msg').eq('id', story.user_id).single();
             if (author.who_can_msg === 'contacts') { return showToast('Автор запретил писать ему'); }
-
             let { data: chat } = await supabase.from('chats').select('id').eq('owner_id', AppState.user.id).eq('name', story.profiles.username).maybeSingle();
             if (!chat) {
                 const { data: newChat } = await supabase.from('chats').insert({ type: 'user', name: story.profiles.username, owner_id: AppState.user.id }).select().single();
@@ -647,7 +672,6 @@
             showToast('Ответ отправлен в чат!');
         };
 
-        // ЖЕСТЫ
         const mediaContainer = document.getElementById('story-media-container');
         mediaContainer.addEventListener('touchstart', (e) => {
             if (e.target.closest('#story-bottom-bar') || e.target.closest('.story-header')) return;
@@ -693,4 +717,4 @@
     });
 </script>
 </body>
-    </html>
+</html>
