@@ -188,6 +188,7 @@
             <p style="text-align:center;color:var(--mut);margin-bottom:20px">Код отправлен на <br><b id="dEmail" style="color:var(--txt)"></b></p>
             <input type="text" id="iOtp" class="inp" placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:5px">
             <button class="btn-saw btn-primary" id="bVerify">Подтвердить</button>
+            <button class="link-btn" id="bResendOtp">Отправить код заново</button>
         </div>
 
         <!-- Создание профиля -->
@@ -285,6 +286,9 @@ window.addEventListener('error', function(e) { document.getElementById('err').st
 document.addEventListener('DOMContentLoaded', () => {
     const supabase = window.supabase.createClient('https://dhmqbjfzkrmsbrwzenna.supabase.co', 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI', { auth: { detectSessionInUrl: true, persistSession: true } });
     const S = { u: null, p: null, cId: null, authEmail: '', loginProfile: null, regEmail: '', activeMsgToCtx: null, adminSearchResult: null };
+    
+    // Восстанавливаем email после перезагрузки, чтобы не было "Ошибки сети"
+    S.authEmail = localStorage.getItem('molju_auth_email') || '';
 
     window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000); };
     window.showScr = (id) => { document.querySelectorAll('.scr').forEach(x => x.classList.remove('act')); document.getElementById(id).classList.add('act'); };
@@ -323,9 +327,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 2. ВХОД
+    // 2. ВХОД (ПРОВЕРКА EMAIL/ЛОГИНА)
     // ==========================================
     document.getElementById('bLoginCheck').onclick = async function() {
+        if (this.disabled) return;
         const input = document.getElementById('iLoginIdentifier').value.trim();
         if (!input) return toast('Введите Email или @username');
         
@@ -356,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         S.loginProfile = p;
         S.authEmail = p.email;
+        localStorage.setItem('molju_auth_email', p.email);
         document.getElementById('display-login-email').textContent = p.email;
         showASt('stPass');
     };
@@ -364,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. ВХОД ПО ПАРОЛЮ
     // ==========================================
     document.getElementById('bLoginPass').onclick = async function() {
+        if (this.disabled) return;
         const pwd = document.getElementById('iPass').value;
         if (!pwd) return toast('Введите пароль');
         
@@ -374,17 +381,19 @@ document.addEventListener('DOMContentLoaded', () => {
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
         try {
-            const { error } = await supabase.auth.signInWithOtp({ email: S.authEmail });
+            const { error } = await supabase.auth.signInWithOtp({ 
+                email: S.authEmail,
+                options: { shouldCreateUser: false }
+            });
             
-            if (error) {
-                toast('Ошибка: ' + error.message);
-            } else {
-                document.getElementById('dEmail').textContent = S.authEmail;
-                showASt('stO');
-                toast('Пароль верный! Введите код из письма.');
-            }
+            if (error) throw error;
+            
+            localStorage.setItem('molju_auth_email', S.authEmail);
+            document.getElementById('dEmail').textContent = S.authEmail;
+            showASt('stO');
+            toast('Пароль верный! Введите код.');
         } catch (e) {
-            toast('Ошибка сети: ' + e.message);
+            toast('Ошибка: ' + e.message);
         } finally {
             this.innerHTML = 'Войти'; this.disabled = false;
         }
@@ -393,27 +402,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 4. ВОССТАНОВЛЕНИЕ ПАРОЛЯ
     // ==========================================
-    document.getElementById('bForgotPass').onclick = async () => {
-        if (!S.authEmail) return;
+    document.getElementById('bForgotPass').onclick = async function() {
+        if (this.disabled || !S.authEmail) return;
         
-        const btn = document.getElementById('bForgotPass');
-        btn.textContent = 'Отправка...'; btn.disabled = true;
+        this.textContent = 'Отправка...'; this.disabled = true;
         
-        const { error } = await supabase.auth.signInWithOtp({ email: S.authEmail });
+        const { error } = await supabase.auth.signInWithOtp({ 
+            email: S.authEmail,
+            options: { shouldCreateUser: false }
+        });
         
-        btn.textContent = 'Забыли пароль?'; btn.disabled = false;
+        this.textContent = 'Забыли пароль?'; this.disabled = false;
         
-        if (error) return toast(error.message);
+        if (error) return toast('Ошибка: ' + error.message);
         
+        localStorage.setItem('molju_auth_email', S.authEmail);
         document.getElementById('dEmail').textContent = S.authEmail;
         showASt('stO');
-        toast('Код отправлен на ' + S.authEmail);
+        toast('Код отправлен!');
     };
 
     // ==========================================
     // 5. РЕГИСТРАЦИЯ
     // ==========================================
     document.getElementById('bRegCheck').onclick = async function() {
+        if (this.disabled) return;
         const email = document.getElementById('iRegEmail').value.trim();
         if (!email) return toast('Введите Email');
         
@@ -424,49 +437,63 @@ document.addEventListener('DOMContentLoaded', () => {
         this.innerHTML = 'Зарегистрироваться'; this.disabled = false;
         
         if (p) {
-            return toast('Этот Email уже зарегистрирован. Войдите в аккаунт.');
+            return toast('Этот Email уже зарегистрирован. Войдите.');
         }
         
         S.authEmail = email;
-        const { error } = await supabase.auth.signInWithOtp({ email });
+        const { error } = await supabase.auth.signInWithOtp({ 
+            email: email,
+            options: { shouldCreateUser: true }
+        });
         if (error) return toast(error.message);
         
+        localStorage.setItem('molju_auth_email', email);
         document.getElementById('dEmail').textContent = email;
         showASt('stO');
     };
 
     // ==========================================
-    // 6. ПРОВЕРКА КОДА — ЯВНО ЗОВЁМ checkProf()
+    // 6. ПРОВЕРКА КОДА (С АВТО-ПЕРЕОТПРАВКОЙ)
     // ==========================================
     document.getElementById('bVerify').onclick = async function() {
+        if (this.disabled) return;
+        
         const code = document.getElementById('iOtp').value.trim();
+        const email = S.authEmail || localStorage.getItem('molju_auth_email');
+        
+        if (!email) {
+            toast('Email потерян. Введите заново.');
+            return showASt('stLoginEmail');
+        }
         if (code.length < 6) return toast('Введите код полностью');
 
-        this.innerHTML = '<div class="ld"></div>';
+        this.innerHTML = '<div class="ld"></div>'; 
         this.disabled = true;
 
         try {
-            const { error } = await supabase.auth.verifyOtp({
-                email: S.authEmail,
-                token: code,
-                type: 'email'
+            const { error } = await supabase.auth.verifyOtp({ 
+                email: email, 
+                token: code, 
+                type: 'email' 
             });
-
+            
             if (error) {
-                toast('Ошибка: ' + error.message);
+                // Если токен сгорел, автоматически шлем новый
+                if (error.message.includes('expired') || error.message.includes('invalid')) {
+                    toast('Код устарел. Отправляем новый...');
+                    await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } });
+                    toast('Новый код отправлен на почту!');
+                    document.getElementById('iOtp').value = ''; // Очищаем поле
+                } else {
+                    toast('Ошибка: ' + error.message);
+                }
                 return;
             }
-
-            // Берём сессию явно — не полагаемся на onAuthStateChange
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                toast('Код верный, но сессия не создалась. Попробуйте ещё раз.');
-                return;
-            }
-
-            S.u = session.user;
+            
+            // Успех! Переход сделает onAuthStateChange
             toast('Успешный вход!');
-            await checkProf(); // ключевое — принудительный переход
+            localStorage.removeItem('molju_auth_email');
+            
         } catch (err) {
             toast('Ошибка сети: ' + err.message);
         } finally {
@@ -475,8 +502,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Кнопка "Отправить заново"
+    document.getElementById('bResendOtp').onclick = async function() {
+        if (this.disabled || !S.authEmail) return;
+        this.textContent = 'Отправка...'; this.disabled = true;
+        await supabase.auth.signInWithOtp({ email: S.authEmail, options: { shouldCreateUser: false } });
+        toast('Код отправлен заново!');
+        this.textContent = 'Отправить код заново'; this.disabled = false;
+    };
+
     // ==========================================
-    // 7. ОТСЛЕЖИВАНИЕ СОСТОЯНИЯ — включая INITIAL_SESSION
+    // 7. ОТСЛЕЖИВАНИЕ СОСТОЯНИЯ
     // ==========================================
     supabase.auth.onAuthStateChange(async (ev, ses) => {
         if ((ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION') && ses) {
@@ -501,7 +537,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Профиля нет или он недозаполнен → на экран создания
         if (!data || !data.username || !data.password_hash) {
             showScr('scrAuth');
             showASt('stP');
@@ -526,14 +561,15 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChats();
     }
     
-    // СОЗДАНИЕ ПРОФИЛЯ — upsert вместо update
+    // СОЗДАНИЕ ПРОФИЛЯ (UPSERT)
     document.getElementById('bSaveProfile').onclick = async function() {
+        if (this.disabled) return;
         const u = document.getElementById('iUser').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
         const n = document.getElementById('iName').value.trim();
         const pwd = document.getElementById('iNewPass').value;
         
         if (!n) return toast('Введите имя');
-        if (pwd.length < 6) return toast('Пароль должен быть от 6 символов');
+        if (pwd.length < 6) return toast('Пароль от 6 символов');
         
         const err = validateUsername(u, S.authEmail);
         if (err) return toast(err);
@@ -550,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: S.u.id,
             username: u, 
             name: n, 
-            email: S.authEmail, 
+            email: S.authEmail || localStorage.getItem('molju_auth_email'), 
             password_hash: hashPass(pwd),
             last_password_set: new Date()
         }, { onConflict: 'id' });
@@ -639,7 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toast('Рассылка отправлена!');
     };
 
-    // Заглушка, чтобы не падало с ReferenceError
     function loadStories() {
         // TODO: реализовать истории
     }
@@ -664,7 +699,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('bBack').onclick = () => { S.cId = null; showScr('scrMain'); loadChats(); };
-    document.getElementById('bSendMsg').onclick = async () => { const i = document.getElementById('mInp'), t = i.value.trim(); if (!t || !S.cId) return; i.value = ''; await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); openChat(S.cId, document.getElementById('cName').textContent); };
+    document.getElementById('bSendMsg').onclick = async () => { 
+        const i = document.getElementById('mInp'), t = i.value.trim(); 
+        if (!t || !S.cId) return; 
+        i.value = ''; 
+        await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); 
+        openChat(S.cId, document.getElementById('cName').textContent); 
+    };
 
     window.uploadFile = async function(inp) {
         const f = inp.files[0]; if (!f) return;
@@ -675,7 +716,16 @@ document.addEventListener('DOMContentLoaded', () => {
     window.simulateVoice = () => toast('🎤 Голосовое отправлено');
     window.clearChatHistory = async () => { if(!confirm('Очистить?')) return; await supabase.from('messages').delete().eq('chat_id', S.cId); openChat(S.cId, 'Чат'); };
     
-    function logoutFunc() { supabase.auth.signOut().finally(() => { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k.startsWith('sb-')) localStorage.removeItem(k); } window.location.reload(); }); }
+    function logoutFunc() { 
+        supabase.auth.signOut().finally(() => { 
+            localStorage.removeItem('molju_auth_email');
+            for (let i = localStorage.length - 1; i >= 0; i--) { 
+                const k = localStorage.key(i); 
+                if (k.startsWith('sb-')) localStorage.removeItem(k); 
+            } 
+            window.location.reload(); 
+        }); 
+    }
     document.getElementById('bLogout').onclick = logoutFunc;
 
     // ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ
@@ -701,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addNewAccount = function() { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
     window.switchAccount = function(email) { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
 
-    // НАЧАЛЬНАЯ ПРОВЕРКА СЕССИИ — если сессия есть, сразу идём в приложение
+    // НАЧАЛЬНАЯ ПРОВЕРКА СЕССИИ
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (!session) {
             showScr('scrAuth');
