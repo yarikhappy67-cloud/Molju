@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Molju — Auth Fixed</title>
+<title>Molju — Search & Chats</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -86,8 +86,9 @@
     .lIt { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; cursor: pointer; margin-bottom: 4px; background: var(--surf); border: 1px solid var(--brd);}
     .lIt:active { background: var(--surf2); }
     .lInf { flex: 1; min-width: 0; }
-    .lT { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
-    .lS { font-size: 14px; color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lT { font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;}
+    .lS { font-size: 14px; color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;}
+    .lTime { font-size: 12px; color: var(--mut); font-weight: 400; }
 
     .nav { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); z-index: 30; }
     .nBtn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--mut); font-size: 11px; font-weight: 600; width: 70px; background: transparent !important; border: none; }
@@ -95,7 +96,7 @@
     .nBtn i { font-size: 24px; }
 
     .cHdr { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--brd); z-index: 20; }
-    .bBtn { font-size: 24px; padding: 8px; margin-left: -8px; color: var(--acc); }
+    .bBtn { font-size: 24px; padding: 8px; margin-left: -8px; color: var(--acc); background: none; border: none;}
     .cHN { font-size: 16px; font-weight: 700; }
     .cHS { font-size: 12px; color: var(--mut); }
 
@@ -104,11 +105,20 @@
     .msgO { align-self: flex-start; background: var(--msgO); border-radius: 18px 18px 18px 4px; border: 1px solid var(--brd); }
     .msgM { align-self: flex-end; background: var(--msgM); color: #fff; border-radius: 18px 18px 4px 18px; }
     .mT { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 4px; }
+    .msg img, .msg video { max-width: 100%; border-radius: 10px; margin-bottom: 4px; }
+    .msg a { color: inherit; text-decoration: none; }
     
-    .iBar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
+    .iBar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); display: flex; gap: 10px; align-items: flex-end; z-index: 20; position: relative; }
     .iBar input { flex: 1; background: var(--surf2); border: 1px solid var(--brd); padding: 16px 20px; border-radius: 24px; color: var(--txt); outline: none; }
-    .sBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .icon-btn { font-size: 24px; color: var(--mut); padding: 8px; }
+    .sBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: none;}
+    .icon-btn { font-size: 26px; color: var(--acc); padding: 8px; background: none; border: none;}
+
+    /* Меню вложений */
+    .attach-menu { position: absolute; bottom: 80px; left: 16px; background: var(--surf2); border-radius: 20px; padding: 8px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); border: 1px solid var(--brd); z-index: 50; animation: pI 0.2s; }
+    .attach-menu.act { display: flex; }
+    .attach-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 14px; color: var(--txt); font-size: 15px; font-weight: 600; cursor: pointer; }
+    .attach-item:hover, .attach-item:active { background: var(--surf); }
+    .attach-item i { font-size: 24px; color: var(--acc); }
 
     .mdl { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; align-items: flex-end; z-index: 300; }
     .mdl.act { display: flex; }
@@ -198,10 +208,13 @@
 
         <!-- MAIN -->
         <div id="scrMain" class="scr">
-        <div class="hdr"><div class="hT" id="mTitle">Molju</div><button class="iBtn" onclick="openM('mdlSearch')"><i class="ph ph-magnifying-glass"></i></button></div>
+        <div class="hdr"><div class="hT" id="mTitle">Molju</div></div>
         <div class="cnt tab act" id="tabChats" onscroll="handleScroll(this)">
             <div class="sticky-stories" id="stickyStories"><div class="sRow" id="sCont"></div></div>
-            <div class="sBar"><i class="ph ph-magnifying-glass" style="color:var(--mut)"></i><input type="text" id="sInpChats" placeholder="Поиск..."></div>
+            <div class="sBar">
+                <i class="ph ph-magnifying-glass" style="color:var(--mut)"></i>
+                <input type="text" id="sInpChats" placeholder="Поиск чатов и пользователей...">
+            </div>
             <div class="cList" id="cList"></div>
         </div>
         <div class="cnt tab" id="tabSettings">
@@ -230,11 +243,35 @@
 
         <!-- CHAT -->
         <div id="scrChat" class="scr">
-        <div class="cHdr"><button class="bBtn" id="bBack"><i class="ph ph-caret-left"></i></button><div class="ava avaS" id="cAva">?</div><div style="flex:1"><div class="cHN" id="cName">Имя</div><div class="cHS" id="cStatus">онлайн</div></div><button class="icon-btn" onclick="clearChatHistory()"><i class="ph ph-trash"></i></button></div>
+        <div class="cHdr">
+            <button class="bBtn" id="bBack"><i class="ph ph-caret-left"></i></button>
+            <div class="ava avaS" id="cAva">?</div>
+            <div style="flex:1"><div class="cHN" id="cName">Имя</div><div class="cHS" id="cStatus">в сети</div></div>
+            <button class="icon-btn" onclick="clearChatHistory()"><i class="ph ph-trash"></i></button>
+        </div>
         <div class="msgs" id="mBox"></div>
         <div class="iBar">
-            <button class="icon-btn" onclick="document.getElementById('fileInp').click()"><i class="ph ph-paperclip"></i></button>
-            <input type="file" id="fileInp" style="display:none" accept="image/*,video/*" onchange="uploadFile(this)">
+            <button class="icon-btn" onclick="toggleAttachMenu()"><i class="ph ph-plus-circle"></i></button>
+            
+            <!-- Меню вложений -->
+            <div class="attach-menu" id="attachMenu">
+                <div class="attach-item" onclick="document.getElementById('fileInpMedia').click()">
+                    <i class="ph ph-image"></i><span>Галерея</span>
+                </div>
+                <div class="attach-item" onclick="document.getElementById('fileInpDoc').click()">
+                    <i class="ph ph-file-text"></i><span>Файл</span>
+                </div>
+                <div class="attach-item" onclick="sendLocation()">
+                    <i class="ph ph-map-pin"></i><span>Геопозиция</span>
+                </div>
+                <div class="attach-item" onclick="toast('Опросы скоро!'); toggleAttachMenu();">
+                    <i class="ph ph-poll"></i><span>Опрос</span>
+                </div>
+            </div>
+
+            <input type="file" id="fileInpMedia" style="display:none" accept="image/*,video/*" onchange="uploadFile(this)">
+            <input type="file" id="fileInpDoc" style="display:none" onchange="uploadFile(this)">
+            
             <button class="icon-btn" id="bMic" onclick="simulateVoice()"><i class="ph ph-microphone"></i></button>
             <input type="text" id="mInp" placeholder="Сообщение...">
             <button class="sBtn" id="bSendMsg"><i class="ph ph-paper-plane-right"></i></button>
@@ -258,14 +295,12 @@
             </div>
         </div>
 
-        <!-- MODALS -->
-        <div id="mdlSearch" class="mdl" onclick="closeM('mdlSearch',event)"><div class="mB"><div class="mTit">Поиск</div><input type="text" id="sInpGlob" class="inp" placeholder="@username"><button class="btn-saw btn-primary" id="bDoSearch">Найти</button></div></div>
+        <!-- MODALS (Оставили только те, что нужны) -->
         <div id="mdlEditProf" class="mdl" onclick="closeM('mdlEditProf',event)"><div class="mB"><div class="mTit">Профиль</div><div style="display:flex;justify-content:center;margin-bottom:20px"><div class="ava avaL" id="eAvaPrev" onclick="document.getElementById('eAvaInp').click()" style="cursor:pointer"><i class="ph ph-camera"></i></div><input type="file" id="eAvaInp" style="display:none" accept="image/*"></div><input type="text" id="eUser" class="inp" placeholder="@username"><input type="text" id="eName" class="inp" placeholder="Имя"><button class="btn-saw btn-primary" id="bSaveEdit">Сохранить</button></div></div>
         <div id="mdlWallpaper" class="mdl" onclick="closeM('mdlWallpaper',event)"><div class="mB"><div class="mTit">Глобальные обои</div><p style="color:var(--mut); margin-bottom:15px; font-size:14px;">Фото или видео (до 10 сек).</p><button class="btn-saw" style="margin-bottom:10px" onclick="document.getElementById('wallInp').click()">Загрузить</button><input type="file" id="wallInp" style="display:none" accept="image/*,video/*"><button class="btn-saw" onclick="resetWallpaper()">Сбросить</button></div></div>
         <div id="mdlSecurity" class="mdl" onclick="closeM('mdlSecurity',event)"><div class="mB"><div class="mTit">Безопасность</div><p style="color:var(--mut); margin-bottom:20px;">Сессии: <b id="devCount">0</b></p><div id="devList" style="margin-bottom:20px;"></div><button class="btn-saw" style="color:var(--dan)" onclick="terminateAllSessions()">Завершить все</button><button class="btn-saw" onclick="setPasswordProfile()">Установить/Изменить пароль</button></div></div>
     </div>
 
-    <!-- ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ -->
     <div class="switcher-popup" id="accountSwitcher">
         <div class="sw-title">Аккаунты</div>
         <div id="accountList"></div>
@@ -283,6 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     S.authEmail = localStorage.getItem('molju_auth_email') || '';
     let isCheckingProfile = false;
+    let msgSubscription = null;
+    let searchTimeout = null;
 
     window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 4000); };
     window.showScr = (id) => { document.querySelectorAll('.scr').forEach(x => x.classList.remove('act')); document.getElementById(id).classList.add('act'); };
@@ -294,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('molju_theme') === 'light') { document.body.classList.add('light-theme'); document.getElementById('tTheme').checked = true; }
 
     const hashPass = (p) => btoa(p + 'molju_secret_salt');
-
     const OWNER_EMAIL = 'yarikhappy67@gmail.com'; 
     const RESERVED_USERNAMES = ['admin', 'molju', 'support', 'help', 'moderator', 'bot', 'molju_code', 'system'];
 
@@ -433,9 +469,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ==========================================
-    // ЗАГРУЗКА ПРОФИЛЯ (С ЗАЩИТОЙ ОТ ПЕРЕПОЛНЕНИЯ)
-    // ==========================================
     async function checkProf() {
         if (!S.u || isCheckingProfile) return;
         isCheckingProfile = true;
@@ -448,7 +481,6 @@ document.addEventListener('DOMContentLoaded', () => {
             S.p = data;
             try { localStorage.removeItem('molju_auth_email'); } catch(e) {}
 
-            // Легкое сохранение (без Base64 обоев)
             try {
                 let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
                 const lightProfile = {
@@ -509,7 +541,265 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // ДОПИСАННЫЕ ФУНКЦИИ (КОТОРЫХ НЕ БЫЛО)
+    // ГЛОБАЛЬНЫЙ ПОИСК И СОЗДАНИЕ ЧАТА
+    // ==========================================
+    document.getElementById('sInpChats').addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim().replace('@', '');
+        
+        // Мгновенная фильтрация существующих чатов
+        const localChats = document.querySelectorAll('#cList .lIt:not(.global-search-result)');
+        localChats.forEach(c => {
+            if (c.innerText.toLowerCase().includes(query.toLowerCase())) c.style.display = 'flex';
+            else c.style.display = 'none';
+        });
+
+        if (!query) {
+            document.querySelectorAll('.global-search-result').forEach(el => el.remove());
+            return;
+        }
+
+        // Поиск новых пользователей с задержкой (debounce)
+        searchTimeout = setTimeout(async () => {
+            if (query.length < 2) return;
+            
+            const { data: users, error } = await supabase.from('profiles')
+                .select('*')
+                .ilike('username', `%${query}%`)
+                .limit(5);
+            
+            // Удаляем старые глобальные результаты
+            document.querySelectorAll('.global-search-result').forEach(el => el.remove());
+            
+            if (!users || users.length === 0) return;
+
+            const cList = document.getElementById('cList');
+            users.forEach(user => {
+                if (user.id === S.u.id) return; // Не показываем себя в поиске
+                
+                const el = document.createElement('div');
+                el.className = 'lIt global-search-result';
+                el.style.border = '2px solid var(--acc)';
+                el.innerHTML = `
+                    <div class="ava" style="background-image:url('${user.avatar_url || ''}')">${user.avatar_url ? '' : user.name[0]}</div>
+                    <div class="lInf">
+                        <div class="lT">${user.name} <i class="ph-fill ph-seal-check ver" style="${user.is_verified ? '' : 'display:none'}"></i></div>
+                        <div class="lS">@${user.username}</div>
+                    </div>
+                    <div style="font-size:12px; color:var(--acc); font-weight:700; background:rgba(255,59,48,0.1); padding:6px 12px; border-radius:10px;">Написать</div>
+                `;
+                el.onclick = () => {
+                    document.getElementById('sInpChats').value = '';
+                    document.querySelectorAll('.global-search-result').forEach(e => e.remove());
+                    startChat(user, user.name);
+                };
+                cList.prepend(el); // Показываем сверху
+            });
+        }, 400); // 400мс ожидание перед запросом в БД
+    });
+
+    async function startChat(targetUser, chatName) {
+        const { data: myChats } = await supabase.from('chat_members').select('chat_id').eq('user_id', S.u.id);
+        let chatId = null;
+
+        if (myChats && myChats.length > 0) {
+            const myChatIds = myChats.map(c => c.chat_id);
+            const { data: targetChats } = await supabase.from('chat_members').select('chat_id').eq('user_id', targetUser.id).in('chat_id', myChatIds);
+            if (targetChats && targetChats.length > 0) chatId = targetChats[0].chat_id;
+        }
+
+        if (!chatId) {
+            const { data: newChat, error: chatErr } = await supabase.from('chats').insert({ name: chatName }).select().single();
+            if (chatErr) return toast('Ошибка создания чата: ' + chatErr.message);
+            chatId = newChat.id;
+            await supabase.from('chat_members').insert([
+                { chat_id: chatId, user_id: S.u.id },
+                { chat_id: chatId, user_id: targetUser.id }
+            ]);
+        }
+
+        loadChats();
+        openChat(chatId, chatName, targetUser.avatar_url);
+    }
+
+    // ==========================================
+    // МЕНЮ ВЛОЖЕНИЙ И ОТПРАВКА ФАЙЛОВ
+    // ==========================================
+    window.toggleAttachMenu = function() {
+        document.getElementById('attachMenu').classList.toggle('act');
+    };
+
+    window.sendLocation = function() {
+        if (!navigator.geolocation) return toast('Геолокация не поддерживается');
+        toast('Определяем геопозицию...');
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const text = `📍 Моя геопозиция:\nhttps://maps.google.com/?q=${lat},${lon}`;
+            await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: text });
+            document.getElementById('attachMenu').classList.remove('act');
+        }, (err) => {
+            toast('Ошибка геолокации: ' + err.message);
+        });
+    };
+
+    window.uploadFile = async function(inp) {
+        const f = inp.files[0]; if (!f || !S.cId) return;
+        if (f.size > 2500000) return toast('Файл слишком большой (макс 2.5МБ)');
+        
+        const r = new FileReader();
+        r.onload = async (ev) => { 
+            await supabase.from('messages').insert({ 
+                chat_id: S.cId, 
+                sender_id: S.u.id, 
+                text: f.name,
+                file_url: ev.target.result 
+            }); 
+            inp.value = ''; 
+            document.getElementById('attachMenu').classList.remove('act');
+        };
+        r.readAsDataURL(f);
+    };
+
+    // ==========================================
+    // ЛОГИКА ЧАТА (REALTIME И РЕНДЕР)
+    // ==========================================
+    window.openChat = async function(id, name, avatarUrl = '') {
+        S.cId = id; 
+        document.getElementById('cName').textContent = name; 
+        
+        const cAva = document.getElementById('cAva');
+        if(avatarUrl) {
+            cAva.style.backgroundImage = `url('${avatarUrl}')`;
+            cAva.textContent = '';
+        } else {
+            cAva.style.backgroundImage = 'none';
+            cAva.textContent = name[0] ? name[0].toUpperCase() : '?';
+        }
+        
+        showScr('scrChat');
+        
+        const c = document.getElementById('mBox'); c.innerHTML = '';
+        const { data } = await supabase.from('messages').select('*').eq('chat_id', id).order('created_at', { ascending: true });
+        if (data) data.forEach(m => appendMessage(m, false));
+        c.scrollTop = c.scrollHeight;
+
+        if (msgSubscription) supabase.removeChannel(msgSubscription);
+        msgSubscription = supabase.channel('room_' + id)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${id}` }, payload => {
+                appendMessage(payload.new, true);
+            })
+            .subscribe();
+    };
+
+    function appendMessage(m, scroll = true) {
+        const c = document.getElementById('mBox'); 
+        const isM = m.sender_id === S.u.id; 
+        let content = '';
+        
+        if (m.file_url) {
+            if (m.file_url.startsWith('data:image')) {
+                content = `<img src="${m.file_url}" style="max-width:100%; border-radius:8px; margin-bottom:4px;">`;
+            } else if (m.file_url.startsWith('data:video')) {
+                content = `<video src="${m.file_url}" controls style="max-width:100%; border-radius:8px; margin-bottom:4px;"></video>`;
+            } else {
+                content = `<a href="${m.file_url}" download="${m.text || 'file'}" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px; margin-bottom:4px;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:var(--surf); display:flex; align-items:center; justify-content:center;">
+                        <i class="ph ph-file" style="font-size:20px; color:var(--acc);"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600; font-size:14px; word-break:break-all;">${m.text || 'Файл'}</div>
+                        <div style="font-size:12px; opacity:0.7;">Нажмите, чтобы скачать</div>
+                    </div>
+                </a>`;
+            }
+        } else {
+            content = `<span>${m.text}</span>`;
+        }
+
+        const time = new Date(m.created_at || new Date()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const div = document.createElement('div');
+        div.className = `msg ${isM ? 'msgM' : 'msgO'}`;
+        div.innerHTML = `${content}<span class="mT">${time}</span>`;
+        c.appendChild(div);
+        
+        if (scroll) c.scrollTop = c.scrollHeight;
+    }
+
+    document.getElementById('bSendMsg').onclick = async () => { 
+        const i = document.getElementById('mInp'), t = i.value.trim(); 
+        if (!t || !S.cId) return; 
+        i.value = ''; 
+        await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); 
+    };
+
+    document.getElementById('mInp').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') document.getElementById('bSendMsg').click();
+    });
+
+    document.getElementById('bBack').onclick = () => { 
+        S.cId = null; 
+        if (msgSubscription) supabase.removeChannel(msgSubscription);
+        showScr('scrMain'); 
+        loadChats(); 
+    };
+    
+    window.simulateVoice = () => toast('🎤 Запись голоса скоро!');
+    window.clearChatHistory = async () => { 
+        if(!confirm('Очистить историю?')) return; 
+        await supabase.from('messages').delete().eq('chat_id', S.cId); 
+        document.getElementById('mBox').innerHTML = '';
+    };
+
+    async function loadChats() {
+        const { data, error } = await supabase.from('chat_members')
+            .select(`chat_id, chats (id, name, messages (text, file_url, created_at))`)
+            .eq('user_id', S.u.id);
+        
+        const c = document.getElementById('cList'); c.innerHTML = '';
+        if (!data || error) return;
+        
+        data.sort((a, b) => {
+            const aMsg = a.chats?.messages?.slice(-1)[0];
+            const bMsg = b.chats?.messages?.slice(-1)[0];
+            if (!aMsg && !bMsg) return 0;
+            if (!aMsg) return 1;
+            if (!bMsg) return -1;
+            return new Date(bMsg.created_at) - new Date(aMsg.created_at);
+        });
+
+        data.forEach(item => {
+            const chat = item.chats;
+            if(!chat) return;
+            
+            const lastMsg = chat.messages && chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+            let preview = 'Нет сообщений';
+            let timeStr = '';
+            
+            if (lastMsg) {
+                if (lastMsg.file_url) {
+                    preview = lastMsg.file_url.startsWith('data:image') ? '📷 Фото' : lastMsg.file_url.startsWith('data:video') ? '🎥 Видео' : '📁 Файл';
+                } else {
+                    preview = lastMsg.text;
+                }
+                timeStr = new Date(lastMsg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+
+            const el = document.createElement('div'); el.className = 'lIt';
+            el.innerHTML = `
+                <div class="ava">${chat.name ? chat.name[0].toUpperCase() : '?'}</div>
+                <div class="lInf">
+                    <div class="lT"><span>${chat.name || 'Без названия'}</span> <span class="lTime">${timeStr}</span></div>
+                    <div class="lS">${preview}</div>
+                </div>
+            `;
+            el.onclick = () => openChat(chat.id, chat.name); 
+            c.appendChild(el);
+        });
+    }
+
+    // ==========================================
+    // ОСТАЛЬНЫЕ ФУНКЦИИ (ПРОФИЛЬ, ОБОИ, АДМИНКА)
     // ==========================================
     window.openEditProfile = function() {
         if(!S.p) return;
@@ -562,11 +852,8 @@ document.addEventListener('DOMContentLoaded', () => {
         openM('mdlSecurity');
         const list = document.getElementById('devList');
         list.innerHTML = '<div class="ld" style="margin:0 auto;"></div>';
-        const { data: sessions, error } = await supabase.auth.getSession();
-        if (error || !sessions.session) {
-            list.innerHTML = '<div style="color:var(--mut)">Ошибка загрузки сессий</div>';
-            return;
-        }
+        const { data: sessions } = await supabase.auth.getSession();
+        if (!sessions.session) return;
         const s = sessions.session;
         document.getElementById('devCount').textContent = '1';
         const date = new Date(s.expires_at * 1000).toLocaleString();
@@ -587,10 +874,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const lastSet = S.p.last_password_set ? new Date(S.p.last_password_set).getTime() : 0;
         const hours = (Date.now() - lastSet) / 36e5;
         if (hours < 24) return toast(`Пароль можно изменить только через ${Math.ceil(24 - hours)} ч.`);
-        
         const newPwd = prompt('Введите новый пароль:');
         if (!newPwd || newPwd.length < 6) return toast('Пароль от 6 символов');
-        
         const { error } = await supabase.from('profiles').update({ password_hash: hashPass(newPwd), last_password_set: new Date() }).eq('id', S.u.id);
         if (error) return toast('Ошибка: ' + error.message);
         S.p.password_hash = hashPass(newPwd);
@@ -598,25 +883,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toast('Пароль обновлен!');
     };
 
-    document.getElementById('bDoSearch').onclick = async function() {
-        const q = document.getElementById('sInpGlob').value.trim().replace('@','');
-        if (!q) return;
-        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        const { data: user } = await supabase.from('profiles').select('*').eq('username', q).maybeSingle();
-        this.innerHTML = 'Найти'; this.disabled = false;
-        
-        if (!user) return toast('Пользователь не найден');
-        if (user.id === S.u.id) return toast('Это вы');
-        
-        // Создаем чат или переходим в существующий
-        closeM('mdlSearch');
-        toast(`Найден: ${user.name} (@${user.username})`);
-        // В будущем тут можно сделать создание личного чата
-    };
-
-    // ==========================================
-    // ОБОИ И АДМИНКА
-    // ==========================================
     window.applyWallpaper = function(url, type) {
         const img = document.getElementById('globalBgImg'), vid = document.getElementById('globalBgVid');
         if (!url || url === 'default') { img.style.display = 'none'; vid.style.display = 'none'; vid.pause(); return; }
@@ -673,45 +939,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toast('Рассылка отправлена!');
     };
 
-    // ==========================================
-    // ЧАТЫ
-    // ==========================================
-    async function loadChats() {
-        const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', S.u.id);
-        const c = document.getElementById('cList'); c.innerHTML = '';
-        if (!data) return;
-        data.forEach(item => {
-            const el = document.createElement('div'); el.className = 'lIt';
-            el.innerHTML = `<div class="ava">${item.chats.name[0]}</div><div class="lInf"><div class="lT">${item.chats.name}</div></div>`;
-            el.onclick = () => openChat(item.chats.id, item.chats.name); c.appendChild(el);
-        });
-    }
-
-    window.openChat = async function(id, name) {
-        S.cId = id; document.getElementById('cName').textContent = name; showScr('scrChat');
-        const c = document.getElementById('mBox'); c.innerHTML = '';
-        const { data } = await supabase.from('messages').select('*').eq('chat_id', id).order('created_at', { ascending: true });
-        if (data) data.forEach(m => { const isM = m.sender_id === S.u.id; c.innerHTML += `<div class="msg ${isM ? 'msgM' : 'msgO'}"><span>${m.text}</span></div>`; });
-        c.scrollTop = c.scrollHeight;
-    };
-
-    document.getElementById('bBack').onclick = () => { S.cId = null; showScr('scrMain'); loadChats(); };
-    document.getElementById('bSendMsg').onclick = async () => { 
-        const i = document.getElementById('mInp'), t = i.value.trim(); 
-        if (!t || !S.cId) return; i.value = ''; 
-        await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); 
-        openChat(S.cId, document.getElementById('cName').textContent); 
-    };
-
-    window.uploadFile = async function(inp) {
-        const f = inp.files[0]; if (!f) return;
-        const r = new FileReader();
-        r.onload = async (ev) => { await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: '📷 Медиа', file_url: ev.target.result }); openChat(S.cId, document.getElementById('cName').textContent); };
-        r.readAsDataURL(f);
-    };
-    window.simulateVoice = () => toast('🎤 Голосовое отправлено');
-    window.clearChatHistory = async () => { if(!confirm('Очистить?')) return; await supabase.from('messages').delete().eq('chat_id', S.cId); openChat(S.cId, 'Чат'); };
-    
     function logoutFunc() { 
         supabase.auth.signOut().finally(() => { 
             try { localStorage.removeItem('molju_auth_email'); } catch(e) {}
@@ -724,9 +951,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('bLogout').onclick = logoutFunc;
 
-    // ==========================================
-    // ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ
-    // ==========================================
     let pressTimer;
     const navProfileBtn = document.getElementById('navProfileBtn');
     navProfileBtn.addEventListener('touchstart', (e) => { pressTimer = setTimeout(() => { e.preventDefault(); openAccountSwitcher(); }, 500); });
@@ -751,9 +975,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addNewAccount = function() { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
     window.switchAccount = function(email) { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
 
-    // ==========================================
-    // НАЧАЛО РАБОТЫ
-    // ==========================================
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (!session) showScr('scrAuth');
         else { S.u = session.user; checkProf(); }
