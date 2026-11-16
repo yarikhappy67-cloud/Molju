@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Molju — Epic Edition</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Molju — God Mode</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script src="https://unpkg.com/@phosphor-icons/web"></script>
 <style>
@@ -28,11 +28,13 @@ body { height: 100vh; background: var(--bg); color: var(--txt); overflow: hidden
 @keyframes sp { 100% { transform: rotate(360deg); } }
 @keyframes pr { from { width: 0%; } to { width: 100%; } }
 @keyframes gB { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+@keyframes glowAnim { 0% { box-shadow: 0 0 5px var(--ver); } 50% { box-shadow: 0 0 20px var(--ver), 0 0 10px var(--ver) inset; } 100% { box-shadow: 0 0 5px var(--ver); } }
+@keyframes btnPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
 
 button { border: none; background: none; color: inherit; font-family: inherit; cursor: pointer; outline: none; display: flex; align-items: center; justify-content: center; }
 .btn { padding: 16px; border-radius: 16px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.1s ease; }
-.btn-p { background: var(--grad); color: #fff; box-shadow: 0 6px 0 #8a0000, 0 10px 20px var(--glow); border: 1px solid rgba(255,255,255,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-.btn-p:active { transform: translateY(6px); box-shadow: 0 0px 0 #8a0000, 0 2px 5px var(--glow); background: var(--grad-press); }
+.btn-p { background: var(--grad); color: #fff; box-shadow: 0 6px 0 #8a0000, 0 10px 20px var(--glow); border: 1px solid rgba(255,255,255,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.5); animation: btnPulse 2s infinite; }
+.btn-p:active { transform: translateY(6px); box-shadow: 0 0px 0 #8a0000, 0 2px 5px var(--glow); background: var(--grad-press); animation: none; }
 .btn-s { background: var(--surf2); color: var(--txt); box-shadow: 0 4px 0 var(--bg), 0 6px 15px rgba(0,0,0,0.5); border: 1px solid var(--brd); }
 .btn-s:active { transform: translateY(4px); box-shadow: 0 0px 0 var(--bg); }
 
@@ -58,12 +60,21 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 .sBar { width: 100%; padding: 12px 16px; border-radius: 16px; background: var(--surf2); display: flex; align-items: center; gap: 10px; margin: 16px 0; border: 1px solid var(--brd); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
 .sBar input { background: none; border: none; color: var(--txt); width: 100%; outline: none; font-size: 15px; }
 
-.lIt { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; cursor: pointer; margin-bottom: 4px; transition: 0.2s; }
+/* ИСПРАВЛЕННЫЕ ИСТОРИИ */
+.sRow { display: flex; gap: 16px; overflow-x: auto; padding: 16px 0; border-bottom: 1px solid var(--brd); margin-bottom: 16px; transition: max-height 0.3s ease; }
+.sRow.collapsed { max-height: 60px; overflow: hidden; }
+.sIt { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 68px; cursor: pointer; }
+.sCr { width: 64px; height: 64px; border-radius: 50%; background: var(--surf2); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid transparent; background-size: cover; background-position: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.sCr.ad { border: 2px dashed var(--mut); color: var(--mut); }
+.sCr.ha { border: 2px solid var(--acc); box-shadow: 0 0 10px var(--glow); }
+.sN { font-size: 12px; color: var(--txt); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; display: flex; justify-content: center; }
+.collapse-btn { width: 100%; text-align: center; font-size: 12px; color: var(--mut); margin-top: -10px; margin-bottom: 10px; cursor: pointer; font-weight: 600; }
+
+.lIt { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; cursor: pointer; margin-bottom: 4px; transition: 0.2s; position: relative; }
 .lIt:active { background: var(--surf2); transform: scale(0.98); }
 .lInf { flex: 1; min-width: 0; }
 .lT { font-size: 16px; font-weight: 600; display: flex; align-items: center; }
 .lS { font-size: 14px; color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.badge { background: var(--acc); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px; margin-left: 8px; box-shadow: 0 2px 5px var(--glow); }
 
 .nav { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); z-index: 30; }
 .nBtn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--mut); font-size: 11px; font-weight: 600; width: 70px; transition: 0.2s; }
@@ -78,9 +89,7 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 .msg { max-width: 85%; padding: 12px 16px; font-size: 15px; position: relative; word-break: break-word; display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
 .msgO { align-self: flex-start; background: var(--msgO); border-radius: 18px 18px 18px 4px; border: 1px solid var(--brd); }
 .msgM { align-self: flex-end; background: var(--msgM); color: #fff; border-radius: 18px 18px 4px 18px; box-shadow: 0 4px 15px var(--glow); }
-.msgB { align-self: flex-start; background: var(--bot); border: 1px solid #2d4057; border-radius: 18px 18px 18px 4px; }
 .mT { font-size: 10px; opacity: 0.7; align-self: flex-end; margin-top: 6px; font-weight: 600; }
-.mImg { max-width: 100%; border-radius: 12px; margin-bottom: 8px; }
 .iBar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--brd); display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
 .iBar input { flex: 1; background: var(--surf2); border: 1px solid var(--brd); padding: 16px 20px; border-radius: 24px; color: var(--txt); outline: none; font-size: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
 .sBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px var(--glow); transition: 0.1s; }
@@ -92,7 +101,6 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 .mTit { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
 .setI { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--brd); cursor: pointer; }
 .setT { flex: 1; font-size: 16px; font-weight: 500; margin-left: 12px; }
-.sel { background: var(--surf2); color: var(--txt); border: 1px solid var(--brd); padding: 10px; border-radius: 10px; outline: none; font-size: 15px; }
 
 #tst { position: absolute; bottom: 100px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9999; pointer-events: none; }
 .tMsg { background: var(--surf2); color: var(--txt); padding: 14px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; border: 1px solid var(--brd); animation: pI 0.2s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -104,9 +112,15 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 .aSt.act { display: flex; animation: fI 0.3s; }
 .link-btn { background: none; border: none; color: var(--acc); font-size: 13px; font-weight: 500; margin-top: 10px; cursor: pointer; text-decoration: underline; opacity: 0.8; }
 
-.device-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surf2); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--brd); }
-.adm-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--surf2); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--brd); }
-.adm-btn { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.adm-item { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--surf2); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--brd); }
+.adm-row { display: flex; justify-content: space-between; align-items: center; }
+.adm-btn { padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+.verify-anim { animation: glowAnim 2s infinite; }
+
+.ctxMenu { position: absolute; background: var(--surf2); border: 1px solid var(--brd); border-radius: 16px; padding: 8px; z-index: 250; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.6); min-width: 180px; }
+.ctxMenu.act { display: flex; animation: pI 0.15s; }
+.ctxI { padding: 12px; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 12px; border-radius: 10px; color: var(--txt); cursor: pointer; }
+.ctxI:active { background: var(--surf); }
 </style>
 </head>
 <body>
@@ -134,7 +148,7 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
     <p style="text-align:center;color:var(--mut);margin-bottom:20px;font-weight:500">Создайте профиль</p>
     <input type="text" id="iUser" class="inp" placeholder="@username">
     <input type="text" id="iName" class="inp" placeholder="Имя">
-    <input type="password" id="iNewPass" class="inp" placeholder="Придумайте пароль (навсегда)">
+    <input type="password" id="iNewPass" class="inp" placeholder="Придумайте пароль">
     <button class="btn btn-p" id="bSaveProfile">Создать аккаунт</button>
 </div>
 </div>
@@ -144,9 +158,12 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 <div id="scrMain" class="scr">
 <div class="hdr"><div class="hT" id="mTitle">Molju</div><button class="iBtn" onclick="openM('mdlSearch')"><i class="ph ph-magnifying-glass"></i></button></div>
 <div class="cnt tab act" id="tabChats">
-<div class="sRow" id="sCont"></div>
-<div class="sBar"><i class="ph ph-magnifying-glass" style="color:var(--mut)"></i><input type="text" id="sInpChats" placeholder="Поиск..."></div>
-<div class="cList" id="cList"></div>
+    <!-- ИСТОРИИ -->
+    <div class="sRow" id="sCont"></div>
+    <div class="collapse-btn" onclick="toggleStories()"><i class="ph ph-caret-up"></i> Свернуть истории</div>
+
+    <div class="sBar"><i class="ph ph-magnifying-glass" style="color:var(--mut)"></i><input type="text" id="sInpChats" placeholder="Поиск..."></div>
+    <div class="cList" id="cList"></div>
 </div>
 <div class="cnt tab" id="tabSettings">
 <div class="setI" onclick="toggleTheme()"><div style="display:flex;align-items:center"><i class="ph ph-moon" style="font-size:22px"></i><div class="setT">Светлая тема</div></div><input type="checkbox" id="tTheme" style="width:20px;height:20px;accent-color:var(--acc)"></div>
@@ -162,7 +179,6 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 <button class="btn btn-s" onclick="openSecurityModal()"><i class="ph ph-lock-key" style="margin-right:8px"></i> Безопасность</button>
 <button class="btn btn-p" id="bAdminPanel" onclick="openAdminPanel()" style="display:none; margin-top:10px; background: #0088cc; box-shadow: 0 6px 0 #005f8f, 0 10px 20px rgba(0,136,204,0.4);">Панель Владельца</button>
 </div>
-<div style="width:100%;margin-top:30px"><div style="font-size:18px;font-weight:700;margin-bottom:10px">Мои подарки</div><div class="gGrid" id="gCont"></div></div>
 <button class="btn btn-s" style="margin-top:40px;color:var(--dan);background:rgba(255,69,58,0.1);border:none" id="bLogout">Выйти</button>
 </div>
 </div>
@@ -176,9 +192,15 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 <!-- CHAT -->
 <div id="scrChat" class="scr">
 <div class="cHdr"><button class="bBtn" id="bBack"><i class="ph ph-caret-left"></i></button><div class="ava avaS" id="cAva">?</div><div style="flex:1"><div class="cHN" id="cName">Имя</div><div class="cHS" id="cStatus">онлайн</div></div></div>
-<div class="msgs" id="mBox" onscroll="handleScroll()"></div>
-<button class="scrollBtn" id="scrollBtn" onclick="scrollToBottom()"><i class="ph ph-arrow-down"></i></button>
+<div class="msgs" id="mBox"></div>
 <div class="iBar"><input type="text" id="mInp" placeholder="Сообщение..."><button class="sBtn" id="bSendMsg"><i class="ph ph-paper-plane-right"></i></button></div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctxMenu" id="ctxChat">
+<div class="ctxI" onclick="pinChat()"><i class="ph ph-push-pin"></i> Закрепить</div>
+<div class="ctxI" onclick="muteChat()"><i class="ph ph-bell-slash"></i> Без звука</div>
+<div class="ctxI" onclick="clearChat()" style="color:var(--dan)"><i class="ph ph-trash"></i> Очистить историю</div>
 </div>
 
 <!-- MODALS -->
@@ -199,10 +221,13 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 
 <!-- ПАНЕЛЬ ВЛАДЕЛЬЦА -->
 <div id="mdlAdmin" class="mdl" onclick="closeM('mdlAdmin',event)">
-<div class="mB">
+<div class="mB" style="height: 80vh; display: flex; flex-direction: column;">
 <div class="mTit" style="color:var(--ver)">Панель Владельца</div>
-<p style="color:var(--mut); font-size:14px; margin-bottom:20px;">Управление пользователями и правами</p>
-<div id="adminList" style="max-height: 50vh; overflow-y: auto;"></div>
+<div style="display:flex; gap:10px; margin-bottom:15px;">
+    <button class="btn btn-s" style="padding:10px; flex:1;" onclick="loadAdminList('users')">Пользователи</button>
+    <button class="btn btn-s" style="padding:10px; flex:1; border-color:var(--dan); color:var(--dan);" onclick="loadAdminList('banned')">Черный список</button>
+</div>
+<div id="adminList" style="flex:1; overflow-y: auto;"></div>
 </div>
 </div>
 
@@ -210,14 +235,11 @@ button { border: none; background: none; color: inherit; font-family: inherit; c
 </div>
 
 <script>
-window.addEventListener('error', function(e) {
-    document.getElementById('err').style.display = 'block';
-    document.getElementById('err').textContent = 'Ошибка JS: ' + e.message;
-});
+window.addEventListener('error', function(e) { document.getElementById('err').style.display = 'block'; document.getElementById('err').textContent = 'Ошибка JS: ' + e.message; });
 
 document.addEventListener('DOMContentLoaded', () => {
     const supabase = window.supabase.createClient('https://dhmqbjfzkrmsbrwzenna.supabase.co', 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI', { auth: { detectSessionInUrl: true, persistSession: true } });
-    const S = { u: null, p: null, cId: null, email: '', activeMsg: null, allChats: [] };
+    const S = { u: null, p: null, cId: null, email: '', activeChatIdToCtx: null, isStoriesCollapsed: false };
 
     window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000); };
     window.showScr = (id) => { document.querySelectorAll('.scr').forEach(x => x.classList.remove('act')); document.getElementById(id).classList.add('act'); };
@@ -230,10 +252,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const hashPass = (p) => btoa(p + 'molju_secret_salt');
 
+    // ИСТОРИИ (СВЕРНУТЬ/РАЗВЕРНУТЬ)
+    window.toggleStories = function() {
+        S.isStoriesCollapsed = !S.isStoriesCollapsed;
+        const row = document.getElementById('sCont');
+        const btn = document.querySelector('.collapse-btn');
+        if (S.isStoriesCollapsed) {
+            row.classList.add('collapsed');
+            btn.innerHTML = '<i class="ph ph-caret-down"></i> Развернуть истории';
+        } else {
+            row.classList.remove('collapsed');
+            btn.innerHTML = '<i class="ph ph-caret-up"></i> Свернуть истории';
+        }
+    };
+
     // AUTH
     document.getElementById('bCheckEmail').onclick = async function() {
         const email = document.getElementById('iEmail').value.trim(); if (!email) return toast('Введите Email');
         S.email = email; this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
+        
+        const { data: ban } = await supabase.from('banned_emails').select('*').eq('email', email).maybeSingle();
+        if (ban) { this.innerHTML = 'Продолжить'; this.disabled = false; return toast('Вы забанены. Обратитесь к владельцу.'); }
+
         const { data: p } = await supabase.from('profiles').select('*').eq('email', email).maybeSingle();
         this.innerHTML = 'Продолжить'; this.disabled = false;
         if (p && p.password_hash) { showASt('stPass'); }
@@ -251,8 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
         this.innerHTML = 'Войти'; this.disabled = false;
         if (p.password_hash !== hashPass(pwd)) return toast('Неверный пароль');
         await supabase.auth.signInWithOtp({ email: S.email });
-        S.u = { id: p.id };
-        await checkProf();
+        S.u = { id: p.id }; await checkProf();
     };
 
     document.getElementById('bForgotPass').onclick = async () => {
@@ -279,141 +318,159 @@ document.addEventListener('DOMContentLoaded', () => {
             S.p = data;
             if (!data.password_hash) { showASt('stP'); return; }
             
-            // Исправление бага с устройствами: записываем текущее устройство при входе
             const existing = await supabase.from('devices').select('*').eq('user_id', S.u.id).eq('device_name', navigator.userAgent);
-            if (!existing.data || existing.data.length === 0) {
-                await supabase.from('devices').insert({ user_id: S.u.id, device_name: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop PC' });
-            }
+            if (!existing.data || existing.data.length === 0) await supabase.from('devices').insert({ user_id: S.u.id, device_name: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop PC' });
             
             document.getElementById('pName').innerHTML = `${data.name} ${data.is_verified ? '<i class="ph-fill ph-seal-check ver"></i>' : ''}`;
             document.getElementById('pUser').textContent = '@' + data.username;
             if (data.avatar_url) document.getElementById('pAva').style.backgroundImage = `url('${data.avatar_url}')`;
             
-            // Показываем панель владельца ТОЛЬКО для @monk
-            if (data.username === 'monk') {
-                document.getElementById('bAdminPanel').style.display = 'flex';
-            } else {
-                document.getElementById('bAdminPanel').style.display = 'none';
-            }
+            document.getElementById('bAdminPanel').style.display = (data.username === 'monk') ? 'flex' : 'none';
             
-            showScr('scrMain'); loadChats(); loadGifts();
-        } else {
-            showASt('stP');
-        }
+            showScr('scrMain'); loadChats(); loadStories();
+        } else { showASt('stP'); }
     }
 
     document.getElementById('bSaveProfile').onclick = async function() {
         const u = document.getElementById('iUser').value.trim().replace(/[^a-z0-9_]/g, ''), n = document.getElementById('iName').value.trim(), pwd = document.getElementById('iNewPass').value;
-        if (u.length < 3 || !n) return toast('Заполните поля');
-        if (pwd.length < 6) return toast('Пароль от 6 символов');
+        if (u.length < 3 || !n || pwd.length < 6) return toast('Заполните поля (пароль от 6 символов)');
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
         const { error } = await supabase.from('profiles').update({ username: u, name: n, email: S.email, password_hash: hashPass(pwd), last_password_set: new Date() }).eq('id', S.u.id); 
-        if (error) {
-            await supabase.from('profiles').insert({ id: S.u.id, username: u, name: n, email: S.email, password_hash: hashPass(pwd), last_password_set: new Date() });
-        }
-        this.innerHTML = 'Создать'; this.disabled = false;
-        await checkProf();
+        if (error) await supabase.from('profiles').insert({ id: S.u.id, username: u, name: n, email: S.email, password_hash: hashPass(pwd), last_password_set: new Date() });
+        this.innerHTML = 'Создать'; this.disabled = false; await checkProf();
     };
 
-    // ADMIN PANEL (Владелец)
-    window.openAdminPanel = async function() {
-        openM('mdlAdmin');
+    // ПАНЕЛЬ ВЛАДЕЛЬЦА
+    window.openAdminPanel = async function() { openM('mdlAdmin'); loadAdminList('users'); };
+
+    window.loadAdminList = async function(mode) {
+        const list = document.getElementById('adminList'); list.innerHTML = '<div style="text-align:center"><div class="ld" style="margin:auto"></div></div>';
+        
+        if (mode === 'banned') {
+            const { data } = await supabase.from('banned_emails').select('*');
+            list.innerHTML = '';
+            if (!data || data.length === 0) return list.innerHTML = '<div style="color:var(--mut);text-align:center">Пусто</div>';
+            data.forEach(b => {
+                list.innerHTML += `<div class="adm-item"><div class="adm-row"><div style="font-weight:600; color:var(--dan)">${b.email}</div><button class="adm-btn" style="border-color:var(--ver); color:var(--ver)" onclick="unbanEmail('${b.email}')">Восстановить</button></div></div>`;
+            });
+            return;
+        }
+
         const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-        const list = document.getElementById('adminList'); list.innerHTML = '';
+        list.innerHTML = '';
+        if (!data) return;
         
         data.forEach(user => {
-            if (user.id === S.u.id) return; // Себя не показываем
+            if (user.id === S.u.id) return;
             const isVer = user.is_verified ? 'color:var(--ver)' : 'color:var(--mut)';
             const isAdm = user.is_admin ? 'background:var(--ver); color:#fff' : 'background:var(--surf); color:var(--txt)';
+            const isVBan = user.is_verified ? 'background:var(--ver); color:#fff' : 'border:1px solid var(--ver); color:var(--ver)';
             
             list.innerHTML += `
             <div class="adm-item">
-                <div>
-                    <div style="font-weight:600; display:flex; align-items:center;">${user.name} <i class="ph-fill ph-seal-check" style="margin-left:4px; ${isVer}"></i></div>
-                    <div style="font-size:12px; color:var(--mut)">@${user.username}</div>
+                <div class="adm-row">
+                    <div>
+                        <div style="font-weight:600; display:flex; align-items:center;">${user.name} <i class="ph-fill ph-seal-check" style="margin-left:4px; ${isVer}"></i></div>
+                        <div style="font-size:12px; color:var(--mut)">@${user.username}</div>
+                    </div>
+                    <button class="adm-btn ${!user.is_verified ? 'verify-anim' : ''}" style="${isVBan}" onclick="toggleVerify('${user.id}', ${user.is_verified})">Галочка</button>
                 </div>
-                <div style="display:flex; gap:8px;">
-                    <button class="adm-btn" style="border:1px solid var(--ver); ${isVer}" onclick="toggleVerify('${user.id}', ${user.is_verified})">Галочка</button>
-                    <button class="adm-btn" style="border:1px solid var(--ver); ${isAdm}" onclick="toggleAdmin('${user.id}', ${user.is_admin})">Админ</button>
+                <div class="adm-row" style="margin-top:8px;">
+                    <button class="adm-btn" style="${isAdm}; border:1px solid var(--ver);" onclick="toggleAdmin('${user.id}', ${user.is_admin})">Админ</button>
+                    <button class="adm-btn" style="border:1px solid var(--dan); color:var(--dan)" onclick="softBanUser('${user.id}', '${user.email}')">Софт-Бан</button>
                 </div>
             </div>`;
         });
     };
 
-    window.toggleVerify = async function(userId, currentStatus) {
-        await supabase.from('profiles').update({ is_verified: !currentStatus }).eq('id', userId);
-        toast('Статус галочки изменён');
-        openAdminPanel(); // обновляем список
+    window.toggleVerify = async function(userId, currentStatus) { await supabase.from('profiles').update({ is_verified: !currentStatus }).eq('id', userId); toast('Галочка изменена'); loadAdminList('users'); };
+    window.toggleAdmin = async function(userId, currentStatus) { await supabase.from('profiles').update({ is_admin: !currentStatus }).eq('id', userId); toast('Админка изменена'); loadAdminList('users'); };
+
+    window.softBanUser = async function(userId, email) {
+        if (!confirm('Софт-бан: удалить данные, но почту можно будет восстановить?')) return;
+        await supabase.from('banned_emails').insert({ email: email });
+        await supabase.from('profiles').delete().eq('id', userId);
+        toast('Пользователь забанен (Софт)'); loadAdminList('users');
     };
 
-    window.toggleAdmin = async function(userId, currentStatus) {
-        await supabase.from('profiles').update({ is_admin: !currentStatus }).eq('id', userId);
-        toast('Статус админа изменён');
-        openAdminPanel();
-    };
+    window.unbanEmail = async function(email) { await supabase.from('banned_emails').delete().eq('email', email); toast('Email восстановлен'); loadAdminList('banned'); };
 
-    // SECURITY
+    // БЕЗОПАСНОСТЬ
     window.openSecurityModal = async function() {
         openM('mdlSecurity');
         const { data } = await supabase.from('devices').select('*').eq('user_id', S.u.id);
         const list = document.getElementById('devList'); list.innerHTML = '';
         document.getElementById('devCount').textContent = data ? data.length : 0;
+        if (data) data.forEach(d => list.innerHTML += `<div class="device-item" style="padding:12px; background:var(--surf2); margin-bottom:8px; border-radius:12px;"><div style="font-weight:600">${d.device_name}</div></div>`);
+    };
+    window.terminateAllSessions = async function() { if (!confirm('Завершить?')) return; await supabase.from('devices').delete().eq('user_id', S.u.id); await supabase.auth.signOut(); location.reload(); };
+    window.setPasswordProfile = async function() { const newPwd = prompt('Введите пароль:'); if (!newPwd || newPwd.length < 6) return toast('Мин. 6 символов'); await supabase.from('profiles').update({ password_hash: hashPass(newPwd) }).eq('id', S.u.id); toast('Пароль обновлен'); };
+
+    // ЧАТЫ
+    async function loadChats() {
+        const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name, is_pinned, is_muted)').eq('user_id', S.u.id);
+        const c = document.getElementById('cList'); c.innerHTML = '';
+        if (!data) return;
         
-        if (data && data.length > 0) {
-            data.forEach(d => {
-                list.innerHTML += `<div class="device-item"><i class="ph ph-device-mobile" style="font-size:24px"></i><div><div style="font-weight:600">${d.device_name}</div><div style="font-size:12px;color:var(--mut)">${new Date(d.created_at).toLocaleString()}</div></div></div>`;
-            });
-        } else {
-            list.innerHTML = '<div style="color:var(--mut);font-size:14px;text-align:center;">Нет данных об устройствах</div>';
-        }
+        // Сортировка: сначала закрепленные
+        data.sort((a, b) => (b.chats.is_pinned ? 1 : 0) - (a.chats.is_pinned ? 1 : 0));
+        
+        const bot = document.createElement('div'); bot.className = 'lIt';
+        bot.innerHTML = `<div class="ava" style="background:var(--bot);color:var(--ver)"><i class="ph-fill ph-robot"></i></div><div class="lInf"><div class="lT">Molju Code <i class="ph-fill ph-seal-check ver"></i></div></div>`;
+        bot.onclick = () => { document.getElementById('cName').innerHTML = 'Molju Code <i class="ph-fill ph-seal-check ver"></i>'; showScr('scrChat'); };
+        c.appendChild(bot);
+
+        data.forEach(item => {
+            const ch = item.chats; if (!ch) return;
+            const el = document.createElement('div'); el.className = 'lIt';
+            let pinIcon = ch.is_pinned ? '<i class="ph-fill ph-push-pin" style="margin-left:6px; font-size:14px; color:var(--acc)"></i>' : '';
+            let muteIcon = ch.is_muted ? '<i class="ph ph-bell-slash" style="margin-left:6px; font-size:14px; color:var(--mut)"></i>' : '';
+            
+            el.innerHTML = `<div class="ava">${ch.name[0].toUpperCase()}</div><div class="lInf"><div class="lT">${ch.name} ${pinIcon} ${muteIcon}</div></div>`;
+            el.onclick = () => openChat(ch.id, ch.name);
+            
+            // Долгое нажатие на чат для меню
+            let pressTimer;
+            el.addEventListener('touchstart', () => { pressTimer = setTimeout(() => { S.activeChatIdToCtx = ch.id; const m = document.getElementById('ctxChat'); m.classList.add('act'); }, 500); });
+            el.addEventListener('touchend', () => clearTimeout(pressTimer));
+            
+            c.appendChild(el);
+        });
+    }
+
+    window.pinChat = async () => { if (!S.activeChatIdToCtx) return; const { data } = await supabase.from('chats').select('is_pinned').eq('id', S.activeChatIdToCtx).single(); await supabase.from('chats').update({ is_pinned: !data.is_pinned }).eq('id', S.activeChatIdToCtx); document.getElementById('ctxChat').classList.remove('act'); loadChats(); };
+    window.muteChat = async () => { if (!S.activeChatIdToCtx) return; const { data } = await supabase.from('chats').select('is_muted').eq('id', S.activeChatIdToCtx).single(); await supabase.from('chats').update({ is_muted: !data.is_muted }).eq('id', S.activeChatIdToCtx); document.getElementById('ctxChat').classList.remove('act'); loadChats(); };
+    window.clearChat = async () => { if (!S.activeChatIdToCtx) return; if (!confirm('Очистить историю?')) return; await supabase.from('messages').delete().eq('chat_id', S.activeChatIdToCtx); document.getElementById('ctxChat').classList.remove('act'); toast('История очищена'); };
+
+    window.openChat = async function(id, name) {
+        S.cId = id; document.getElementById('cName').textContent = name; showScr('scrChat');
+        const c = document.getElementById('mBox'); c.innerHTML = '';
+        const { data } = await supabase.from('messages').select('*').eq('chat_id', id).order('created_at', { ascending: true });
+        if (data) data.forEach(m => { c.innerHTML += `<div class="msg ${m.sender_id === S.u.id ? 'msgM' : 'msgO'}"><span>${m.text}</span></div>`; });
+        c.scrollTop = c.scrollHeight;
     };
 
-    window.terminateAllSessions = async function() {
-        if (!confirm('Завершить все сессии?')) return;
-        await supabase.from('devices').delete().eq('user_id', S.u.id);
-        toast('Все сессии завершены');
-        await supabase.auth.signOut(); location.reload();
-    };
+    document.getElementById('bBack').onclick = () => { S.cId = null; showScr('scrMain'); loadChats(); };
+    document.getElementById('bSendMsg').onclick = async () => { const i = document.getElementById('mInp'), t = i.value.trim(); if (!t || !S.cId) return; i.value = ''; await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); openChat(S.cId, document.getElementById('cName').textContent); };
 
-    window.setPasswordProfile = async function() {
-        const newPwd = prompt('Введите новый пароль (навсегда):');
-        if (!newPwd || newPwd.length < 6) return toast('Пароль от 6 символов');
-        await supabase.from('profiles').update({ password_hash: hashPass(newPwd), last_password_set: new Date() }).eq('id', S.u.id);
-        toast('Пароль обновлен');
-    };
+    // ИСТОРИИ (КРУЖОЧКИ)
+    async function loadStories() {
+        const c = document.getElementById('sCont'); c.innerHTML = `<div class="sIt" onclick="toast('Добавление в разработке')"><div class="sCr ad" style="border:2px dashed var(--mut)"><i class="ph ph-plus" style="font-size:24px"></i></div><div class="sN">Добавить</div></div>`;
+        const { data } = await supabase.from('stories').select('*, profiles(username)').order('created_at', { ascending: false });
+        if (!data) return;
+        
+        // Оставляем только по 1 истории на пользователя
+        const seen = new Set();
+        data.forEach(s => {
+            if (seen.has(s.user_id)) return;
+            seen.add(s.user_id);
+            c.innerHTML += `<div class="sIt"><div class="sCr ha" style="background-image:url('${s.profiles?.avatar_url || ''}')"></div><div class="sN">${s.profiles?.username}</div></div>`;
+        });
+    }
 
-    // ПРОЧЕЕ
-    window.openEditProfile = function() {
-        document.getElementById('eUser').value = S.p.username; document.getElementById('eName').value = S.p.name;
-        const p = document.getElementById('eAvaPrev');
-        if (S.p.avatar_url) { p.style.backgroundImage = `url('${S.p.avatar_url}')`; p.innerHTML = ''; } else { p.style.backgroundImage = 'none'; p.innerHTML = '<i class="ph ph-camera"></i>'; }
-        openM('mdlEditProf');
-    };
-    document.getElementById('eAvaInp').onchange = function(e) {
-        const f = e.target.files[0]; if (!f) return;
-        const r = new FileReader();
-        r.onload = (ev) => { document.getElementById('eAvaPrev').style.backgroundImage = `url('${ev.target.result}')`; document.getElementById('eAvaPrev').innerHTML = ''; document.getElementById('eAvaPrev').dataset.img = ev.target.result; };
-        r.readAsDataURL(f);
-    };
-    document.getElementById('bSaveEdit').onclick = async function() {
-        const u = document.getElementById('eUser').value.trim().replace(/[^a-z0-9_]/g, ''), n = document.getElementById('eName').value.trim();
-        if (u.length < 3 || !n) return toast('Заполните поля');
-        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        const ud = { username: u, name: n }; const img = document.getElementById('eAvaPrev').dataset.img; if (img) ud.avatar_url = img;
-        const { error } = await supabase.from('profiles').update(ud).eq('id', S.u.id);
-        this.innerHTML = 'Сохранить'; this.disabled = false;
-        if (error) toast('Ошибка: ' + error.message);
-        else { closeM('mdlEditProf'); checkProf(); toast('Профиль обновлен'); }
-    };
-
-    window.savePrivacy = async function() { await supabase.from('profiles').update({ who_can_online: document.getElementById('privOnline').value, who_can_msg: document.getElementById('privMsg').value }).eq('id', S.u.id); toast('Сохранено'); };
     document.getElementById('bLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
 
-    // ЗАГЛУШКИ ДЛЯ РАБОТОСПОСОБНОСТИ
-    async function loadChats() { document.getElementById('cList').innerHTML = '<div class="lIt"><div class="ava" style="background:var(--bot);color:var(--ver)"><i class="ph-fill ph-robot"></i></div><div class="lInf"><div class="lT">Molju Code <i class="ph-fill ph-seal-check ver"></i></div><div class="lS">Уведомления</div></div></div>'; }
-    async function loadGifts() { document.getElementById('gCont').innerHTML = '<div style="color:var(--mut);font-size:14px;width:100%;text-align:center;">Нет подарков.</div>'; }
-    
     supabase.auth.getSession().then(({ data: { session } }) => { if (!session) { showScr('scrAuth'); showASt('stE'); } });
 });
 </script>
