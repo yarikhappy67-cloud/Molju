@@ -152,13 +152,11 @@
         <div class="auth-box">
         <div class="logo">Molju</div>
         
-        <!-- Стартовый экран -->
         <div class="aSt act" id="stStart">
             <button class="btn-saw btn-primary btn-huge" onclick="showASt('stLoginEmail')">Войти</button>
             <button class="btn-saw btn-huge" onclick="showASt('stRegEmail')">Регистрация</button>
         </div>
 
-        <!-- Экран Входа -->
         <div class="aSt" id="stLoginEmail">
             <p style="text-align:center;color:var(--mut);margin-bottom:20px">Вход в аккаунт</p>
             <input type="text" id="iLoginIdentifier" class="inp" placeholder="Email или @username">
@@ -166,7 +164,6 @@
             <button class="link-btn" onclick="showASt('stStart')">Назад</button>
         </div>
 
-        <!-- Экран Регистрации -->
         <div class="aSt" id="stRegEmail">
             <p style="text-align:center;color:var(--mut);margin-bottom:20px">Создание аккаунта</p>
             <input type="email" id="iRegEmail" class="inp" placeholder="Ваш Email">
@@ -174,7 +171,6 @@
             <button class="link-btn" onclick="showASt('stStart')">Назад</button>
         </div>
 
-        <!-- Ввод пароля -->
         <div class="aSt" id="stPass">
             <p style="text-align:center;color:var(--mut);margin-bottom:20px">Введите пароль для <b id="display-login-email" style="color:var(--txt)"></b></p>
             <input type="password" id="iPass" class="inp" placeholder="Пароль">
@@ -183,7 +179,6 @@
             <button class="link-btn" style="color:var(--mut)" onclick="showASt('stLoginEmail')">Назад</button>
         </div>
 
-        <!-- Ввод кода -->
         <div class="aSt" id="stO">
             <p style="text-align:center;color:var(--mut);margin-bottom:20px">Код отправлен на <br><b id="dEmail" style="color:var(--txt)"></b></p>
             <input type="text" id="iOtp" class="inp" placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:5px">
@@ -191,7 +186,6 @@
             <button class="link-btn" id="bResendOtp">Отправить код заново</button>
         </div>
 
-        <!-- Создание профиля -->
         <div class="aSt" id="stP">
             <p style="text-align:center;color:var(--mut);margin-bottom:20px">Придумайте профиль</p>
             <input type="text" id="iUser" class="inp" placeholder="@username">
@@ -287,10 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const supabase = window.supabase.createClient('https://dhmqbjfzkrmsbrwzenna.supabase.co', 'sb_publishable_UddiQCyX7-rYk12LKAC3zg_NfuzGNcI', { auth: { detectSessionInUrl: true, persistSession: true } });
     const S = { u: null, p: null, cId: null, authEmail: '', loginProfile: null, regEmail: '', activeMsgToCtx: null, adminSearchResult: null };
     
-    // Восстанавливаем email после перезагрузки
     S.authEmail = localStorage.getItem('molju_auth_email') || '';
-
-    // Флаг для защиты от двойного вызова checkProf
     let isCheckingProfile = false;
 
     window.toast = (m) => { const c = document.getElementById('tst'); const t = document.createElement('div'); t.className = 'tMsg'; t.innerHTML = m; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 4000); };
@@ -304,9 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const hashPass = (p) => btoa(p + 'molju_secret_salt');
 
-    // ==========================================
-    // 1. ЗАЩИТА ЮЗЕРНЕЙМОВ
-    // ==========================================
     const OWNER_EMAIL = 'yarikhappy67@gmail.com'; 
     const RESERVED_USERNAMES = ['admin', 'molju', 'support', 'help', 'moderator', 'bot', 'molju_code', 'system'];
 
@@ -314,13 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!u) return 'Введите юзернейм';
         if (u.length < 3) return 'Минимум 3 символа';
         if (!/^[a-z0-9_]+$/.test(u)) return 'Только латиница, цифры и _';
-        
-        if (RESERVED_USERNAMES.includes(u.toLowerCase())) {
-            return 'Этот юзернейм зарезервирован';
-        }
-        if (u.toLowerCase() === 'monk' && email.toLowerCase() !== OWNER_EMAIL) {
-            return 'Этот юзернейм зарезервирован';
-        }
+        if (RESERVED_USERNAMES.includes(u.toLowerCase())) return 'Этот юзернейм зарезервирован';
+        if (u.toLowerCase() === 'monk' && email.toLowerCase() !== OWNER_EMAIL) return 'Этот юзернейм зарезервирован';
         return null;
     }
 
@@ -330,17 +313,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 2. ВХОД (ПРОВЕРКА EMAIL/ЛОГИНА)
+    // ВХОД / АВТОРИЗАЦИЯ
     // ==========================================
     document.getElementById('bLoginCheck').onclick = async function() {
         if (this.disabled) return;
         const input = document.getElementById('iLoginIdentifier').value.trim();
         if (!input) return toast('Введите Email или @username');
-        
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         
         let p = null, error = null;
-        
         if (input.includes('@') && input.includes('.')) {
             const res = await supabase.from('profiles').select('*').eq('email', input).maybeSingle();
             p = res.data; error = res.error;
@@ -350,180 +331,101 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         this.innerHTML = 'Продолжить'; this.disabled = false;
-        
-        if (error) {
-            console.error('login check error:', error);
-            return toast('Ошибка БД: ' + error.message);
-        }
+        if (error) return toast('Ошибка БД: ' + error.message);
         
         if (!p) {
-            toast('Аккаунт не найден. Попробуйте зарегистрироваться.');
-            if (input.includes('@') && input.includes('.')) {
-                document.getElementById('iRegEmail').value = input;
-            }
-            showASt('stRegEmail');
-            return;
+            toast('Аккаунт не найден. Зарегистрируйтесь.');
+            if (input.includes('@') && input.includes('.')) document.getElementById('iRegEmail').value = input;
+            return showASt('stRegEmail');
         }
         
         S.loginProfile = p;
         S.authEmail = p.email;
-        try {
-            localStorage.setItem('molju_auth_email', p.email);
-        } catch(e) {}
+        try { localStorage.setItem('molju_auth_email', p.email); } catch(e) {}
         document.getElementById('display-login-email').textContent = p.email;
         showASt('stPass');
     };
 
-    // ==========================================
-    // 3. ВХОД ПО ПАРОЛЮ
-    // ==========================================
     document.getElementById('bLoginPass').onclick = async function() {
         if (this.disabled) return;
         const pwd = document.getElementById('iPass').value;
         if (!pwd) return toast('Введите пароль');
-        
-        if (S.loginProfile.password_hash !== hashPass(pwd)) {
-            return toast('Неверный пароль');
-        }
+        if (S.loginProfile.password_hash !== hashPass(pwd)) return toast('Неверный пароль');
         
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        
         try {
-            const { error } = await supabase.auth.signInWithOtp({ 
-                email: S.authEmail,
-                options: { shouldCreateUser: false }
-            });
-            
+            const { error } = await supabase.auth.signInWithOtp({ email: S.authEmail, options: { shouldCreateUser: false } });
             if (error) throw error;
-            
             try { localStorage.setItem('molju_auth_email', S.authEmail); } catch(e) {}
             document.getElementById('dEmail').textContent = S.authEmail;
             showASt('stO');
-            toast('Код отправлен на почту!');
-        } catch (e) {
-            toast('Ошибка: ' + e.message);
-        } finally {
-            this.innerHTML = 'Войти'; this.disabled = false;
-        }
+            toast('Код отправлен!');
+        } catch (e) { toast('Ошибка: ' + e.message); } finally { this.innerHTML = 'Войти'; this.disabled = false; }
     };
 
-    // ==========================================
-    // 4. ВОССТАНОВЛЕНИЕ ПАРОЛЯ
-    // ==========================================
     document.getElementById('bForgotPass').onclick = async function() {
         if (this.disabled || !S.authEmail) return;
-        
         this.textContent = 'Отправка...'; this.disabled = true;
-        
-        const { error } = await supabase.auth.signInWithOtp({ 
-            email: S.authEmail,
-            options: { shouldCreateUser: false }
-        });
-        
+        const { error } = await supabase.auth.signInWithOtp({ email: S.authEmail, options: { shouldCreateUser: false } });
         this.textContent = 'Забыли пароль?'; this.disabled = false;
-        
         if (error) return toast('Ошибка: ' + error.message);
-        
         try { localStorage.setItem('molju_auth_email', S.authEmail); } catch(e) {}
         document.getElementById('dEmail').textContent = S.authEmail;
         showASt('stO');
         toast('Код отправлен!');
     };
 
-    // ==========================================
-    // 5. РЕГИСТРАЦИЯ
-    // ==========================================
     document.getElementById('bRegCheck').onclick = async function() {
         if (this.disabled) return;
         const email = document.getElementById('iRegEmail').value.trim();
         if (!email) return toast('Введите Email');
-        
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        
         const { data: p, error: regError } = await supabase.from('profiles').select('*').eq('email', email).maybeSingle();
-        
         this.innerHTML = 'Зарегистрироваться'; this.disabled = false;
-        
         if (regError) return toast('Ошибка БД: ' + regError.message);
-        
-        if (p) {
-            return toast('Этот Email уже зарегистрирован. Войдите.');
-        }
+        if (p) return toast('Этот Email уже зарегистрирован. Войдите.');
         
         S.authEmail = email;
-        const { error } = await supabase.auth.signInWithOtp({ 
-            email: email,
-            options: { shouldCreateUser: true }
-        });
+        const { error } = await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } });
         if (error) return toast(error.message);
-        
         try { localStorage.setItem('molju_auth_email', email); } catch(e) {}
         document.getElementById('dEmail').textContent = email;
         showASt('stO');
     };
 
-    // ==========================================
-    // 6. ПРОВЕРКА КОДА
-    // ==========================================
     document.getElementById('bVerify').onclick = async function() {
         if (this.disabled) return;
-        
         const code = document.getElementById('iOtp').value.trim();
         const email = S.authEmail || localStorage.getItem('molju_auth_email');
-        
-        if (!email) {
-            toast('Email потерян. Введите заново.');
-            return showASt('stLoginEmail');
-        }
+        if (!email) { toast('Email потерян.'); return showASt('stLoginEmail'); }
         if (code.length < 6) return toast('Введите код полностью');
 
-        this.innerHTML = '<div class="ld"></div>'; 
-        this.disabled = true;
-
+        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
         try {
-            const { error } = await supabase.auth.verifyOtp({ 
-                email: email, 
-                token: code, 
-                type: 'email' 
-            });
-            
+            const { error } = await supabase.auth.verifyOtp({ email: email, token: code, type: 'email' });
             if (error) {
                 if (error.message.includes('expired') || error.message.includes('invalid')) {
                     toast('Код устарел. Отправляем новый...');
                     await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } });
-                    toast('Новый код отправлен на почту!');
+                    toast('Новый код отправлен!');
                     document.getElementById('iOtp').value = '';
-                } else {
-                    toast('Ошибка: ' + error.message);
-                }
+                } else { toast('Ошибка: ' + error.message); }
                 return;
             }
-            
             toast('Успешный вход!');
-            
-        } catch (err) {
-            toast('Ошибка сети: ' + err.message);
-        } finally {
-            this.innerHTML = 'Подтвердить';
-            this.disabled = false;
-        }
+        } catch (err) { toast('Ошибка сети: ' + err.message); } finally { this.innerHTML = 'Подтвердить'; this.disabled = false; }
     };
 
     document.getElementById('bResendOtp').onclick = async function() {
         if (this.disabled) return;
         const email = S.authEmail || localStorage.getItem('molju_auth_email');
         if (!email) return toast('Email не найден');
-        
         this.textContent = 'Отправка...'; this.disabled = true;
         const { error } = await supabase.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } });
-        if (error) toast('Ошибка: ' + error.message);
-        else toast('Код отправлен заново!');
+        if (error) toast('Ошибка: ' + error.message); else toast('Код отправлен заново!');
         this.textContent = 'Отправить код заново'; this.disabled = false;
     };
 
-    // ==========================================
-    // 7. ОТСЛЕЖИВАНИЕ СОСТОЯНИЯ
-    // ==========================================
     supabase.auth.onAuthStateChange(async (ev, ses) => {
         if ((ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION') && ses) {
             S.u = ses.user;
@@ -532,63 +434,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 8. ЗАГРУЗКА ПРОФИЛЯ (ГЛАВНАЯ ФУНКЦИЯ)
+    // ЗАГРУЗКА ПРОФИЛЯ (С ЗАЩИТОЙ ОТ ПЕРЕПОЛНЕНИЯ)
     // ==========================================
     async function checkProf() {
-        if (!S.u) return;
-        if (isCheckingProfile) return;
+        if (!S.u || isCheckingProfile) return;
         isCheckingProfile = true;
 
         try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', S.u.id)
-                .maybeSingle();
+            const { data, error } = await supabase.from('profiles').select('*').eq('id', S.u.id).maybeSingle();
+            if (error) { toast('Ошибка загрузки: ' + error.message); showScr('scrAuth'); return; }
+            if (!data || !data.username || !data.password_hash) { showScr('scrAuth'); showASt('stP'); return; }
 
-            if (error) {
-                console.error('checkProf error:', error);
-                toast('Ошибка загрузки: ' + error.message);
-                showScr('scrAuth');
-                return;
-            }
-
-            // Если профиля нет или он недозаполнен
-            if (!data || !data.username || !data.password_hash) {
-                showScr('scrAuth');
-                showASt('stP');
-                return;
-            }
-
-            // Профиль есть — пускаем в приложение
             S.p = data;
             try { localStorage.removeItem('molju_auth_email'); } catch(e) {}
 
-            // БЕЗОПАСНОЕ СОХРАНЕНИЕ В LOCALSTORAGE (только легкие данные)
+            // Легкое сохранение (без Base64 обоев)
             try {
                 let accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
-                
-                // Убираем тяжелые данные (обои), сохраняем только инфу для переключателя
                 const lightProfile = {
-                    id: data.id,
-                    name: data.name,
-                    username: data.username,
-                    email: data.email,
-                    avatar_url: (data.avatar_url || '').length > 200 ? '' : data.avatar_url // не сохраняем Base64 аватарку
+                    id: data.id, name: data.name, username: data.username, email: data.email,
+                    avatar_url: (data.avatar_url || '').length > 200 ? '' : data.avatar_url
                 };
-
                 accounts = accounts.filter(a => a.id !== data.id);
                 accounts.unshift(lightProfile);
-                if (accounts.length > 5) accounts = accounts.slice(0, 5); // Максимум 5 аккаунтов
-                
+                if (accounts.length > 5) accounts = accounts.slice(0, 5);
                 localStorage.setItem('molju_accounts', JSON.stringify(accounts));
             } catch (storageError) {
-                console.warn('LocalStorage переполнен. Очищаем старые данные.', storageError);
                 try { localStorage.removeItem('molju_accounts'); } catch(e) {}
                 try {
-                    localStorage.setItem('molju_accounts', JSON.stringify([{
-                        id: data.id, name: data.name, username: data.username, email: data.email, avatar_url: ''
-                    }]));
+                    localStorage.setItem('molju_accounts', JSON.stringify([{ id: data.id, name: data.name, username: data.username, email: data.email, avatar_url: '' }]));
                 } catch (e) {}
             }
 
@@ -598,11 +472,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('bAdminPanel').style.display = (data.username === 'monk') ? 'flex' : 'none';
 
             applyWallpaper(data.chat_wallpaper, data.chat_wallpaper_type);
-
             showScr('scrMain');
             loadChats();
         } catch (e) {
-            console.error('checkProf catch:', e);
             toast('Критическая ошибка: ' + e.message);
             showScr('scrAuth');
         } finally {
@@ -610,15 +482,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ==========================================
-    // 9. СОХРАНЕНИЕ ПРОФИЛЯ (ПРИ РЕГИСТРАЦИИ)
-    // ==========================================
     document.getElementById('bSaveProfile').onclick = async function() {
         if (this.disabled) return;
         const u = document.getElementById('iUser').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
         const n = document.getElementById('iName').value.trim();
         const pwd = document.getElementById('iNewPass').value;
-        
         if (!n) return toast('Введите имя');
         if (pwd.length < 6) return toast('Пароль от 6 символов');
         
@@ -627,57 +495,128 @@ document.addEventListener('DOMContentLoaded', () => {
         if (err) return toast(err);
         
         this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
-        
         const { data: existing, error: checkError } = await supabase.from('profiles').select('*').eq('username', u).maybeSingle();
-        if (checkError) {
-            this.innerHTML = 'Создать аккаунт'; this.disabled = false;
-            return toast('Ошибка БД: ' + checkError.message);
-        }
-        
-        if (existing && existing.id !== S.u.id) {
-            this.innerHTML = 'Создать аккаунт'; this.disabled = false;
-            return toast('Этот юзернейм уже занят');
-        }
+        if (checkError) { this.innerHTML = 'Создать'; this.disabled = false; return toast('Ошибка БД: ' + checkError.message); }
+        if (existing && existing.id !== S.u.id) { this.innerHTML = 'Создать'; this.disabled = false; return toast('Юзернейм занят'); }
         
         const { error } = await supabase.from('profiles').upsert({ 
-            id: S.u.id,
-            username: u, 
-            name: n, 
-            email: email, 
-            password_hash: hashPass(pwd),
-            last_password_set: new Date()
+            id: S.u.id, username: u, name: n, email: email, password_hash: hashPass(pwd), last_password_set: new Date()
         }, { onConflict: 'id' });
         
         this.innerHTML = 'Создать аккаунт'; this.disabled = false;
-        
         if (error) return toast('Ошибка БД: ' + error.message);
-        
         await checkProf();
     };
 
-    // 24-ЧАСОВАЯ ЗАЩИТА ПАРОЛЯ
+    // ==========================================
+    // ДОПИСАННЫЕ ФУНКЦИИ (КОТОРЫХ НЕ БЫЛО)
+    // ==========================================
+    window.openEditProfile = function() {
+        if(!S.p) return;
+        document.getElementById('eUser').value = S.p.username || '';
+        document.getElementById('eName').value = S.p.name || '';
+        document.getElementById('eAvaPrev').style.backgroundImage = S.p.avatar_url ? `url('${S.p.avatar_url}')` : 'none';
+        document.getElementById('eAvaPrev').innerHTML = S.p.avatar_url ? '' : '<i class="ph ph-camera"></i>';
+        openM('mdlEditProf');
+    };
+
+    document.getElementById('eAvaInp').onchange = function(e) {
+        const f = e.target.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => {
+            document.getElementById('eAvaPrev').style.backgroundImage = `url('${ev.target.result}')`;
+            document.getElementById('eAvaPrev').innerHTML = '';
+            document.getElementById('eAvaPrev').dataset.newAva = ev.target.result;
+        };
+        r.readAsDataURL(f);
+    };
+
+    document.getElementById('bSaveEdit').onclick = async function() {
+        if(!S.p) return;
+        const newUser = document.getElementById('eUser').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+        const newName = document.getElementById('eName').value.trim();
+        const newAva = document.getElementById('eAvaPrev').dataset.newAva;
+        
+        if (!newName) return toast('Введите имя');
+        if (newUser !== S.p.username) {
+            const err = validateUsername(newUser, S.p.email);
+            if (err) return toast(err);
+            const { data: exist } = await supabase.from('profiles').select('id').eq('username', newUser).maybeSingle();
+            if (exist && exist.id !== S.u.id) return toast('Юзернейм занят');
+        }
+
+        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
+        const updateData = { username: newUser, name: newName };
+        if (newAva) updateData.avatar_url = newAva;
+
+        const { error } = await supabase.from('profiles').update(updateData).eq('id', S.u.id);
+        this.innerHTML = 'Сохранить'; this.disabled = false;
+        
+        if (error) return toast('Ошибка: ' + error.message);
+        toast('Профиль обновлен!');
+        closeM('mdlEditProf');
+        await checkProf();
+    };
+
+    window.openSecurityModal = async function() {
+        openM('mdlSecurity');
+        const list = document.getElementById('devList');
+        list.innerHTML = '<div class="ld" style="margin:0 auto;"></div>';
+        const { data: sessions, error } = await supabase.auth.getSession();
+        if (error || !sessions.session) {
+            list.innerHTML = '<div style="color:var(--mut)">Ошибка загрузки сессий</div>';
+            return;
+        }
+        const s = sessions.session;
+        document.getElementById('devCount').textContent = '1';
+        const date = new Date(s.expires_at * 1000).toLocaleString();
+        list.innerHTML = `<div style="padding:12px; background:var(--surf2); border-radius:12px; border:1px solid var(--brd); font-size:14px;">
+            <div style="font-weight:700; color:var(--acc); margin-bottom:4px;">Текущее устройство</div>
+            <div style="color:var(--mut); font-size:12px;">Действует до: ${date}</div>
+        </div>`;
+    };
+
+    window.terminateAllSessions = async function() {
+        if(!confirm('Выйти на всех устройствах?')) return;
+        await supabase.auth.signOut({ scope: 'global' });
+        location.reload();
+    };
+
     window.setPasswordProfile = async function() {
         if (!S.p) return;
-        
         const lastSet = S.p.last_password_set ? new Date(S.p.last_password_set).getTime() : 0;
         const hours = (Date.now() - lastSet) / 36e5;
-        
-        if (hours < 24) {
-            return toast(`Пароль можно изменить только через ${Math.ceil(24 - hours)} ч.`);
-        }
+        if (hours < 24) return toast(`Пароль можно изменить только через ${Math.ceil(24 - hours)} ч.`);
         
         const newPwd = prompt('Введите новый пароль:');
         if (!newPwd || newPwd.length < 6) return toast('Пароль от 6 символов');
         
         const { error } = await supabase.from('profiles').update({ password_hash: hashPass(newPwd), last_password_set: new Date() }).eq('id', S.u.id);
         if (error) return toast('Ошибка: ' + error.message);
-        
         S.p.password_hash = hashPass(newPwd);
         S.p.last_password_set = new Date();
         toast('Пароль обновлен!');
     };
 
-    // ОСТАЛЬНЫЕ ФУНКЦИИ (ОБОИ, АДМИНКА, ЧАТЫ)
+    document.getElementById('bDoSearch').onclick = async function() {
+        const q = document.getElementById('sInpGlob').value.trim().replace('@','');
+        if (!q) return;
+        this.innerHTML = '<div class="ld"></div>'; this.disabled = true;
+        const { data: user } = await supabase.from('profiles').select('*').eq('username', q).maybeSingle();
+        this.innerHTML = 'Найти'; this.disabled = false;
+        
+        if (!user) return toast('Пользователь не найден');
+        if (user.id === S.u.id) return toast('Это вы');
+        
+        // Создаем чат или переходим в существующий
+        closeM('mdlSearch');
+        toast(`Найден: ${user.name} (@${user.username})`);
+        // В будущем тут можно сделать создание личного чата
+    };
+
+    // ==========================================
+    // ОБОИ И АДМИНКА
+    // ==========================================
     window.applyWallpaper = function(url, type) {
         const img = document.getElementById('globalBgImg'), vid = document.getElementById('globalBgVid');
         if (!url || url === 'default') { img.style.display = 'none'; vid.style.display = 'none'; vid.pause(); return; }
@@ -734,10 +673,9 @@ document.addEventListener('DOMContentLoaded', () => {
         toast('Рассылка отправлена!');
     };
 
-    function loadStories() {
-        // TODO
-    }
-
+    // ==========================================
+    // ЧАТЫ
+    // ==========================================
     async function loadChats() {
         const { data } = await supabase.from('chat_members').select('chat_id, chats(id, name)').eq('user_id', S.u.id);
         const c = document.getElementById('cList'); c.innerHTML = '';
@@ -760,8 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bBack').onclick = () => { S.cId = null; showScr('scrMain'); loadChats(); };
     document.getElementById('bSendMsg').onclick = async () => { 
         const i = document.getElementById('mInp'), t = i.value.trim(); 
-        if (!t || !S.cId) return; 
-        i.value = ''; 
+        if (!t || !S.cId) return; i.value = ''; 
         await supabase.from('messages').insert({ chat_id: S.cId, sender_id: S.u.id, text: t }); 
         openChat(S.cId, document.getElementById('cName').textContent); 
     };
@@ -787,7 +724,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('bLogout').onclick = logoutFunc;
 
+    // ==========================================
     // ПЕРЕКЛЮЧАТЕЛЬ АККАУНТОВ
+    // ==========================================
     let pressTimer;
     const navProfileBtn = document.getElementById('navProfileBtn');
     navProfileBtn.addEventListener('touchstart', (e) => { pressTimer = setTimeout(() => { e.preventDefault(); openAccountSwitcher(); }, 500); });
@@ -796,11 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openAccountSwitcher = function() {
         const popup = document.getElementById('accountSwitcher'); const list = document.getElementById('accountList'); list.innerHTML = '';
         let accounts = [];
-        try {
-            accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]');
-        } catch(e) {
-            localStorage.removeItem('molju_accounts');
-        }
+        try { accounts = JSON.parse(localStorage.getItem('molju_accounts') || '[]'); } catch(e) { localStorage.removeItem('molju_accounts'); }
         
         if (accounts.length === 0) { popup.classList.add('act'); return; }
         accounts.forEach(acc => {
@@ -816,14 +751,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addNewAccount = function() { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
     window.switchAccount = function(email) { document.getElementById('accountSwitcher').classList.remove('act'); logoutFunc(); };
 
-    // НАЧАЛЬНАЯ ПРОВЕРКА СЕССИИ
+    // ==========================================
+    // НАЧАЛО РАБОТЫ
+    // ==========================================
     supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) {
-            showScr('scrAuth');
-        } else {
-            S.u = session.user;
-            checkProf();
-        }
+        if (!session) showScr('scrAuth');
+        else { S.u = session.user; checkProf(); }
     });
 });
 </script>
